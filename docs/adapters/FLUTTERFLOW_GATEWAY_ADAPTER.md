@@ -120,10 +120,25 @@ Because FlutterFlow Project API is beta:
 - recovery/rollback procedure is recorded and tested;
 - exact adapter source SHA and deployed gateway version are recorded.
 
+## Live gateway registration evidence
+
+The production gateway service/action registry now contains all six FlutterFlow actions:
+
+- `project.list`
+- `yaml.files.list`
+- `yaml.read`
+- `yaml.validate`
+- `yaml.update`
+- `code.export`
+
+All six are currently `enabled = false` and `provider_status = planned`. `yaml.update` and `code.export` are marked approval-required. A direct authorization check for `flutterflow / project.list` currently fails closed with `capability_not_enabled`, proving that registration does not equal activation.
+
 ## Current state
 
 - Documented: **yes**
 - Registered as first-class gateway target: **yes**
+- Production service/action registry entry: **yes**
+- Fail-closed disabled-capability proof: **yes**
 - Provider token installed in Vault: **not yet proven**
 - Read adapter implemented: **not yet**
 - Read adapter tested: **not yet**
