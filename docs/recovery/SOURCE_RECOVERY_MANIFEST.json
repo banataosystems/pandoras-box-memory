@@ -1,0 +1,43 @@
+{
+  "manifest_version": "1.0",
+  "generated_at": "2026-08-09T00:43:00+08:00",
+  "canonical_repository": "banataosystems/pandoras-box-memory",
+  "legacy_repository": "mbanatao/Memory",
+  "legacy_repository_policy": "recovery_only_blacklisted_for_new_operational_work",
+  "preserved_archive": {
+    "name": "Memory-main (4)(2).zip",
+    "size_bytes": 1085918,
+    "sha256": "b0cfc83e04798887d9e889f45a1b9c8cf0e42cc51ce7f46fb3923b3a22434f2b",
+    "recorded_source_commit": "7d4ec6cb30edb922024cf05f043807759d1fded7",
+    "parity_with_active_production": "unverified"
+  },
+  "active_deployment_evidence": {
+    "source_repository_observed": "mbanatao/Memory",
+    "branch_observed": "main",
+    "commit_observed_abbrev": "49e0dcd",
+    "mcp_route_observations": {
+      "/api/mcp": "application route reached; unauthorized without successful auth in observed requests",
+      "/mcp": "404 in observed Memory runtime requests",
+      "/mcp/sse": "404 in observed Memory runtime requests"
+    },
+    "exact_source_relationship_to_archive": "unresolved"
+  },
+  "required_before_schema_or_auth_mutation": [
+    "unpack and inventory preserved source archive",
+    "compute deterministic file hash manifest",
+    "recover source parent/history provenance",
+    "reconcile archive source with active Vercel deployment source",
+    "verify live Supabase schema and migration parity",
+    "verify current MCP and OAuth route map",
+    "record environment and rollback targets",
+    "run recovered baseline tests"
+  ],
+  "status": {
+    "canonical_repository_established": true,
+    "always_on_architecture_documented": true,
+    "recovery_artifact_preserved": true,
+    "source_parity_verified": false,
+    "live_schema_parity_verified": false,
+    "production_mutation_authorized_by_recovery_gate": false
+  }
+}
