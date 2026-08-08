@@ -4,7 +4,7 @@
 
 ## Current verified facts
 
-The original `https://mcpmaster.vercel.app/mcp` path is still intercepted by Vercel Deployment Protection/SSO. That is no longer the only machine-access path and must not be treated as the sole Pandora connection blocker.
+The original `https://mcpmaster.vercel.app/mcp` path is still intercepted by Vercel Deployment Protection/SSO. A direct Memory MCP path also exists, but current production evidence now proves that its OAuth flow is not fully usable.
 
 ### Direct production Memory OAuth MCP
 
@@ -18,21 +18,30 @@ The production Memory application exposes:
 - dynamic registration endpoint: `/oauth/register`
 - login/callback: `/auth/login`, `/auth/callback`
 
-Live behavior verified:
+Verified reachable behavior:
 
-- `/api/mcp` reaches application auth directly and returns HTTP 401 `mcp_token_missing` when no bearer token is supplied;
-- the 401 includes `WWW-Authenticate` with the correct MCP protected-resource metadata URL;
+- `/api/mcp` reaches application auth directly rather than Vercel SSO;
 - protected-resource metadata returns HTTP 200;
-- authorization-server metadata returns HTTP 200;
-- OAuth metadata advertises authorization-code and refresh-token grants, PKCE S256, public-client token auth, and `pandora.memory.read`, `pandora.memory.write`, `offline_access` scopes;
-- `/oauth/authorize` returns application-level `invalid_request` when called without required OAuth parameters, proving the route is active rather than 404/SSO intercepted;
-- `/auth/login` is active and exposes GitHub + existing-user magic-link session flows.
+- authorization-server metadata returns HTTP 200 and advertises authorization-code + refresh-token grants, PKCE S256, public-client token auth, and `pandora.memory.read`, `pandora.memory.write`, `offline_access` scopes;
+- `/oauth/authorize` and `/auth/login` are application routes rather than 404/SSO interception.
 
-Vercel build history proves both the known-good OAuth production deployment and the current production deployment contain the OAuth/MCP route set. The known-good OAuth build passed 113 test files / 795 tests, including OAuth discovery, token lifecycle, GitHub session, MCP auth, and MCP tool tests.
+### New verified blocker: dynamic client registration fails in current production
+
+ChatGPT connector creation on 2026-08-09 PHT reached `/oauth/register` but returned HTTP 500. Vercel production runtime errors for project `prj_brg3BJDcHfSftHH84NhnFtDJAnDO` show six failures on deployment `dpl_FvN5R5u7bzjcFiANisaNfkZC2mTT` with the exact error:
+
+`mcp_oauth_signing_secret_missing`
+
+Observed failure window: 2026-08-08 20:46:09Z through 21:21:25Z.
+
+This supersedes the earlier statement that direct Memory OAuth was fully working. Discovery is healthy, but dynamic registration is currently blocked by missing runtime signing-secret configuration required by the present OAuth implementation.
+
+Historical Vercel evidence also shows that deployment `dpl_EPXdLqmMJn9aEXyH5WyggDf37PKJ` previously returned HTTP 201 for `/oauth/register` twice. Therefore DCR has worked on this same Vercel project before; the present problem is a regression/configuration gap, not proof that ChatGPT or the public hostname cannot support DCR.
+
+Do not call the direct Memory OAuth path production-verified until the signing-secret configuration is restored and a fresh ChatGPT DCR + authorization flow succeeds end to end.
 
 ### Reusable Supabase machine gateway
 
-A second long-term machine ingress is now live as Supabase Edge Function `pandora-machine-gateway` v3.
+A second long-term machine ingress exists as Supabase Edge Function `pandora-machine-gateway` v3.
 
 It provides:
 
@@ -51,12 +60,13 @@ Canonical source:
 
 ## Current repair strategy
 
-Use two complementary paths:
+1. Restore the missing production OAuth signing-secret configuration for the current Memory Vercel project without placing the secret in GitHub, logs, screenshots, analytics, or semantic Memory.
+2. Redeploy/restart only as required by the platform so the production deployment receives the restored configuration.
+3. Re-run ChatGPT connector creation using `https://pandorasbox-memory.vercel.app/api/mcp`.
+4. Require proof of DCR success, owner authorization, refresh/offline access, authenticated `memory.health`, approved `memory.search`, and wrong/missing-client denial.
+5. Continue the long-term migration of ProjectOS and future automated adapters to the reusable Supabase machine gateway using short-lived workload identity or user OAuth plus least-privilege grants.
 
-1. **Immediate ChatGPT reconnection:** connect ChatGPT directly to the already-live production Memory OAuth MCP endpoint at `https://pandorasbox-memory.vercel.app/api/mcp` and complete its existing OAuth flow.
-2. **Long-term machine standardization:** migrate ProjectOS and future automated adapters to the Supabase machine gateway using short-lived workload identity or user OAuth plus least-privilege grants.
-
-The new Supabase OAuth `/oauth/consent` overlay remains a future gateway authorization path. It is **not required for immediate Pandora reconnection** because the production Memory application already has a functioning OAuth authorization server at `/oauth/authorize`.
+The new Supabase OAuth `/oauth/consent` overlay remains a separate future gateway authorization path. It is not a substitute for repairing the direct Memory DCR regression unless the gateway path is independently completed and production-verified.
 
 ## Forbidden shortcuts
 
@@ -71,6 +81,7 @@ The new Supabase OAuth `/oauth/consent` overlay remains a future gateway authori
 
 Do not call Pandora fully reconnected until:
 
+- current production `/oauth/register` returns a valid DCR success response for ChatGPT;
 - ChatGPT completes OAuth against the live Memory MCP resource;
 - authenticated Memory health/search succeeds;
 - wrong/missing client identity remains denied;
