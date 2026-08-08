@@ -112,7 +112,9 @@ from public.pandora_service_principals psp
 where psp.principal_key = 'projectos-mcpmaster-production'
   and psp.is_active
 on conflict (principal_key) do update set
+  principal_type = excluded.principal_type,
   user_id = excluded.user_id,
+  oauth_client_id = null,
   oidc_issuer = excluded.oidc_issuer,
   oidc_audience = excluded.oidc_audience,
   oidc_subject = excluded.oidc_subject,
@@ -128,10 +130,18 @@ insert into public.gateway_grants (
   resource_pattern,
   is_active
 )
-select id, 'pandora_memory', 'health', 'production', null, true
-from public.gateway_principals
-where principal_key = 'projectos-mcpmaster-production'
-on conflict do nothing;
+select gp.id, 'pandora_memory', 'health', 'production', null, true
+from public.gateway_principals gp
+where gp.principal_key = 'projectos-mcpmaster-production'
+  and not exists (
+    select 1
+    from public.gateway_grants gg
+    where gg.principal_id = gp.id
+      and gg.service_key = 'pandora_memory'
+      and gg.action_pattern = 'health'
+      and gg.environment = 'production'
+      and gg.resource_pattern is null
+  );
 
 insert into public.gateway_grants (
   principal_id,
@@ -141,9 +151,17 @@ insert into public.gateway_grants (
   resource_pattern,
   is_active
 )
-select id, 'pandora_memory', 'search', 'production', 'namespace:real_life', true
-from public.gateway_principals
-where principal_key = 'projectos-mcpmaster-production'
-on conflict do nothing;
+select gp.id, 'pandora_memory', 'search', 'production', 'namespace:real_life', true
+from public.gateway_principals gp
+where gp.principal_key = 'projectos-mcpmaster-production'
+  and not exists (
+    select 1
+    from public.gateway_grants gg
+    where gg.principal_id = gp.id
+      and gg.service_key = 'pandora_memory'
+      and gg.action_pattern = 'search'
+      and gg.environment = 'production'
+      and gg.resource_pattern = 'namespace:real_life'
+  );
 
 commit;
