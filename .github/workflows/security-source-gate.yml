@@ -1,0 +1,19 @@
+name: Pandora source security gate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  no-literal-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Reject literal secrets from runtime source
+        shell: bash
+        run: bash scripts/check_no_literal_secrets.sh
