@@ -1,68 +1,91 @@
-# Pandora Machine Gateway — OAuth Consent Surface
+# Pandora OAuth Surfaces
 
-**Status:** required and not yet deployed
+**Status:** direct production Memory OAuth is live; new Supabase-gateway consent UI remains future work
 
-## Verified current state
+## Immediate ChatGPT reconnection path
 
-- Supabase OAuth 2.1 Server has been enabled for Memory project `ivmvufhcsezyhczzondn`.
-- OAuth authorization UI path is expected at the Memory application's configured Site URL plus `/oauth/consent`.
-- The current Memory Site URL host `https://pandorasbox-memory.vercel.app` is reachable.
-- `https://pandorasbox-memory.vercel.app/oauth/consent` currently returns HTTP 404.
-- Therefore OAuth Server **enabled** is not yet equivalent to ChatGPT/MCP OAuth **usable**.
+The current production Memory application already exposes a working OAuth-protected MCP resource at:
 
-## Required consent behavior
+`https://pandorasbox-memory.vercel.app/api/mcp`
 
-The consent page must:
+Its live OAuth discovery points to the same Memory application as authorization server and exposes:
+
+- `/oauth/authorize`
+- `/oauth/token`
+- `/oauth/register`
+- `/auth/login`
+- `/auth/callback`
+
+The current production route set is application-level reachable and not intercepted by Vercel SSO. This is the preferred immediate ChatGPT reconnection path because it already implements MCP OAuth, PKCE S256, dynamic registration, refresh tokens/offline access, and the existing Memory owner login/session flow.
+
+Do not block immediate Pandora reconnection on the new Supabase OAuth consent overlay.
+
+## Separate long-term gateway OAuth path
+
+Supabase OAuth 2.1 Server has also been enabled for Memory project `ivmvufhcsezyhczzondn` to support the reusable `pandora-machine-gateway`.
+
+That new OAuth server requires a custom authorization UI at the configured Site URL + Authorization Path. A source-controlled recovery overlay exists at:
+
+`recovery/web-overlay/app/oauth/consent/page.tsx`
+
+The corresponding `/oauth/consent` route is **not deployed** in the current Memory web application and currently returns 404.
+
+That does not break the direct production Memory OAuth flow because the legacy/current production application uses its own `/oauth/authorize` server.
+
+## New consent-overlay requirements
+
+When the Supabase-gateway OAuth path is activated, its consent page must:
 
 1. read `authorization_id` from the query string;
-2. use the Memory project's publishable Supabase client only — never a secret/service key in browser code;
-3. retrieve authorization details with `supabase.auth.oauth.getAuthorizationDetails(authorization_id)`;
-4. require the owner to authenticate if no valid Memory session exists;
-5. preserve the exact `authorization_id` through authentication;
-6. display the requesting OAuth client name, exact redirect URI and requested scopes;
-7. provide explicit Approve and Deny controls;
-8. call `approveAuthorization` or `denyAuthorization` only after the human decision;
-9. redirect only to the URL returned by Supabase Auth;
-10. never display, log, persist or forward access/refresh tokens outside the OAuth client flow.
+2. use only the Memory project's publishable Supabase client in browser code;
+3. retrieve authorization details through Supabase OAuth APIs;
+4. preserve the exact authorization request through owner authentication;
+5. display exact requesting client, redirect URI, and scopes;
+6. require explicit Approve or Deny;
+7. redirect only to the URL returned by Supabase Auth;
+8. never expose service keys, bearer tokens, refresh tokens, or provider credentials.
 
-## Authentication UX
+The existing Memory user remains the canonical owner identity. Any email fallback must use `shouldCreateUser: false` and be verified to resolve to the same owner before production activation.
 
-The existing Memory user is the canonical owner identity. Do not silently create a second owner account. If a fresh session is required, use an existing enabled Memory Auth method and ensure it resolves to that same user identity. Any fallback email/passwordless flow must use `shouldCreateUser: false` and must be tested for same-user resolution before production approval.
+## Gateway authorization boundary
 
-## Gateway boundary
+OAuth consent authenticates a user/client relationship only. It never creates broad machine privileges.
 
-OAuth consent authenticates the user/client relationship only. It does **not** grant broad gateway access.
+The shared gateway separately requires:
 
-After successful OAuth, the access token must contain a `client_id`. The gateway then independently requires a matching active `gateway_principals` record and a matching enabled `gateway_grants` capability.
+- active principal;
+- enabled service/action capability;
+- matching environment;
+- matching resource grant where required;
+- downstream provider authorization/RLS.
 
-Initial ChatGPT grant set must be limited to:
-
-- `pandora_memory / health / production`
-- `pandora_memory / search / production / namespace:real_life`
-
-No GitHub, Vercel, Supabase admin, PostHog, Resend, ProjectOS mutation or FlutterFlow grant is implied.
+Initial gateway OAuth grants must remain limited to Pandora health/search until separately verified.
 
 ## FlutterFlow boundary
 
-FlutterFlow remains registered but disabled. OAuth authorization for ChatGPT must not activate FlutterFlow. FlutterFlow requires a separately proven adapter, server-side token resolution, project-specific grants and read/validate proof before any read capability is enabled. Write/export remain approval-gated and disabled.
+FlutterFlow is registered in the shared gateway but every FlutterFlow action remains disabled. `yaml.update` and `code.export` are independently approval-required.
 
-## Deployment gate
+ChatGPT authorization to Pandora must not activate FlutterFlow, GitHub, Vercel, Supabase admin, PostHog, Resend, or other provider capabilities.
 
-Do not change the global Supabase Site URL merely to host consent on another origin unless all existing Auth redirects are revalidated. Preferred deployment is `/oauth/consent` on the existing Memory web origin.
+## Proof required for direct Memory reconnection
 
-The canonical Memory web source must first be recovered into `banataosystems/pandoras-box-memory` or an equivalent exact-source deployment path established. Route-only deployment must not replace or regress unrelated Memory functionality.
+- ChatGPT discovers the live Memory OAuth server;
+- dynamic registration/authorization completes;
+- owner login resolves to the expected Memory identity;
+- refresh/offline access is issued as expected;
+- authenticated Pandora health/search succeeds;
+- wrong/missing client identity remains denied;
+- exact production endpoint/deployment and rollback evidence are recorded.
 
-## Proof required
+## Proof required before new gateway OAuth activation
 
-1. `/oauth/consent?authorization_id=<valid>` renders successfully;
-2. invalid/missing authorization IDs fail safely;
-3. logged-out state returns through authentication to the same authorization request;
-4. consent shows exact client + scopes;
-5. Deny path returns expected OAuth denial;
-6. Approve path produces a token containing the expected `client_id`;
-7. gateway principal/grants are provisioned only for Pandora health/search;
-8. `memory_health` succeeds;
-9. `memory_search` succeeds for approved canon;
-10. wrong client, missing grant, wrong resource and disabled FlutterFlow actions fail closed;
-11. gateway audit rows record decisions without bearer tokens;
-12. exact source/deployment/rollback evidence is recorded.
+- `/oauth/consent?authorization_id=<valid>` is deployed and renders;
+- invalid/missing IDs fail safely;
+- logged-out state returns to the same authorization request;
+- exact client/scopes are displayed;
+- approve/deny behavior is verified;
+- token includes expected `client_id`;
+- gateway grants only intended capabilities;
+- wrong client/resource and disabled FlutterFlow actions fail closed;
+- audit events contain no token value;
+- source/deployment/rollback evidence is recorded.
