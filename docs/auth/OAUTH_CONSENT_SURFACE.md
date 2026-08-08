@@ -1,10 +1,10 @@
 # Pandora OAuth Surfaces
 
-**Status:** direct production Memory OAuth is live; new Supabase-gateway consent UI remains future work
+**Status:** discovery and OAuth routes are live, but current production dynamic client registration is blocked; new Supabase-gateway consent UI remains future work
 
 ## Immediate ChatGPT reconnection path
 
-The current production Memory application already exposes a working OAuth-protected MCP resource at:
+The production Memory application exposes an OAuth-protected MCP resource at:
 
 `https://pandorasbox-memory.vercel.app/api/mcp`
 
@@ -16,9 +16,13 @@ Its live OAuth discovery points to the same Memory application as authorization 
 - `/auth/login`
 - `/auth/callback`
 
-The current production route set is application-level reachable and not intercepted by Vercel SSO. This is the preferred immediate ChatGPT reconnection path because it already implements MCP OAuth, PKCE S256, dynamic registration, refresh tokens/offline access, and the existing Memory owner login/session flow.
+The route set is application-level reachable and not intercepted by Vercel SSO. Discovery advertises MCP OAuth, PKCE S256, dynamic registration, refresh tokens/offline access, and `pandora.memory.read` / `pandora.memory.write` scopes.
 
-Do not block immediate Pandora reconnection on the new Supabase OAuth consent overlay.
+However, current production is **not yet a working ChatGPT OAuth path**. On 2026-08-09 PHT, ChatGPT dynamic client registration reached `/oauth/register` and received HTTP 500. Vercel runtime evidence for the production deployment shows the exact error `mcp_oauth_signing_secret_missing` on six registration attempts.
+
+Historical evidence shows `/oauth/register` returned HTTP 201 twice on an earlier production deployment, so DCR has previously worked on this Vercel project. The immediate repair is to restore the required production signing-secret configuration securely, then repeat the full ChatGPT OAuth flow.
+
+Do not block that repair on the separate Supabase OAuth consent overlay, and do not call direct Memory OAuth production-verified until DCR, authorization, refresh access, authenticated health/search, and negative identity tests all pass.
 
 ## Separate long-term gateway OAuth path
 
@@ -30,7 +34,7 @@ That new OAuth server requires a custom authorization UI at the configured Site 
 
 The corresponding `/oauth/consent` route is **not deployed** in the current Memory web application and currently returns 404.
 
-That does not break the direct production Memory OAuth flow because the legacy/current production application uses its own `/oauth/authorize` server.
+That route is separate from the current direct Memory `/oauth/authorize` implementation.
 
 ## New consent-overlay requirements
 
@@ -69,7 +73,9 @@ ChatGPT authorization to Pandora must not activate FlutterFlow, GitHub, Vercel, 
 
 ## Proof required for direct Memory reconnection
 
+- production signing-secret configuration is restored without secret disclosure;
 - ChatGPT discovers the live Memory OAuth server;
+- `/oauth/register` returns a valid DCR success response;
 - dynamic registration/authorization completes;
 - owner login resolves to the expected Memory identity;
 - refresh/offline access is issued as expected;
