@@ -56,6 +56,24 @@ Examples:
 
 Write/destructive actions require separate grants and can remain approval-gated upstream.
 
+## Capability registry
+
+Production maintains an explicit `gateway_service_actions` registry. A grant alone is insufficient: the requested service/action must also be registered and `enabled = true`.
+
+This provides two independent switches:
+
+1. **Capability activation** — whether the gateway supports the provider/action at all.
+2. **Principal grant** — whether a specific caller may use that enabled capability.
+
+Unknown or disabled capabilities fail closed with `capability_not_enabled` before a grant can authorize them.
+
+Current live state:
+
+- `pandora_memory / health` — enabled, implemented;
+- `pandora_memory / search` — enabled, implemented;
+- all other registered provider actions — disabled/planned;
+- FlutterFlow's six planned actions are registered but disabled.
+
 ## Adapter model
 
 The gateway authenticates/authorizes; adapters translate an approved request into the target service contract. Each adapter owns:
@@ -118,7 +136,7 @@ FlutterFlow will therefore appear in the registry before its tools appear in the
 
 ## Non-negotiable rules
 
-- fail closed on unknown identity, unknown client, missing grant, wrong environment, expired token, or ambiguous resource;
+- fail closed on unknown identity, unknown client, missing grant, wrong environment, expired token, ambiguous resource, unknown capability, or disabled capability;
 - no wildcard `*/*` production grant;
 - no secret-bearing tool arguments persisted to Memory or analytics;
 - no gateway bypass of downstream RLS/authorization unless the specific adapter is explicitly server-admin by design and separately audited;
@@ -129,12 +147,13 @@ FlutterFlow will therefore appear in the registry before its tools appear in the
 
 1. Add identity/grant/audit registry (no secrets).
 2. Deploy machine gateway Edge Function.
-3. Prove unauthenticated denial.
-4. Enable/configure Supabase OAuth 2.1 for ChatGPT user-delegated MCP.
-5. Register ChatGPT/custom MCP client and grant only `pandora_memory:health/search`.
-6. Prove authorized health/search and wrong-client/wrong-scope denial.
-7. Add adapters one at a time using read-first scopes and separate mutation grants.
-8. FlutterFlow enters with `project.list`, `yaml.files.list`, `yaml.read`, and `yaml.validate`; `yaml.update` remains separately approval-gated until its negative/rollback tests pass.
+3. Add explicit service/action capability registry; keep unimplemented actions disabled.
+4. Prove unauthenticated denial.
+5. Enable/configure Supabase OAuth 2.1 for ChatGPT user-delegated MCP.
+6. Register ChatGPT/custom MCP client and grant only `pandora_memory:health/search`.
+7. Prove authorized health/search and wrong-client/wrong-scope denial.
+8. Add adapters one at a time using read-first scopes and separate mutation grants.
+9. FlutterFlow enters with `project.list`, `yaml.files.list`, `yaml.read`, and `yaml.validate`; `yaml.update` remains separately approval-gated until its negative/rollback tests pass.
 
 ## Definition of done
 
