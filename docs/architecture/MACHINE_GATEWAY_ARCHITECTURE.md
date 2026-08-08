@@ -6,7 +6,7 @@
 
 Create one machine-facing ingress for trusted AI clients and automations while keeping human/operator UIs independently protected.
 
-The gateway is reusable across Pandora Memory, ProjectOS, GitHub, Vercel, Supabase, PostHog, Resend, and future adapters, but it is **not** a universal master key.
+The gateway is reusable across Pandora Memory, ProjectOS, GitHub, Vercel, Supabase, PostHog, Resend, FlutterFlow.io, and future adapters, but it is **not** a universal master key.
 
 ## Security model
 
@@ -49,6 +49,10 @@ Examples:
 - `pandora_memory / search / production / namespace:worldstageinternational`
 - `github / repo.read / production / banataosystems/nlp`
 - `vercel / deployment.read / production / project:cherrypua`
+- `flutterflow / project.list / production`
+- `flutterflow / yaml.read / production / project:<project_id>`
+- `flutterflow / yaml.validate / production / project:<project_id>`
+- `flutterflow / yaml.update / production / project:<project_id>` — separately approval-gated
 
 Write/destructive actions require separate grants and can remain approval-gated upstream.
 
@@ -64,9 +68,53 @@ The gateway authenticates/authorizes; adapters translate an approved request int
 - audit metadata;
 - response filtering.
 
+## First-class adapter target registry
+
+The planned adapter registry is intentionally explicit:
+
+- `pandora_memory`
+- `projectos`
+- `github`
+- `vercel`
+- `supabase`
+- `posthog`
+- `resend`
+- `flutterflow`
+
+Future services must be added explicitly; unknown service keys fail closed.
+
+### FlutterFlow adapter contract
+
+FlutterFlow is a first-class gateway target, but it does not inherit permissions from GitHub, Supabase, or ProjectOS.
+
+Initial actions:
+
+- `project.list` — list projects available to the configured FlutterFlow credential;
+- `yaml.files.list` — list partitioned project YAML file names;
+- `yaml.read` — export/read project YAML configuration;
+- `yaml.validate` — validate proposed YAML before any mutation;
+- `yaml.update` — update project configuration only with a separate write grant and upstream approval evidence;
+- `code.export` — later adapter capability using the supported FlutterFlow export workflow, separate from YAML mutation.
+
+Required safety rules:
+
+- read/inspect capabilities are implemented before write capabilities;
+- FlutterFlow API token remains server-side and is referenced through Vault/provider secret storage;
+- every request is constrained to an explicitly granted FlutterFlow project ID/resource;
+- `yaml.update` requires successful validation against the same project state before mutation;
+- project schema/version fingerprints are recorded around YAML operations to detect drift;
+- no blind bulk update across multiple FlutterFlow projects;
+- write operations preserve source/evidence and rollback/recovery artifacts where the platform exposes them;
+- production/app-store release is not implied by a successful FlutterFlow project edit or code export;
+- release/deployment remains a separate approval and verification gate.
+
+Because FlutterFlow's Project API is currently beta, the adapter must tolerate contract/version drift and fail closed when the project schema fingerprint or API response shape is incompatible with the validated implementation.
+
 ## MCP surface
 
 The first MCP surface exposes only Pandora Memory health/search until authentication and denial paths are proven. Additional adapters/tools are added incrementally after independent review.
+
+FlutterFlow will therefore appear in the registry before its tools appear in the public MCP surface. This prevents an unproven provider adapter from becoming reachable merely because the gateway supports the service key.
 
 ## Non-negotiable rules
 
@@ -85,8 +133,11 @@ The first MCP surface exposes only Pandora Memory health/search until authentica
 4. Enable/configure Supabase OAuth 2.1 for ChatGPT user-delegated MCP.
 5. Register ChatGPT/custom MCP client and grant only `pandora_memory:health/search`.
 6. Prove authorized health/search and wrong-client/wrong-scope denial.
-7. Migrate additional machine integrations one adapter at a time.
+7. Add adapters one at a time using read-first scopes and separate mutation grants.
+8. FlutterFlow enters with `project.list`, `yaml.files.list`, `yaml.read`, and `yaml.validate`; `yaml.update` remains separately approval-gated until its negative/rollback tests pass.
 
 ## Definition of done
 
 The gateway is not considered production-ready until exact source SHA, deployed function version, OAuth client identity, authorization grants, positive tests, negative tests, audit rows, and rollback evidence are recorded.
+
+No individual adapter is considered production-ready merely because the common gateway is production-ready. Each adapter requires its own source, credential-reference, authorization, positive/negative, provider-contract, and rollback evidence.
