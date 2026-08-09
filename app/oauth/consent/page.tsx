@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createSupabaseBrowserClient, hasSupabaseBrowserConfig } from "@/lib/supabase/client";
 
 type AuthorizationDetails = {
@@ -15,7 +15,6 @@ export default function OAuthConsentPage() {
   const supabase = useMemo(() => hasSupabaseBrowserConfig() ? createSupabaseBrowserClient() : null, []);
   const [details, setDetails] = useState<AuthorizationDetails | null>(null);
   const [signedIn, setSignedIn] = useState(false);
-  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("Loading authorization request…");
   const [busy, setBusy] = useState(false);
   const authorizationId = typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("authorization_id") || "";
@@ -25,29 +24,23 @@ export default function OAuthConsentPage() {
     if (!authorizationId) { setMessage("Missing authorization request."); return; }
     let active = true;
     (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!active) return;
+      if (!userData.user) {
+        const next = `/oauth/consent?authorization_id=${encodeURIComponent(authorizationId)}`;
+        window.location.replace(`/auth/login?next=${encodeURIComponent(next)}`);
+        return;
+      }
+      setSignedIn(true);
       const { data, error } = await supabase.auth.oauth.getAuthorizationDetails(authorizationId);
       if (!active) return;
       if (error || !data) { setMessage(error?.message || "Invalid or expired authorization request."); return; }
       if (!("authorization_id" in data) && "redirect_url" in data) { window.location.assign(data.redirect_url); return; }
       setDetails(data as AuthorizationDetails);
-      const { data: userData } = await supabase.auth.getUser();
-      if (!active) return;
-      setSignedIn(Boolean(userData.user));
-      setMessage(userData.user ? "Review this access request." : "Sign in to review this access request.");
+      setMessage("Review this access request.");
     })();
-    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => setSignedIn(Boolean(session?.user)));
-    return () => { active = false; subscription.subscription.unsubscribe(); };
+    return () => { active = false; };
   }, [supabase, authorizationId]);
-
-  async function signInWithEmail(event: FormEvent) {
-    event.preventDefault();
-    if (!supabase || !email.trim() || !authorizationId) return;
-    setBusy(true);
-    const returnUrl = `${window.location.origin}/oauth/consent?authorization_id=${encodeURIComponent(authorizationId)}`;
-    const { error } = await supabase.auth.signInWithOtp({ email: email.trim(), options: { shouldCreateUser: false, emailRedirectTo: returnUrl } });
-    setBusy(false);
-    setMessage(error ? error.message : "A secure sign-in email was requested. Use that email once; do not request duplicates while it is valid.");
-  }
 
   async function decide(decision: "approve" | "deny") {
     if (!supabase || !authorizationId || !signedIn) return;
@@ -69,11 +62,6 @@ export default function OAuthConsentPage() {
       <p><strong>Requested scopes</strong></p><ul>{scopes.length ? scopes.map(scope => <li key={scope}>{scope}</li>) : <li>Basic OAuth authorization</li>}</ul>
       <p className="fine">Consent does not grant GitHub, Vercel, Supabase admin, FlutterFlow, or any other provider capability.</p>
     </div>}
-    {details && !signedIn && <form className="stack" onSubmit={signInWithEmail}>
-      <label htmlFor="email">Existing owner email</label><input id="email" type="email" autoComplete="email" required value={email} onChange={e => setEmail(e.target.value)} />
-      <button disabled={busy} type="submit">{busy ? "Sending…" : "Send secure sign-in email"}</button>
-      <p className="fine">New account creation and anonymous login are disabled on this recovery surface.</p>
-    </form>}
     {details && signedIn && <div className="actions"><button disabled={busy} onClick={() => decide("deny")}>Deny</button><button className="primary" disabled={busy} onClick={() => decide("approve")}>Approve</button></div>}
   </section></main>;
 }
