@@ -6,7 +6,27 @@ Scope: canonical Pandora Memory project only. This is evidence-only and does not
 
 Supabase project ref: `ivmvufhcsezyhczzondn`
 Provider state at verification: `ACTIVE_HEALTHY`
-Hosted migration ledger: 67 migrations through `20260810115547_record_flutterflow_oidc_attempts` (per current Pandora operating canon).
+Hosted migration ledger: 67 migrations through version `20260810115547` (`record_flutterflow_oidc_attempts` in current Pandora operating canon).
+
+## Fresh direct hosted catalog proof
+
+A fresh read-only SQL verification against the hosted project returned:
+
+- migration count: **67**
+- latest migration version: **`20260810115547`**
+- public tables: **81**
+- public tables with RLS enabled: **81/81**
+- public tables with FORCE RLS: **31**
+- public RLS policies: **117**
+
+The four `MEMORY-SEARCHPATH-001` target functions are all currently `SECURITY INVOKER` (`prosecdef=false`) with `proconfig=NULL`, so no persistent `search_path` repair is live yet. Current non-internal trigger bindings are:
+
+- `public.set_pandora_promotion_executions_updated_at()` — **1** binding
+- `public.set_pandora_promotion_requests_updated_at()` — **1** binding
+- `public.set_pandora_shadow_context_pack_updated_at()` — **1** binding
+- `public.set_updated_at()` — **11** bindings
+
+Total target trigger bindings: **14**. This direct catalog proof reconciles the hosted migration/RLS counts with current Pandora canon without changing database state.
 
 ## Fresh security-advisor result
 
