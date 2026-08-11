@@ -6,6 +6,9 @@ on:
       - 'docs/verification/2026-08-11-security-advisor-baseline.json'
       - 'docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json'
       - 'scripts/verify_memory_searchpath_advisor.py'
+      - 'scripts/verify_memory_searchpath_source.py'
+      - 'supabase/recovery/20260810_memory_searchpath_001.sql'
+      - 'supabase/recovery/20260810_memory_searchpath_001.rollback.sql'
       - '.github/workflows/verify-memory-searchpath-advisor.yml'
   push:
     branches:
@@ -14,6 +17,9 @@ on:
       - 'docs/verification/2026-08-11-security-advisor-baseline.json'
       - 'docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json'
       - 'scripts/verify_memory_searchpath_advisor.py'
+      - 'scripts/verify_memory_searchpath_source.py'
+      - 'supabase/recovery/20260810_memory_searchpath_001.sql'
+      - 'supabase/recovery/20260810_memory_searchpath_001.rollback.sql'
       - '.github/workflows/verify-memory-searchpath-advisor.yml'
 
 permissions:
@@ -36,6 +42,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Bind exact Pandora candidate and rollback source
+        run: python scripts/verify_memory_searchpath_source.py
       - name: Current provider baseline must not pass as repaired
         shell: bash
         run: |
@@ -53,6 +61,6 @@ jobs:
           docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json
       - name: Safety statement
         run: |
-          echo 'This workflow validates the proof contract only.'
+          echo 'This workflow validates exact candidate source plus the proof contract only.'
           echo 'The positive fixture is synthetic and is not hosted-provider evidence.'
           echo 'MEMORY-SEARCHPATH-001 remains incomplete until a real isolated candidate advisor export passes this verifier.'
