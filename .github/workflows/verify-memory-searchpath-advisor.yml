@@ -1,0 +1,51 @@
+name: Verify Memory search-path advisor proof contract
+
+on:
+  pull_request:
+    paths:
+      - 'docs/verification/2026-08-11-security-advisor-baseline.json'
+      - 'docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json'
+      - 'scripts/verify_memory_searchpath_advisor.py'
+      - '.github/workflows/verify-memory-searchpath-advisor.yml'
+  push:
+    branches:
+      - 'verification/hosted-security-advisor-20260811'
+    paths:
+      - 'docs/verification/2026-08-11-security-advisor-baseline.json'
+      - 'docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json'
+      - 'scripts/verify_memory_searchpath_advisor.py'
+      - '.github/workflows/verify-memory-searchpath-advisor.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  prove-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Current provider baseline must not pass as repaired
+        shell: bash
+        run: |
+          set -euo pipefail
+          if python scripts/verify_memory_searchpath_advisor.py \
+            docs/verification/2026-08-11-security-advisor-baseline.json \
+            docs/verification/2026-08-11-security-advisor-baseline.json; then
+            echo 'FAIL: unchanged provider baseline was incorrectly accepted as repaired' >&2
+            exit 1
+          fi
+      - name: Search-path-only disappearance fixture must pass
+        run: >-
+          python scripts/verify_memory_searchpath_advisor.py
+          docs/verification/2026-08-11-security-advisor-baseline.json
+          docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json
+      - name: Safety statement
+        run: |
+          echo 'This workflow validates the proof contract only.'
+          echo 'The positive fixture is synthetic and is not hosted-provider evidence.'
+          echo 'MEMORY-SEARCHPATH-001 remains incomplete until a real isolated candidate advisor export passes this verifier.'
