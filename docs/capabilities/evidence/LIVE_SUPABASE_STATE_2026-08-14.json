@@ -1,0 +1,91 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "pandora-live-supabase-state-20260814",
+  "observed_at": "2026-08-13T17:40:23Z",
+  "environment": "production",
+  "provider": "Supabase",
+  "request_query_fingerprint_sha256": "9822aebfe15eb1264f47b3c9a2903f8b631c960edd84ad2a2ab2acd8e4d54083",
+  "canonicalized_result_sha256": "67236aeb69b7544474779baf59eeb33470f7529ab7536c5fa0153a164f9f56ac",
+  "collection_contract": {
+    "methods": [
+      "provider-native project readback",
+      "provider-native migration ledger readback",
+      "provider-native Edge Function readback",
+      "provider-native branch readback"
+    ],
+    "payload_policy": "privacy-safe metadata only; no row content, user identifiers, tokens, secrets, or function source bodies",
+    "independent_reproduction": "Repeat the listed provider-native readbacks against the exact project ref and compare the fields below."
+  },
+  "result": {
+    "project": {
+      "ref": "ivmvufhcsezyhczzondn",
+      "name": "Memory",
+      "status": "ACTIVE_HEALTHY",
+      "postgres_version": "17.6.1.147"
+    },
+    "migration_ledger": {
+      "observed_count": 68,
+      "latest_identity": "20260813114649_remove_temporary_flutterflow_http_probe_20260813",
+      "canonical_baseline_commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "canonical_sql_file_count": 15,
+      "canonical_sql_tail": "20260810115547_record_flutterflow_oidc_attempts.sql",
+      "latest_live_source_present_in_canonical": false,
+      "production_replay_authorized": false
+    },
+    "branch_state": [
+      {
+        "name": "main",
+        "status": "MIGRATIONS_FAILED",
+        "preview_project_status": "ACTIVE_HEALTHY"
+      }
+    ],
+    "core_edge_functions": [
+      {
+        "slug": "pandora-projectos-bridge",
+        "version": 13,
+        "status": "ACTIVE",
+        "provider_hash": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+        "positive_path_observed": true,
+        "positive_path_scope": "bounded provider log observation",
+        "raw_source_comparison": "observed-match-not-content-addressed",
+        "exact_source_parity_proved": false
+      },
+      {
+        "slug": "pandora-projectos-learning",
+        "version": 1,
+        "status": "ACTIVE",
+        "provider_hash": "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe",
+        "raw_source_comparison": "observed-match-not-content-addressed",
+        "exact_source_parity_proved": false,
+        "invocation_observed": true,
+        "durable_postcondition_reverified": false
+      },
+      {
+        "slug": "pandora-machine-gateway",
+        "version": 3,
+        "status": "ACTIVE",
+        "provider_hash": "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f",
+        "raw_source_comparison": "observed-difference-not-content-addressed",
+        "exact_source_parity_proved": false,
+        "executable_equivalence_proved": false,
+        "namespace_negative_test_present": false
+      }
+    ],
+    "flutterflow": {
+      "database_vault_snapshot_oidc_foundations_present": true,
+      "registered_provider_actions": 6,
+      "enabled_provider_actions": 0,
+      "provider_adapter_present": false
+    },
+    "freshness": {
+      "state": "current-as-of-observation",
+      "supersedes": "67 migrations through 20260810115547",
+      "reverify_on": [
+        "new migration identity",
+        "Edge Function version/hash change",
+        "branch status change",
+        "provider action activation"
+      ]
+    }
+  }
+}

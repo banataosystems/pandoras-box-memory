@@ -1,0 +1,65 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "pandora-live-vercel-projectos-state-20260814",
+  "observed_at": "2026-08-13T17:39:20Z",
+  "environment": "production",
+  "provider": "Vercel",
+  "request_query_fingerprint_sha256": "660cca95829ce6771173b9ac2866e4eb6223a6728819f98f9b23ae88ac6bc8a9",
+  "canonicalized_result_sha256": "8a0537af07abc33058945352492452069c78e7b5c8e35900ff7d6126402e168c",
+  "collection_contract": {
+    "methods": [
+      "provider-native deployment/build metadata readback",
+      "provider-native runtime log summary",
+      "authenticated ProjectOS health/search exercise",
+      "correlated Supabase bridge log summary"
+    ],
+    "payload_policy": "metadata and status counts only; no memory query text, result content, direct user identifiers, tokens, cookies, or secrets",
+    "independent_reproduction": "Repeat deployment/build/log readbacks for the exact deployment IDs and exercise authenticated health/search through the configured ProjectOS workload identity."
+  },
+  "result": {
+    "production": {
+      "deployment": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+      "alias": "pandorasbox-memory.vercel.app",
+      "status": "READY",
+      "build_file_count": 17,
+      "projectos_health_route_present": true,
+      "projectos_search_route_present": true,
+      "git_sha_metadata": null,
+      "deployment_source_binding": "manual deployment; exact Git SHA unproven",
+      "positive_health_observed": true,
+      "positive_search_observed": true
+    },
+    "reliability_observation": {
+      "window_start": "2026-08-13T17:38:30Z",
+      "window_end": "2026-08-13T17:39:20Z",
+      "vercel_search_http_200": 7,
+      "vercel_search_http_503": 4,
+      "corresponding_supabase_bridge_http_200": true,
+      "corresponding_bridge_latency_seconds": {
+        "minimum_observed": 1.3,
+        "maximum_observed": 2.7
+      },
+      "localization": "failure is downstream of the Supabase bridge response and within the Vercel proxy/read-return path",
+      "localization_strength": "inference; exact root cause unproven"
+    },
+    "rollback": {
+      "deployment": "dpl_9EkwxicRPzigkvUis5m1qk644CrG",
+      "status": "READY",
+      "build_file_count": 14,
+      "projectos_health_route_present": false,
+      "projectos_search_route_present": false,
+      "exact_health_result": 404,
+      "capability_preserving": false,
+      "exercised_as_current_capability_rollback": false
+    },
+    "freshness": {
+      "state": "current-as-of-observation",
+      "reverify_on": [
+        "production deployment change",
+        "new Git source binding",
+        "return-path fix",
+        "rollback candidate change"
+      ]
+    }
+  }
+}
