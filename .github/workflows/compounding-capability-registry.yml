@@ -1,0 +1,58 @@
+name: Pandora compounding capability registry
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/compounding-capability-registry.yml"
+      - "docs/capabilities/**"
+      - "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md"
+      - "scripts/compounding-registry-*.mjs"
+      - "scripts/generate_compounding_registry.mjs"
+      - "scripts/validate_compounding_registry.mjs"
+      - "scripts/verify_compounding_roadmap_source.mjs"
+      - "test/compounding-registry-validator.test.mjs"
+      - "package.json"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/compounding-capability-registry.yml"
+      - "docs/capabilities/**"
+      - "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md"
+      - "scripts/compounding-registry-*.mjs"
+      - "scripts/generate_compounding_registry.mjs"
+      - "scripts/validate_compounding_registry.mjs"
+      - "scripts/verify_compounding_roadmap_source.mjs"
+      - "test/compounding-registry-validator.test.mjs"
+      - "package.json"
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  validate-registry:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the exact candidate
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+      - name: Prove exact candidate checkout
+        env:
+          EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate pinned roadmap and capability registry
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npm run registry:verify-roadmap
+          npm run registry:validate
+      - name: Run negative validator tests
+        run: npm run registry:test
+      - name: Reject literal runtime secrets
+        run: bash scripts/check_no_literal_secrets.sh

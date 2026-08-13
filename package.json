@@ -9,7 +9,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "registry:generate": "node scripts/generate_compounding_registry.mjs --write",
+    "registry:verify-roadmap": "node scripts/verify_compounding_roadmap_source.mjs",
+    "registry:validate": "node scripts/validate_compounding_registry.mjs",
+    "registry:test": "node --test test/compounding-registry-validator.test.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.3",
