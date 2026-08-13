@@ -1,6 +1,15 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
-import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5.10.0";
+import { createClient } from "npm:@supabase/supabase-js@2.110.9";
+import {
+  createRemoteJWKSet,
+  type JWTPayload,
+  jwtVerify,
+} from "npm:jose@5.10.0";
+import {
+  applyMemoryHealthScope,
+  buildMemorySearchQuery,
+  MEMORY_SEARCH_RESOURCE,
+  sanitizeMemorySearchQuery,
+} from "./memory-search-policy.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
@@ -228,8 +237,9 @@ async function authenticateOauth(
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
-  const { data: userData, error: userError } =
-    await userClient.auth.getUser(token);
+  const { data: userData, error: userError } = await userClient.auth.getUser(
+    token,
+  );
   if (userError || !userData.user) {
     return oauthChallenge("invalid_token");
   }
@@ -507,11 +517,12 @@ async function callTool(req: Request, body: RpcRequest) {
     );
     if (identity instanceof Response) return identity;
 
-    const { count, error } = await admin
-      .from("memory_items")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", identity.userId)
-      .eq("is_active", true);
+    const { count, error } = await applyMemoryHealthScope(
+      admin
+        .from("memory_items")
+        .select("id", { count: "exact", head: true }),
+      identity.userId,
+    );
 
     if (error) {
       await audit(
@@ -565,30 +576,27 @@ async function callTool(req: Request, body: RpcRequest) {
 
     if (!query) return rpcError(body.id, -32602, "query_required");
 
+    const safe = sanitizeMemorySearchQuery(query);
+    if (!safe) return rpcError(body.id, -32602, "query_required");
+
     const identity = await authenticate(
       req,
       "pandora_memory",
       "search",
-      "namespace:real_life",
+      MEMORY_SEARCH_RESOURCE,
     );
     if (identity instanceof Response) return identity;
 
-    const safe = query
-      .replace(/[%_]/g, "")
-      .replace(/[(),]/g, " ")
-      .trim();
-
-    const { data, error } = await admin
-      .from("memory_items")
-      .select(
-        "id,title,body,namespace,canon_status,confidence,source_summary,updated_at,project_id,record_type",
-      )
-      .eq("user_id", identity.userId)
-      .eq("is_active", true)
-      .in("canon_status", ["hard_canon", "soft_canon"])
-      .or(`title.ilike.%${safe}%,body.ilike.%${safe}%`)
-      .order("updated_at", { ascending: false })
-      .limit(limit);
+    const { data, error } = await buildMemorySearchQuery(
+      admin
+        .from("memory_items")
+        .select(
+          "id,title,body,namespace,canon_status,confidence,source_summary,updated_at,project_id,record_type",
+        ),
+      identity.userId,
+      safe,
+      limit,
+    );
 
     if (error) {
       await audit(
@@ -597,7 +605,7 @@ async function callTool(req: Request, body: RpcRequest) {
         identity.authMode,
         "pandora_memory",
         "search",
-        "namespace:real_life",
+        MEMORY_SEARCH_RESOURCE,
         "error",
         "downstream_query_error",
         Date.now() - started,
@@ -611,7 +619,7 @@ async function callTool(req: Request, body: RpcRequest) {
       identity.authMode,
       "pandora_memory",
       "search",
-      "namespace:real_life",
+      MEMORY_SEARCH_RESOURCE,
       "allow",
       "authorized",
       Date.now() - started,
