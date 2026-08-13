@@ -221,35 +221,44 @@ Deno.test({
     const source = await Deno.readTextFile(
       new URL("./index.ts", import.meta.url),
     );
-    assert(
-      /await applyMemoryHealthScope\(\s*admin\s*\.from\("memory_items"\)\s*\.select\("id", \{ count: "exact", head: true \}\),\s*identity\.userId,\s*\)/m
-        .test(source),
-      "memory_health handler must invoke the tested metadata-scope builder",
-    );
-    assert(
-      /await buildMemorySearchQuery\(\s*admin\s*\.from\("memory_items"\)\s*\.select\([\s\S]*?\),\s*identity\.userId,\s*safe,\s*limit,\s*\)/m
-        .test(source),
-      "memory_search handler must invoke the tested production query builder",
-    );
-
     const callToolStart = source.indexOf("async function callTool(");
     const callToolEnd = source.indexOf("\n}\n\nDeno.serve(", callToolStart);
     const callToolSource = source.slice(callToolStart, callToolEnd);
-    const branchStart = callToolSource.indexOf(
+    const healthBranchStart = callToolSource.indexOf(
+      'if (name === "memory_health")',
+    );
+    const searchBranchStart = callToolSource.indexOf(
       'if (name === "memory_search")',
     );
-    const branchEnd = source.indexOf(
+    const searchBranchEnd = callToolSource.indexOf(
       'return rpcError(body.id, -32602, "unknown_tool");',
-      callToolStart + branchStart,
+      searchBranchStart,
     );
     assert(
       callToolStart >= 0 && callToolEnd > callToolStart &&
-        branchStart >= 0 && branchEnd > callToolStart + branchStart,
-      "memory_search handler branch must remain discoverable",
+        healthBranchStart >= 0 &&
+        searchBranchStart > healthBranchStart &&
+        searchBranchEnd > searchBranchStart &&
+        searchBranchEnd < callToolSource.length,
+      "health and search handler branches must remain bounded inside callTool",
     );
-    const searchBranch = source.slice(
-      callToolStart + branchStart,
-      branchEnd,
+    const healthBranch = callToolSource.slice(
+      healthBranchStart,
+      searchBranchStart,
+    );
+    const searchBranch = callToolSource.slice(
+      searchBranchStart,
+      searchBranchEnd,
+    );
+    assert(
+      /await applyMemoryHealthScope\(\s*admin\s*\.from\("memory_items"\)\s*\.select\("id", \{ count: "exact", head: true \}\),\s*identity\.userId,\s*\)/m
+        .test(healthBranch),
+      "memory_health branch must invoke the tested metadata-scope builder",
+    );
+    assert(
+      /await buildMemorySearchQuery\(\s*admin\s*\.from\("memory_items"\)\s*\.select\([\s\S]*?\),\s*identity\.userId,\s*safe,\s*limit,\s*\)/m
+        .test(searchBranch),
+      "memory_search branch must invoke the tested production query builder",
     );
     assert(
       /const safe = sanitizeMemorySearchQuery\(query\);\s*if \(!safe\) return rpcError\(body\.id, -32602, "query_required"\);/m
