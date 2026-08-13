@@ -73,7 +73,7 @@ function validate(manifest, registry, roadmapBytes) {
   assert(registry.schema_version === "1.0.0", "registry schema version changed");
   assert(registry.authority.authoritative_issue_number === 22, "issue #22 must remain authoritative");
   assert(registry.authority.duplicate_issue_number === 23 && registry.authority.duplicate_issue_state === "closed", "issue #23 duplicate state changed");
-  assert(sha256(roadmapBytes) === "a688fe5f8596e6f022071693bacb4bbc0d1a3c0b15480aa25b57fe2fea5287c3", "roadmap source digest mismatch");
+  assert(sha256(roadmapBytes) === "67dc3a55bee796bc31a8a555e02282b689534d0a10ec4730fec1d036c6e2d691", "roadmap source digest mismatch");
   assert(registry.completion_claim.status === "withheld-blocked-pending-proof", "completion claim must remain withheld");
   assert(!JSON.stringify(registry).includes("completion_percentage"), "completion percentage is forbidden while archive proof is blocked");
 
@@ -176,4 +176,3 @@ if (process.argv.includes("--self-test")) {
 } else {
   process.stdout.write("Capability registry valid.\n");
 }
-
