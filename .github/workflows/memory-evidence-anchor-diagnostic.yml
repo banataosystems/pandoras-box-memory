@@ -1,0 +1,35 @@
+name: Diagnose Memory evidence anchors
+
+on:
+  push:
+    branches:
+      - feature/projectos-memory-evidence-intake
+    paths:
+      - '.github/workflows/memory-evidence-anchor-diagnostic.yml'
+      - 'scripts/diagnose-memory-evidence-anchors.js'
+
+permissions:
+  contents: write
+
+jobs:
+  diagnose:
+    if: "github.event.head_commit.message == 'chore: diagnose memory evidence anchors'"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact feature head
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+
+      - name: Record secret-free anchor signatures
+        run: node scripts/diagnose-memory-evidence-anchors.js
+
+      - name: Commit diagnostic evidence
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add scripts/memory-evidence-anchor-diagnostic.json
+          git commit -m "chore: capture memory evidence anchor diagnostics"
+          git push origin HEAD:feature/projectos-memory-evidence-intake
