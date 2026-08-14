@@ -7,6 +7,10 @@ on:
     paths:
       - '.github/workflows/memory-evidence-intake-bootstrap.yml'
       - 'scripts/bootstrap-memory-evidence-intake.js'
+      - 'scripts/memory-evidence-helper.fragment.ts'
+      - 'app/api/projectos/memory/evidence-candidates/**'
+      - 'scripts/check_memory_evidence_intake.mjs'
+      - '.github/workflows/memory-evidence-intake.yml'
 
 permissions:
   contents: write
@@ -57,6 +61,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/memory-evidence-intake-bootstrap.yml
           git rm scripts/bootstrap-memory-evidence-intake.js
+          git rm scripts/memory-evidence-helper.fragment.ts
           rm -f package-lock.json
           git add \
             app/api/projectos/memory/evidence-candidates/route.ts \
