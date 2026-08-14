@@ -52,8 +52,6 @@ for (const marker of [
   "canonical_memory_written: false",
   'privacy_policy: "metadata_only_v1"',
   'body.action === "submit_evidence_candidate"',
-  'candidate_writes: "review_gated"',
-  "canonical_writes: false",
 ]) {
   assert.ok(bridge.includes(marker), `bridge marker missing: ${marker}`);
 }

@@ -60,8 +60,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git rm .github/workflows/memory-evidence-intake-bootstrap.yml
+          git rm .github/workflows/memory-evidence-anchor-diagnostic.yml
           git rm scripts/bootstrap-memory-evidence-intake.js
           git rm scripts/memory-evidence-helper.fragment.ts
+          git rm scripts/diagnose-memory-evidence-anchors.js
+          git rm scripts/memory-evidence-anchor-diagnostic.json
           rm -f package-lock.json
           git add \
             app/api/projectos/memory/evidence-candidates/route.ts \

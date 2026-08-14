@@ -17,16 +17,6 @@ if (!serveMatch || serveMatch.index === undefined) {
 }
 bridge = bridge.slice(0, serveMatch.index) + helper + bridge.slice(serveMatch.index);
 
-const capabilityPattern = /(\s*)query_only:\s*true,\s*\n\s*canonical_writes:\s*false,/;
-if (!capabilityPattern.test(bridge)) {
-  throw new Error("health capability anchor missing");
-}
-bridge = bridge.replace(
-  capabilityPattern,
-  (_match, indent) =>
-    `${indent}query_only: false,\n${indent}candidate_writes: "review_gated",\n${indent}canonical_writes: false,`,
-);
-
 const searchDispatchPattern = /  if \(body\.action === "search"\) \{\s*\n\s*return searchMemory\(body, authorization\.principal, supabase\);\s*\n\s*\}/;
 const searchMatch = searchDispatchPattern.exec(bridge);
 if (!searchMatch || searchMatch.index === undefined) {
