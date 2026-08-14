@@ -7,6 +7,7 @@ on:
       - 'app/api/projectos/memory/evidence-candidates/**'
       - 'supabase/functions/pandora-projectos-bridge/**'
       - 'scripts/check_memory_evidence_intake.mjs'
+      - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
   push:
     branches:
@@ -15,6 +16,7 @@ on:
       - 'app/api/projectos/memory/evidence-candidates/**'
       - 'supabase/functions/pandora-projectos-bridge/**'
       - 'scripts/check_memory_evidence_intake.mjs'
+      - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
 
 permissions:
@@ -43,13 +45,19 @@ jobs:
           cache-dependency-path: package.json
 
       - name: Install
-        run: npm install --no-audit --no-fund
+        run: npm install --no-fund
 
       - name: Verify governed evidence source contract
         run: node scripts/check_memory_evidence_intake.mjs
 
+      - name: Exercise evidence intake behavior
+        run: node scripts/test_memory_evidence_intake_behavior.mjs
+
       - name: Reject literal secrets
         run: bash scripts/check_no_literal_secrets.sh
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Typecheck web boundary
         run: npm run typecheck
