@@ -36,11 +36,18 @@ for (const marker of [
   'principal.scopes.includes("memory:write")',
   "principal.allowed_namespaces.includes(namespace)",
   "EVIDENCE_PROOF_STAGES",
+  "EVIDENCE_ISO_TIMESTAMP_PATTERN",
   "evidenceSensitiveReason",
   '"direct_identifier_email"',
   '"credential_signature"',
   '"jwt_signature"',
   '"secret_assignment"',
+  '.from("pandora_projects")',
+  '.from("pandora_project_grants")',
+  '.eq("can_propose", true)',
+  '.eq("environment", principal.environment)',
+  'const sourceRef = `projectos-evidence:${canonicalProjectId}:${idempotencyKey}`',
+  'error: "idempotency_conflict"',
   '.from("memory_capture_candidates")',
   'memory_type: "business_fact"',
   "requires_review: true",
@@ -67,6 +74,7 @@ assert.ok(!helper.includes("soft_canon"), "candidate helper must not promote sof
 assert.ok(helper.includes("raw_excerpt: null"), "candidate helper must force raw excerpt null");
 assert.ok(helper.includes("imported_personal_identifiers: false"), "privacy metadata missing");
 assert.ok(helper.includes("imported_secrets: false"), "secret exclusion metadata missing");
+assert.ok(helper.includes("fingerprint,"), "candidate/review content fingerprint missing");
 
 const dispatch = bridge.slice(serveStart);
 assert.ok(dispatch.includes('body.action === "submit_evidence_candidate"'), "evidence dispatch missing");
