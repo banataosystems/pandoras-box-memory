@@ -1,6 +1,7 @@
 name: Memory evidence intake contract
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'app/api/projectos/memory/evidence-candidates/**'
