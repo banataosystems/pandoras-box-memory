@@ -524,6 +524,8 @@ const EVIDENCE_UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const EVIDENCE_SHA40_PATTERN = /^[a-f0-9]{40}$/i;
 const EVIDENCE_SHA256_PATTERN = /^[a-f0-9]{64}$/i;
+const EVIDENCE_ISO_TIMESTAMP_PATTERN =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 
 const boundedEvidenceText = (
   value: unknown,
@@ -537,7 +539,7 @@ const boundedEvidenceText = (
 
 const evidenceIsoTimestamp = (value: unknown): string | null => {
   const normalized = boundedEvidenceText(value, 64);
-  if (!normalized) return null;
+  if (!normalized || !EVIDENCE_ISO_TIMESTAMP_PATTERN.test(normalized)) return null;
   const parsed = Date.parse(normalized);
   return Number.isFinite(parsed) ? normalized : null;
 };
@@ -723,18 +725,70 @@ const submitEvidenceCandidate = async (
     }, 400);
   }
 
-  const projectReference = projectKey ?? `project-id:${projectId}`;
-  const sourceRef = `projectos-evidence:${idempotencyKey}`;
-  const fingerprint = await evidenceSha256(
-    `${sourceRef}\n${namespace}\n${projectReference}\n${proofStage}\n${summary}\n${claim}`,
-  );
+  let projectQuery = admin
+    .from("pandora_projects")
+    .select("id,project_key,memory_namespace,lifecycle_status")
+    .eq("memory_namespace", namespace)
+    .eq("lifecycle_status", "active");
+  if (projectId) projectQuery = projectQuery.eq("id", projectId);
+  if (projectKey) projectQuery = projectQuery.eq("project_key", projectKey);
+
+  const { data: boundProject, error: boundProjectError } = await projectQuery.maybeSingle();
+  if (boundProjectError) {
+    console.error("projectos_evidence_project_lookup_failed", boundProjectError.message);
+    return respond({ ok: false, error: "project_lookup_failed" }, 500);
+  }
+  if (
+    !boundProject ||
+    typeof boundProject.id !== "string" ||
+    !EVIDENCE_UUID_PATTERN.test(boundProject.id) ||
+    typeof boundProject.project_key !== "string" ||
+    !EVIDENCE_PROJECT_KEY_PATTERN.test(boundProject.project_key)
+  ) {
+    return respond({ ok: false, error: "project_not_allowed" }, 403);
+  }
+
+  const canonicalProjectId = boundProject.id;
+  const canonicalProjectKey = boundProject.project_key;
+  const { data: projectGrant, error: projectGrantError } = await admin
+    .from("pandora_project_grants")
+    .select("project_id")
+    .eq("principal_key", PRINCIPAL_KEY)
+    .eq("project_id", canonicalProjectId)
+    .eq("environment", principal.environment)
+    .eq("is_active", true)
+    .eq("can_propose", true)
+    .is("revoked_at", null)
+    .maybeSingle();
+  if (projectGrantError) {
+    console.error("projectos_evidence_project_grant_lookup_failed", projectGrantError.message);
+    return respond({ ok: false, error: "project_grant_lookup_failed" }, 500);
+  }
+  if (!projectGrant?.project_id) {
+    return respond({ ok: false, error: "project_not_allowed" }, 403);
+  }
+
+  const projectReference = canonicalProjectKey;
+  const sourceRef = `projectos-evidence:${canonicalProjectId}:${idempotencyKey}`;
+  const fingerprint = await evidenceSha256(JSON.stringify({
+    namespace,
+    project_id: canonicalProjectId,
+    project_key: canonicalProjectKey,
+    title,
+    summary,
+    proof_stage: proofStage,
+    claim,
+    evidence_refs: evidenceRefs,
+    provenance,
+    idempotency_key: idempotencyKey,
+  }));
   const now = new Date().toISOString();
 
   let candidateId: string | null = null;
   let candidateCreated = false;
   const { data: existingCandidate, error: existingCandidateError } = await admin
     .from("memory_capture_candidates")
-    .select("id")
+    .select("id,metadata")
     .eq("user_id", principal.memory_user_id)
     .eq("namespace", namespace)
     .eq("source", EVIDENCE_SOURCE)
@@ -747,6 +801,15 @@ const submitEvidenceCandidate = async (
   }
 
   candidateId = existingCandidate?.id ?? null;
+  if (candidateId) {
+    const existingMetadata = isRecord(existingCandidate?.metadata)
+      ? existingCandidate.metadata
+      : null;
+    if (existingMetadata?.fingerprint !== fingerprint) {
+      return respond({ ok: false, error: "idempotency_conflict" }, 409);
+    }
+  }
+
   if (!candidateId) {
     const candidate = {
       user_id: principal.memory_user_id,
@@ -773,13 +836,14 @@ const submitEvidenceCandidate = async (
       metadata: {
         schema_version: 1,
         intake_kind: EVIDENCE_INTAKE_KIND,
-        project_id: projectId,
-        project_key: projectKey,
+        project_id: canonicalProjectId,
+        project_key: canonicalProjectKey,
         proof_stage: proofStage,
         claim,
         evidence_refs: evidenceRefs,
         provenance,
         idempotency_key: idempotencyKey,
+        fingerprint,
         privacy_policy: "metadata_only_v1",
         imported_raw_arguments: false,
         imported_raw_results: false,
@@ -813,7 +877,7 @@ const submitEvidenceCandidate = async (
     } else {
       const { data: racedCandidate, error: racedCandidateError } = await admin
         .from("memory_capture_candidates")
-        .select("id")
+        .select("id,metadata")
         .eq("user_id", principal.memory_user_id)
         .eq("namespace", namespace)
         .eq("source", EVIDENCE_SOURCE)
@@ -821,6 +885,12 @@ const submitEvidenceCandidate = async (
         .maybeSingle();
       if (racedCandidateError || !racedCandidate?.id) {
         return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
+      }
+      const racedMetadata = isRecord(racedCandidate.metadata)
+        ? racedCandidate.metadata
+        : null;
+      if (racedMetadata?.fingerprint !== fingerprint) {
+        return respond({ ok: false, error: "idempotency_conflict" }, 409);
       }
       candidateId = racedCandidate.id;
     }
@@ -830,7 +900,7 @@ const submitEvidenceCandidate = async (
   let reviewCreated = false;
   const { data: existingReview, error: existingReviewError } = await admin
     .from("memory_review_queue_items")
-    .select("id")
+    .select("id,fingerprint")
     .eq("user_id", principal.memory_user_id)
     .eq("namespace", namespace)
     .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
@@ -842,6 +912,9 @@ const submitEvidenceCandidate = async (
     return respond({ ok: false, error: "review_lookup_failed" }, 500);
   }
   reviewItemId = existingReview?.id ?? null;
+  if (reviewItemId && existingReview?.fingerprint !== fingerprint) {
+    return respond({ ok: false, error: "idempotency_conflict" }, 409);
+  }
 
   if (!reviewItemId) {
     const { data: insertedReview, error: reviewInsertError } = await admin
@@ -879,8 +952,8 @@ const submitEvidenceCandidate = async (
           source: EVIDENCE_SOURCE,
           sourceKind: "projectos_evidence",
           sourceRef,
-          projectId,
-          projectKey,
+          projectId: canonicalProjectId,
+          projectKey: canonicalProjectKey,
           proofStage,
         },
         audit_metadata: {
@@ -913,7 +986,7 @@ const submitEvidenceCandidate = async (
     } else {
       const { data: racedReview, error: racedReviewError } = await admin
         .from("memory_review_queue_items")
-        .select("id")
+        .select("id,fingerprint")
         .eq("user_id", principal.memory_user_id)
         .eq("namespace", namespace)
         .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
@@ -921,6 +994,9 @@ const submitEvidenceCandidate = async (
         .maybeSingle();
       if (racedReviewError || !racedReview?.id) {
         return respond({ ok: false, error: "review_recovery_failed" }, 500);
+      }
+      if (racedReview.fingerprint !== fingerprint) {
+        return respond({ ok: false, error: "idempotency_conflict" }, 409);
       }
       reviewItemId = racedReview.id;
     }
@@ -933,8 +1009,8 @@ const submitEvidenceCandidate = async (
     status: "pending_review",
     idempotency_key: idempotencyKey,
     namespace,
-    project_id: projectId,
-    project_key: projectKey,
+    project_id: canonicalProjectId,
+    project_key: canonicalProjectKey,
     proof_stage: proofStage,
     deduplicated: !(candidateCreated || reviewCreated),
     created_at: candidateCreated || reviewCreated ? now : null,
