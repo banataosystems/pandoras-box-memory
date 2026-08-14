@@ -1,0 +1,46 @@
+{
+  "bridge_bytes": 18758,
+  "has_deno_serve": true,
+  "has_serve_call": true,
+  "has_query_only_true": false,
+  "has_canonical_writes_false": false,
+  "has_search_action": true,
+  "has_search_memory_call": true,
+  "first_deno_serve_index": 17129,
+  "first_serve_call_index": 17134,
+  "first_search_action_index": 18590,
+  "interesting": [
+    {
+      "line": 263,
+      "signature": "const searchMemory = async ("
+    },
+    {
+      "line": 511,
+      "signature": "Deno.serve(async (request: Request) => {"
+    },
+    {
+      "line": 520,
+      "signature": "const supabaseUrl = Deno.env.get(\"SUPABASE_URL\");"
+    },
+    {
+      "line": 521,
+      "signature": "const serviceRoleKey = Deno.env.get(\"SUPABASE_SERVICE_ROLE_KEY\");"
+    },
+    {
+      "line": 529,
+      "signature": "const authorization = await authorize(request, supabase);"
+    },
+    {
+      "line": 535,
+      "signature": "if (body.action === \"health\") {"
+    },
+    {
+      "line": 548,
+      "signature": "if (body.action === \"search\") {"
+    },
+    {
+      "line": 549,
+      "signature": "return searchMemory(body, authorization.principal, supabase);"
+    }
+  ]
+}
