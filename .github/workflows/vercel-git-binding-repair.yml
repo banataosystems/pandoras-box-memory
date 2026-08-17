@@ -1,0 +1,140 @@
+name: Vercel Git binding repair
+
+on:
+  push:
+    branches:
+      - ops/vercel-git-bindings-20260817
+    paths:
+      - .github/workflows/vercel-git-binding-repair.yml
+
+permissions:
+  contents: read
+
+jobs:
+  repair-bindings:
+    name: Repair canonical Vercel Git bindings
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN || secrets.VERCEL_ACCESS_TOKEN || secrets.VERCEL_API_TOKEN || secrets.VERCEL_AUTH_TOKEN }}
+      VERCEL_TEAM_ID: team_IcdJUnzLi5wUN1GD8ALHyjF7
+    steps:
+      - name: Verify Vercel credential is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${VERCEL_TOKEN:-}" ]]; then
+            echo "::error::No Vercel token secret is available under VERCEL_TOKEN, VERCEL_ACCESS_TOKEN, VERCEL_API_TOKEN, or VERCEL_AUTH_TOKEN."
+            exit 1
+          fi
+
+      - name: Repair bindings with rollback
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          api="https://api.vercel.com"
+          team_query="teamId=${VERCEL_TEAM_ID}"
+
+          vercel_get_project() {
+            local project_id="$1"
+            curl --fail-with-body --silent --show-error \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${api}/v9/projects/${project_id}?${team_query}"
+          }
+
+          vercel_disconnect() {
+            local project_id="$1"
+            curl --fail-with-body --silent --show-error \
+              -X DELETE \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              -H "Content-Type: application/json" \
+              "${api}/v9/projects/${project_id}/link?${team_query}" \
+              >/dev/null
+          }
+
+          vercel_connect() {
+            local project_id="$1"
+            local provider="$2"
+            local repo_path="$3"
+            local payload
+            payload="$(jq -cn --arg type "$provider" --arg repo "$repo_path" '{type:$type,repo:$repo}')"
+            curl --fail-with-body --silent --show-error \
+              -X POST \
+              -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+              -H "Content-Type: application/json" \
+              --data "$payload" \
+              "${api}/v9/projects/${project_id}/link?${team_query}" \
+              >/dev/null
+          }
+
+          bind_project() {
+            local project_id="$1"
+            local project_name="$2"
+            local desired_org="$3"
+            local desired_repo="$4"
+            local desired_path="${desired_org}/${desired_repo}"
+
+            echo "Checking ${project_name} -> ${desired_path}"
+            local before
+            before="$(vercel_get_project "$project_id")"
+
+            local old_type old_org old_repo old_path
+            old_type="$(jq -r '.link.type // empty' <<<"$before")"
+            old_org="$(jq -r '.link.org // empty' <<<"$before")"
+            old_repo="$(jq -r '.link.repo // empty' <<<"$before")"
+            old_path="${old_org}/${old_repo}"
+
+            if [[ "$old_type" == "github" && "$old_org" == "$desired_org" && "$old_repo" == "$desired_repo" ]]; then
+              echo "${project_name}: already connected to ${desired_path}"
+              return 0
+            fi
+
+            if [[ -n "$old_type" ]]; then
+              echo "${project_name}: replacing ${old_type}:${old_path}"
+              vercel_disconnect "$project_id"
+            else
+              echo "${project_name}: no existing Git provider link found"
+            fi
+
+            if ! vercel_connect "$project_id" github "$desired_path"; then
+              echo "::error::${project_name}: canonical Git connection failed. Attempting rollback."
+              if [[ -n "$old_type" && -n "$old_org" && -n "$old_repo" ]]; then
+                if vercel_connect "$project_id" "$old_type" "$old_path"; then
+                  echo "${project_name}: rollback restored ${old_type}:${old_path}"
+                else
+                  echo "::error::${project_name}: rollback failed; manual provider recovery is required."
+                fi
+              fi
+              return 1
+            fi
+
+            local after
+            after="$(vercel_get_project "$project_id")"
+            local new_type new_org new_repo
+            new_type="$(jq -r '.link.type // empty' <<<"$after")"
+            new_org="$(jq -r '.link.org // empty' <<<"$after")"
+            new_repo="$(jq -r '.link.repo // empty' <<<"$after")"
+
+            if [[ "$new_type" != "github" || "$new_org" != "$desired_org" || "$new_repo" != "$desired_repo" ]]; then
+              echo "::error::${project_name}: Vercel readback did not match ${desired_path}."
+              return 1
+            fi
+
+            echo "${project_name}: VERIFIED github:${new_org}/${new_repo}"
+          }
+
+          bind_project \
+            "prj_brg3BJDcHfSftHH84NhnFtDJAnDO" \
+            "memory" \
+            "banataosystems" \
+            "pandoras-box-memory"
+
+          bind_project \
+            "prj_Y5rZVcq8xJVzHVt4uvfmg9wPvXMk" \
+            "mcpmaster" \
+            "banataosystems" \
+            "Pandoras-box"
+
+          echo "Both canonical Vercel Git bindings verified."
