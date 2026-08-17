@@ -22,10 +22,16 @@ export type StreamSource = {
   text(): Promise<string>;
 };
 
+/** Why a bounded read refused to return content. */
+export type BoundedFailureReason =
+  | "declared_too_large"
+  | "actual_too_large"
+  | "read_failed";
+
 /** Outcome of reading a bounded body. */
 export type BoundedBody =
   | { ok: true; text: string; bytes: number }
-  | { ok: false; reason: "declared_too_large" | "actual_too_large" | "read_failed" };
+  | { ok: false; reason: BoundedFailureReason };
 
 /**
  * Reject early on a declared length that already exceeds the limit.
@@ -113,7 +119,7 @@ export async function readBoundedBody(
 /** Outcome of reading a bounded upstream response. */
 export type BoundedResponse =
   | { ok: true; text: string; bytes: number }
-  | { ok: false; reason: "declared_too_large" | "actual_too_large" | "read_failed" };
+  | { ok: false; reason: BoundedFailureReason };
 
 /**
  * Buffer an upstream response under a hard byte ceiling.
