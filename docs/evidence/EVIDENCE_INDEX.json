@@ -120,6 +120,25 @@
       "rollback_ref": null
     },
     {
+      "evidence_id": "governance-main-proof-enforcement-2026-08-17",
+      "path": "docs/capabilities/evidence/GOVERNANCE_MAIN_PROOF_ENFORCEMENT_2026-08-17.json",
+      "observed_at": "2026-08-17T11:00:00Z",
+      "source_commit": "f225678ab595078cd865420580d22283d719cf86",
+      "source_tree": "641b3feb2a9c71265e3df941f5eed647df06314e",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box-memory#30",
+      "proof_stage": "source_tested",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "502a647da0bf010c6c176f1ccb69462e684d84b221763473329f97c358427493",
+      "review_status": "awaiting_independent_review",
+      "deployment_status": "source_only",
+      "production_verified": false,
+      "rollback_ref": null
+    },
+    {
       "evidence_id": "live-memory-state-2026-08-09",
       "path": "docs/recovery/LIVE_MEMORY_STATE_2026-08-09.md",
       "observed_at": "2026-08-09T00:00:00Z",

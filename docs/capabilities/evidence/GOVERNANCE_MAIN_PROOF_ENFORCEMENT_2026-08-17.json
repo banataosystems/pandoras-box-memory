@@ -1,0 +1,75 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "governance-main-proof-enforcement-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "main-branch-proof-enforcement-and-verification-interface",
+  "source": {
+    "pull_request": 30,
+    "branch": "governance/main-proof-enforcement",
+    "candidate_head": "f225678ab595078cd865420580d22283d719cf86",
+    "candidate_tree": "641b3feb2a9c71265e3df941f5eed647df06314e",
+    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "repository governance, CI determinism, unified verification interface, and evidence classification. No runtime, application, database, or provider state is modified.",
+  "defect_closed": {
+    "registry_blocker": "registry-required-check-not-enforced",
+    "boundary": "mandatory gates ran only on pull-request heads, so the commit that became canonical main was never verified as a whole; main was additionally unprotected",
+    "observed_failure": "capability registry gate failed on main@d0e689556cc01428500b796cade87032ea5c0ad8"
+  },
+  "enforcement": {
+    "gates_now_running_on_main_push": [
+      "pandora-verify",
+      "capability-registry-gate",
+      "security-source-gate",
+      "memory-evidence-intake",
+      "web-recovery-build",
+      "machine-gateway-namespace-isolation",
+      "verify-memory-searchpath-advisor"
+    ],
+    "exact_head_assertion": true,
+    "npm_ci_replaces_npm_install": true,
+    "cache_keyed_on_lockfile": true,
+    "tracked_build_output_rejected": true,
+    "third_party_actions_pinned_to_sha": "all except actions/setup-python, which could not be verified from this repository-scoped session and is deliberately left on a tag rather than falsely pinned"
+  },
+  "branch_protection": {
+    "ruleset_authored": true,
+    "ruleset_path": ".github/branch-protection/main.json",
+    "applied": false,
+    "provider_readback_verified": false,
+    "note": "applying branch protection mutates repository administrative configuration and requires its own review; it must not be recorded as enforced without a provider readback"
+  },
+  "evidence_normalization": {
+    "index_path": "docs/evidence/EVIDENCE_INDEX.json",
+    "artifacts_classified": 22,
+    "current": 12,
+    "historical": 10,
+    "historical_bytes_modified": 0,
+    "immutability_enforced_by_ci": true
+  },
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "merge into canonical main with the exact-merge-result gates green",
+    "source-provenanced preview deployment verification",
+    "separate production deployment authorization and rollback rehearsal"
+  ]
+}
