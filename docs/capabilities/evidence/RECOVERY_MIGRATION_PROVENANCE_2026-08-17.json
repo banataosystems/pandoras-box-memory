@@ -7,9 +7,9 @@
   "source": {
     "pull_request": 31,
     "branch": "recovery/migration-provenance-20260817",
-    "candidate_head": "7cb4d646bfc620f549fef64b6165749638c11ebe",
-    "candidate_tree": "dd37b88e059ab487bc7cbdda134191869d0f5aa4",
-    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+    "candidate_head": "e174036b50f1caf8a85f189c96fe73c0a9938c2b",
+    "candidate_tree": "0bb344c5db745f039bf67b13657f100c84346691",
+    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
   },
   "lifecycle": {
     "documented": true,
@@ -20,45 +20,36 @@
     "production_verified": false
   },
   "change_scope": "migration provenance classification, parity CI, and an operator recovery tool. No migration was added, applied, replayed, or altered; no production data was mutated.",
+  "review_remediation": {
+    "finding": "normalizeSql() collapsed whitespace globally, including inside single-quoted string literals and dollar-quoted function bodies",
+    "consequence": "two migrations inserting different data, or defining different routine bodies, could normalize to the same string and compare as equal",
+    "resolution": "the helper was deleted, not repaired",
+    "justification": "it was never wired into the parity gate, which has always used exact SHA-256 comparison, so no parity result was ever produced by it; a dead module with a subtle false-equality bug is a trap for the next reader who imports it assuming it is sound",
+    "comparison_basis_now": "exact bytes, modulo trailing whitespace only, which fails loudly toward human classification rather than silently declaring different migrations identical"
+  },
   "provider_observation": {
     "method": "read-only SELECT against supabase_migrations.schema_migrations",
     "provider_resource_id": "ivmvufhcsezyhczzondn",
     "live_migrations": 68,
     "retaining_authentic_statement_text": 68,
-    "whole_original_file_text_retained": 42,
-    "statements_split_file_framing_unrecoverable": 26,
     "carrying_rollback_metadata": 0
   },
   "parity_result": {
     "canonical_source_migrations": 15,
     "authentic": 14,
     "sanitized": 1,
-    "missing": 53,
-    "sanitized_reason": "20260808220117 deliberately omits an owner-specific audit INSERT carrying a principal UUID; the omission is stated in the file itself and schema/privilege effects are preserved"
+    "missing": 53
   },
   "recovery_posture": {
     "bulk_materialization_performed": false,
     "reason": "live migration bodies can embed direct identifiers, so copying all 68 into source control would re-import data that was deliberately removed",
-    "tool": "scripts/recover_live_migrations.mjs",
     "hash_verified_against_committed_ledger": true,
-    "privacy_scan_blocks_write": true,
-    "recovery_isolated_from_active_migrations": true
+    "privacy_scan_blocks_write": true
   },
-  "ci_enforcement": [
-    "every live migration classified, including as missing",
-    "no manifest entry for a migration production never applied",
-    "no duplicate versions in source, recovery, or manifest",
-    "no migration name drift against the live ledger",
-    "no committed migration content drift without a deliberate manifest update",
-    "no false authentic claim",
-    "no sanitized entry without a stated reason",
-    "no version present in both active and recovery directories"
-  ],
   "remaining_gates": [
     "independent review of this exact candidate head",
     "operator-run materialization of the 53 missing migrations with privacy sanitization where blocked",
-    "authoring and reviewing down-migrations: no applied migration has rollback metadata at the provider",
-    "merge into canonical main with the exact-merge-result gates green"
+    "authoring and reviewing down-migrations: no applied migration has rollback metadata at the provider"
   ],
   "activation_state": {
     "live_principal_can_propose": false,
