@@ -76,6 +76,30 @@ It is deliberately **not applied** by this change: applying it mutates
 repository administrative configuration, which is a governed action requiring
 the same independent review as any other.
 
+### Required contexts must be able to report
+
+Independent review of the first draft caught a defect that would have been worse
+than the gap it was closing: the ruleset required contexts produced by
+**path-filtered** workflows. GitHub blocks a pull request until every required
+context reports, and a path-filtered workflow never runs — so never reports — on
+a PR that touches none of its paths. A valid documentation-only PR would have
+been **permanently unmergeable**, waiting on a check that could never arrive.
+
+The rule is now explicit: **a context may be required only if its workflow runs
+unconditionally on `pull_request`.**
+
+- `capability-registry-gate.yml` and `machine-gateway-namespace-isolation.yml`
+  had their path filters removed so they always report. The registry gate's
+  co-change logic already passes when no tracked source changed.
+- `web-recovery-build.yml` and `memory-evidence-intake.yml` stay path-filtered
+  and are **not** required. `pandora-verify` already runs typecheck, the
+  production build, and the Memory evidence intake contract on every PR, so
+  nothing is lost as a gate — they remain useful as targeted signal.
+- `scripts/check_branch_protection_contexts.mjs` parses the workflow files and
+  fails if any required context is path-filtered, unknown, ambiguous, or lacks a
+  `pull_request` trigger. It runs in `npm run verify`, so this class of defect
+  cannot be reintroduced silently.
+
 Key properties of the prepared ruleset:
 
 - `strict: true` — a PR must be up to date with `main` before merging, so the

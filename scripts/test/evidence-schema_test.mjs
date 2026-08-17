@@ -113,3 +113,41 @@ test("the committed evidence index satisfies its own contract", () => {
     "index must retain historical evidence, not only current state",
   );
 });
+
+// --- branch-protection required contexts -----------------------------------
+
+test("a path-filtered workflow cannot be a required context", async () => {
+  const { parseWorkflow, validate } = await import(
+    "../check_branch_protection_contexts.mjs"
+  );
+  const filtered = parseWorkflow(
+    'on:\n  pull_request:\n    paths:\n      - "app/**"\njobs:\n  b:\n    name: Build it\n',
+  );
+  const errors = validate(
+    { required_status_checks: { contexts: ["Build it"] } },
+    new Map([["filtered.yml", filtered]]),
+  );
+  assert.ok(
+    errors.some((message) => message.includes("path-filtered")),
+    "requiring a path-filtered check would block PRs outside its paths forever",
+  );
+});
+
+test("the committed ruleset only requires contexts that always report", async () => {
+  const { parseWorkflow, validate } = await import(
+    "../check_branch_protection_contexts.mjs"
+  );
+  const { readdirSync, readFileSync } = await import("node:fs");
+  const workflows = new Map(
+    readdirSync(".github/workflows")
+      .filter((name) => /\.ya?ml$/.test(name))
+      .map((name) => [
+        name,
+        parseWorkflow(readFileSync(`.github/workflows/${name}`, "utf8")),
+      ]),
+  );
+  const ruleset = JSON.parse(
+    readFileSync(".github/branch-protection/main.json", "utf8"),
+  );
+  assert.deepEqual(validate(ruleset, workflows), []);
+});

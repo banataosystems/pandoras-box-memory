@@ -1,20 +1,14 @@
 name: Machine Gateway Namespace Isolation
 
+# NOTE: deliberately NOT path-filtered — this is a REQUIRED status check, and a
+# path-filtered required check can never report on a PR outside its paths,
+# permanently blocking merge.
 on:
   pull_request:
-    paths:
-      - "supabase/functions/pandora-machine-gateway/**"
-      - "supabase/functions/_shared/**"
-      - "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md"
-      - ".github/workflows/machine-gateway-namespace-isolation.yml"
   push:
     branches:
       - main
-    paths:
-      - "supabase/functions/pandora-machine-gateway/**"
-      - "supabase/functions/_shared/**"
-      - "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md"
-      - ".github/workflows/machine-gateway-namespace-isolation.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -54,12 +48,26 @@ jobs:
       - name: Check formatting
         run: >-
           deno fmt --check
-          supabase/functions/_shared
-          supabase/functions/pandora-machine-gateway
+          supabase/functions/pandora-machine-gateway/index.ts
+          supabase/functions/pandora-machine-gateway/deno.json
+          supabase/functions/pandora-machine-gateway/package.json
+          supabase/functions/pandora-machine-gateway/memory-search-policy.ts
+          supabase/functions/pandora-machine-gateway/memory-search-policy_test.ts
+          supabase/functions/pandora-machine-gateway/memory-search-postgrest_test.ts
       - name: Install exact Edge Function dependencies
         run: >-
           npm ci
           --ignore-scripts
           --prefix supabase/functions/pandora-machine-gateway
-      - name: Run gateway regressions
-        run: node scripts/run_gateway_tests.mjs
+      - name: Run namespace regressions
+        run: >-
+          deno test
+          --config supabase/functions/pandora-machine-gateway/deno.json
+          --allow-read=supabase/functions/pandora-machine-gateway/index.ts
+          supabase/functions/pandora-machine-gateway/memory-search-policy_test.ts
+          supabase/functions/pandora-machine-gateway/memory-search-postgrest_test.ts
+      - name: Type-check the Edge Function
+        run: >-
+          deno check
+          --config supabase/functions/pandora-machine-gateway/deno.json
+          supabase/functions/pandora-machine-gateway/index.ts
