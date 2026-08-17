@@ -1,0 +1,148 @@
+{
+  "schema_version": "1.0.0",
+  "contract_id": "pandora-projectos-memory-puzzle",
+  "contract_version": "1.0.0",
+  "authority": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "service_origin": "https://pandorasbox-memory.vercel.app",
+    "role": "durable_context_evidence_learning_continuity_plane"
+  },
+  "consumer": {
+    "repository": "banataosystems/Pandoras-box",
+    "role": "governed_execution_control_plane"
+  },
+  "compatibility": {
+    "supported_consumer_major_versions": [1],
+    "unknown_required_capability": "fail_closed",
+    "missing_required_context_section": "degrade_and_require_provider_verification",
+    "hash_algorithm": "sha256"
+  },
+  "endpoints": {
+    "contract": {
+      "method": "GET",
+      "path": "/.well-known/pandora-projectos-memory-contract-v1.json",
+      "authentication": "public_non_secret_metadata"
+    },
+    "health": {
+      "method": "GET",
+      "path": "/api/projectos/health",
+      "authentication": "vercel_oidc",
+      "required": true
+    },
+    "search": {
+      "method": "POST",
+      "path": "/api/projectos/memory/search",
+      "authentication": "vercel_oidc",
+      "required": true
+    },
+    "evidence_candidates": {
+      "method": "POST",
+      "path": "/api/projectos/memory/evidence-candidates",
+      "authentication": "vercel_oidc",
+      "required": false,
+      "review_gate": "human_review_required"
+    }
+  },
+  "capabilities": [
+    {
+      "id": "memory.health",
+      "required": true,
+      "safe_read": true,
+      "canonical_write": false
+    },
+    {
+      "id": "memory.full_context_search",
+      "required": true,
+      "safe_read": true,
+      "canonical_write": false,
+      "request_defaults": {
+        "namespace": "real_life",
+        "max_items": 12,
+        "include_semantic": true,
+        "include_profiles": true,
+        "include_recent": true,
+        "include_open_loops": true,
+        "canon_statuses": ["approved"]
+      },
+      "response_sections": [
+        "adaptive_profile",
+        "style_profile",
+        "project_context",
+        "people_context",
+        "risk_warnings",
+        "open_loops",
+        "latest_context_pack",
+        "daily_context_pack",
+        "recent_events",
+        "semantic_matches",
+        "canonical_records",
+        "approved_record_count",
+        "requested_canon_statuses",
+        "retrieval_mode",
+        "retrieval_reasoning_summary",
+        "warnings"
+      ]
+    },
+    {
+      "id": "memory.evidence_candidate_submission",
+      "required": false,
+      "safe_read": false,
+      "canonical_write": false,
+      "review_gate": "human_review_required",
+      "automatic_promotion": false
+    }
+  ],
+  "context_sections": [
+    { "field": "adaptive_profile", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "style_profile", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "project_context", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "people_context", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "risk_warnings", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "open_loops", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "latest_context_pack", "required": true, "consumer_duty": "presence_and_bounded_highlight_or_explicit_empty" },
+    { "field": "daily_context_pack", "required": true, "consumer_duty": "presence_and_bounded_highlight_or_explicit_empty" },
+    { "field": "recent_events", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "semantic_matches", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "canonical_records", "required": true, "consumer_duty": "count_and_bounded_highlight_or_explicit_empty" },
+    { "field": "approved_record_count", "required": true, "consumer_duty": "record_exact_nonnegative_count" },
+    { "field": "requested_canon_statuses", "required": true, "consumer_duty": "record_bounded_status_list" },
+    { "field": "retrieval_mode", "required": true, "consumer_duty": "record_bounded_mode" },
+    { "field": "retrieval_reasoning_summary", "required": true, "consumer_duty": "record_bounded_reasoning_summary" },
+    { "field": "warnings", "required": true, "consumer_duty": "record_bounded_warning_list" }
+  ],
+  "orchestration": {
+    "before_project_status_or_substantial_work": [
+      "verify_contract_compatibility",
+      "verify_health",
+      "retrieve_full_context",
+      "consume_every_required_section_or_record_explicit_empty",
+      "surface_missing_sections_as_degraded",
+      "fall_back_to_current_provider_evidence_when_memory_is_degraded"
+    ],
+    "after_meaningful_change": [
+      "submit_sanitized_project_scoped_evidence_candidate",
+      "preserve_provenance_and_parent_history",
+      "require_human_review_before_canonical_promotion"
+    ]
+  },
+  "proof_ladder": [
+    "documented",
+    "implemented",
+    "tested",
+    "deployed",
+    "production_verified"
+  ],
+  "privacy": {
+    "persist_raw_provider_arguments": false,
+    "persist_raw_provider_results": false,
+    "persist_raw_errors": false,
+    "persist_secrets_or_credentials": false,
+    "persist_direct_sensitive_identifiers": false,
+    "evidence_candidate_policy": "metadata_only_v2_fail_closed"
+  },
+  "promotion_policy": {
+    "automatic_canonical_promotion": false,
+    "human_review_required": true,
+    "history_is_superseded_not_overwritten": true
+  }
+}
