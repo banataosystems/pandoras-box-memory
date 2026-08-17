@@ -14,7 +14,10 @@ function assertEquals(actual: unknown, expected: unknown, message = "") {
 }
 
 function assertStringIncludes(haystack: string, needle: string, message = "") {
-  assert(haystack.includes(needle), message || `expected source to include ${needle}`);
+  assert(
+    haystack.includes(needle),
+    message || `expected source to include ${needle}`,
+  );
 }
 
 const GATEWAY = new URL("./index.ts", import.meta.url);
@@ -36,19 +39,23 @@ Deno.test("an allow decision proceeds when audit is durable", () => {
 Deno.test("a denial is never blocked by an audit failure", () => {
   // An audit outage must not be able to weaken authorization, and there is
   // nothing to withhold on a denial.
-  assertEquals(mustFailClosed("audit_required_fail_closed", "deny", false), false);
-  assertEquals(mustFailClosed("audit_required_fail_closed", "error", false), false);
+  const cls = "audit_required_fail_closed";
+  assertEquals(mustFailClosed(cls, "deny", false), false);
+  assertEquals(mustFailClosed(cls, "error", false), false);
 });
 
 Deno.test("non-governed classes never fail closed", () => {
   assertEquals(mustFailClosed("informational", "allow", false), false);
-  assertEquals(mustFailClosed("completion_first_outbox", "allow", false), false);
+  assertEquals(
+    mustFailClosed("completion_first_outbox", "allow", false),
+    false,
+  );
 });
 
 // Source-level assertions binding the deployed gateway to the contract. These
 // catch a regression that reintroduces the discarded-error pattern even if no
 // behavioral test happens to cover that call site.
-Deno.test("gateway audit reads the Supabase error instead of discarding it", async () => {
+Deno.test("gateway audit reads the Supabase error", async () => {
   const source = await Deno.readTextFile(GATEWAY);
   assertStringIncludes(
     source,
@@ -57,15 +64,19 @@ Deno.test("gateway audit reads the Supabase error instead of discarding it", asy
   );
 });
 
-Deno.test("gateway allow paths fail closed on audit persistence failure", async () => {
+Deno.test("gateway allow paths fail closed on audit failure", async () => {
   const source = await Deno.readTextFile(GATEWAY);
   assertStringIncludes(source, "audit_persistence_failed");
   // Both tool paths must be covered, not just one.
   const occurrences = source.split("audit_persistence_failed").length - 1;
-  assertEquals(occurrences >= 2, true, "both memory_health and memory_search must fail closed");
+  assertEquals(
+    occurrences >= 2,
+    true,
+    "both memory_health and memory_search must fail closed",
+  );
 });
 
-Deno.test("gateway audit failure logging does not echo error content", async () => {
+Deno.test("gateway audit logging does not echo error content", async () => {
   const source = await Deno.readTextFile(GATEWAY);
   assertEquals(
     source.includes("gateway_audit_persist_failed"),

@@ -83,7 +83,7 @@ Deno.test("one byte over the limit is rejected", async () => {
   if (!result.ok) assertEquals(result.reason, "actual_too_large");
 });
 
-Deno.test("an oversized declared length is rejected before reading", async () => {
+Deno.test("oversized declared length is rejected first", async () => {
   const result = await readBoundedBody(
     source("small", { contentLength: "999999" }),
     LIMIT,
@@ -92,7 +92,7 @@ Deno.test("an oversized declared length is rejected before reading", async () =>
   if (!result.ok) assertEquals(result.reason, "declared_too_large");
 });
 
-Deno.test("an understated content-length does not defeat the real limit", async () => {
+Deno.test("understated content-length does not defeat the limit", async () => {
   const result = await readBoundedBody(
     source("z".repeat(LIMIT + 50), { contentLength: "5" }),
     LIMIT,
@@ -152,7 +152,7 @@ Deno.test("an oversized upstream response is bounded", async () => {
   if (!result.ok) assertEquals(result.reason, "actual_too_large");
 });
 
-Deno.test("an upstream response declaring an oversized length is rejected", async () => {
+Deno.test("upstream declaring an oversized length is rejected", async () => {
   const result = await readBoundedResponse(
     source("small", { contentLength: "999999" }),
     LIMIT,
@@ -191,7 +191,7 @@ Deno.test("boundedInteger rejects non-integers and out-of-range values", () => {
   assertEquals(boundedInteger(21, options), null);
 });
 
-Deno.test("boundedInteger accepts valid input and defaults only when absent", () => {
+Deno.test("boundedInteger defaults only when the value is absent", () => {
   const options = { min: 1, max: 20, fallback: 10 };
   assertEquals(boundedInteger(1, options), 1);
   assertEquals(boundedInteger(20, options), 20);
