@@ -1,18 +1,14 @@
 name: Machine Gateway Namespace Isolation
 
+# NOTE: deliberately NOT path-filtered — this is a REQUIRED status check, and a
+# path-filtered required check can never report on a PR outside its paths,
+# permanently blocking merge.
 on:
   pull_request:
-    paths:
-      - "supabase/functions/pandora-machine-gateway/**"
-      - "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md"
-      - ".github/workflows/machine-gateway-namespace-isolation.yml"
   push:
     branches:
       - main
-    paths:
-      - "supabase/functions/pandora-machine-gateway/**"
-      - "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md"
-      - ".github/workflows/machine-gateway-namespace-isolation.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
