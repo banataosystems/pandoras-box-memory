@@ -7,11 +7,12 @@
   "source": {
     "pull_request": 33,
     "branch": "hardening/gateway-api-boundaries",
-    "candidate_head": "6b4ed643f9d8692f5bf37bb4335c8d79a4496b78",
-    "candidate_tree": "bbd7a79ffc53af9f3c24d436074b3d1de832cc58",
+    "candidate_head": "ddf61a5bc5bed7bb7ebffe90cac1d8acec0e4389",
+    "candidate_tree": "bf99948413c86f509caac6dc5d7333e4bf5a302c",
     "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
     "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
     "describes_commits": [
+      "ddf61a5bc5bed7bb7ebffe90cac1d8acec0e4389",
       "6b4ed643f9d8692f5bf37bb4335c8d79a4496b78",
       "9f27e355589f0856020b53a392a430f2486a2fad",
       "0b52110d30262e768bd5889736a93d23dcf72361",
@@ -130,6 +131,19 @@
       "the approved-canon contract leaked internal hard_canon/soft_canon labels because the response normalizer spread canonical_records through unchanged."
     ],
     "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when canonical_base is not the merge-base with the default branch, or when a recorded historical commit does not exist. 13 self-tests.",
-    "canon_label_fix": "canonical_records are rebuilt rather than spread; canon-label fields are rewritten to the stable approved alias at any depth, keyed on field name so free text discussing canon status is never corrupted."
+    "canon_label_fix": "canonical_records are rebuilt rather than spread; canon-label fields are rewritten to the stable approved alias at any depth, keyed on field name so free text discussing canon status is never corrupted.",
+    "third_review_findings_closed": [
+      "the binding guard resolved the lane with git rev-parse --abbrev-ref HEAD, which returns the literal HEAD under CI detached checkout, so every lane-scoped check was silently skipped and CI could stay green over a rotted binding",
+      "candidate_tree was only shape-checked as 40 hex characters and was never verified to equal the tree of candidate_head"
+    ],
+    "lane_resolution": "resolveLane prefers an explicit --lane argument, then GITHUB_HEAD_REF (pull_request), then GITHUB_REF_NAME when GITHUB_REF_TYPE is branch (push), and only then a symbolic ref, rejecting the literal HEAD. When the lane cannot be resolved and an artifact declares one, the gate FAILS CLOSED instead of skipping.",
+    "tree_binding": "candidate_tree is compared against git rev-parse <candidate_head>^{tree}",
+    "regressions_added": [
+      "detached HEAD fails closed instead of skipping",
+      "detached HEAD fails closed even for a correct binding",
+      "mismatched candidate_tree is rejected",
+      "lane resolution precedence, including that a tag ref is not a lane"
+    ],
+    "self_tests": 25
   }
 }
