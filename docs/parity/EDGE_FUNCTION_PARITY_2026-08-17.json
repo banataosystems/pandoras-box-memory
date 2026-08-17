@@ -5,7 +5,7 @@
   "environment": "production",
   "provider": "supabase",
   "provider_resource_id": "ivmvufhcsezyhczzondn",
-  "canonical_commit": "d0e689556cc01428500b796cade87032ea5c0ad8",
+  "canonical_commit": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
   "evidence_commit": "281e6767384c943d5ec45c4615a738ccb84266c9",
   "evidence_tree": "3ac862f01b08e5041a94e3c518a00eea1a22a029",
   "proof_stage": "documented",
@@ -31,7 +31,7 @@
       "comparison_performed": "structural_full_source",
       "byte_comparison_performed": false,
       "divergence_class": "exact_match",
-      "finding": "The fetched live entrypoint matches canonical main byte-for-byte in structure and content across a full read: identical constants, identical validation chain, identical persistence ordering, and identical response shape. It still contains the pre-fix defect signatures — candidate lookup selecting only id, review and digest metadata built from the incoming request, the bare metadata_only_v1 literal, and the audit insert whose error is logged and ignored.",
+      "finding": "The fetched live entrypoint matches canonical main byte-for-byte in structure and content across a full read: identical constants, identical validation chain, identical persistence ordering, and identical response shape. It still contains the pre-fix defect signatures \u2014 candidate lookup selecting only id, review and digest metadata built from the incoming request, the bare metadata_only_v1 literal, and the audit insert whose error is logged and ignored.",
       "security_conclusion": "The PR #32 idempotency and audit-durability fixes are NOT deployed. Production runs the defective version.",
       "canonical_files": [
         {
@@ -79,7 +79,7 @@
       "comparison_performed": "none",
       "byte_comparison_performed": false,
       "divergence_class": "not_yet_compared",
-      "finding": "Deployed version and provider bundle digest recorded. Executable source was not fetched or compared in this pass. Note that v13 predates PR #27, so the submit_evidence_candidate action present in canonical main is certainly absent from the deployed function — a known executable divergence that does not require a fetch to establish.",
+      "finding": "Deployed version and provider bundle digest recorded. Executable source was not fetched or compared in this pass. Note that v13 predates PR #27, so the submit_evidence_candidate action present in canonical main is certainly absent from the deployed function \u2014 a known executable divergence that does not require a fetch to establish.",
       "security_conclusion": "The review-gated evidence-candidate intake is NOT deployed.",
       "canonical_files": [
         {
@@ -107,5 +107,6 @@
     "ezbr_sha256 is a provider bundle digest and is never compared against a source file hash.",
     "Two of three functions have no source comparison in this pass and are recorded as not_yet_compared, not as matching.",
     "No function was redeployed to create cosmetic parity."
-  ]
+  ],
+  "canonical_commit_note": "Canonical main at the time this manifest was computed. Canonical source hashes below are taken from this commit. If main has advanced, recompute before relying on the comparison."
 }

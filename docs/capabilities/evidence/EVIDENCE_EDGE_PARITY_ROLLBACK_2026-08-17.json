@@ -7,9 +7,9 @@
   "source": {
     "pull_request": 34,
     "branch": "evidence/edge-parity-and-rollback",
-    "candidate_head": "281e6767384c943d5ec45c4615a738ccb84266c9",
-    "candidate_tree": "3ac862f01b08e5041a94e3c518a00eea1a22a029",
-    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+    "candidate_head": "0504b285b0065645de9477cbc8f285afa07582af",
+    "candidate_tree": "1d2204628bd25624a80a2992350c55588f5b6973",
+    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
   },
   "lifecycle": {
     "documented": true,
@@ -20,6 +20,13 @@
     "production_verified": false
   },
   "change_scope": "Edge Function parity evidence and a capability-preserving rollback procedure. Documentation and evidence only; no runtime, application, database, or provider state is modified.",
+  "review_remediation": {
+    "finding": "the rollback document named d0e689556cc01428500b796cade87032ea5c0ad8 as the full-capability target, but canonical main has advanced to aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+    "consequence": "rolling to the documented SHA would silently discard everything merged after it, so it no longer proves capability-preserving rollback",
+    "fix": "the release candidate is now defined as whatever commit canonical main points at when the rollback is performed, resolved from the repository at rollback time; the recorded SHA is explicitly labelled an observation rather than a target",
+    "recurrence_prevention": "the procedure states that a rollback target read from a document is stale by construction and instructs the operator to resolve it from origin/main, so this cannot silently rot again",
+    "parity_manifest_updated": "canonical_commit refreshed to current main with a note to recompute if main advances"
+  },
   "edge_parity": {
     "method": "read-only list_edge_functions and get_edge_function; no function deployed, updated, or invoked",
     "functions": 3,
@@ -27,14 +34,11 @@
     "not_yet_compared": 2,
     "executable_divergence": 0,
     "provider_bundle_hash_compared_against_source_hash": false,
-    "parity_claimed_from_name_or_version_match": false,
-    "key_finding": "pandora-projectos-learning v1 live source still contains the pre-fix defect signatures, confirming the PR #32 idempotency and audit-durability fixes are not deployed"
+    "parity_claimed_from_name_or_version_match": false
   },
   "rollback": {
     "existing_target_sufficient": false,
-    "reason": "the preserved Vercel rollback deployment predates the current ProjectOS health and search capabilities, so restoring it would silently drop capabilities",
-    "release_candidate": "main@d0e689556cc01428500b796cade87032ea5c0ad8",
-    "builds_reproducibly_from_lockfile": true,
+    "release_candidate": "current canonical main, resolved at rollback time",
     "rehearsal_performed": false,
     "preview_deployment_performed": false,
     "routes_probed_against_running_instance": false,
@@ -48,8 +52,8 @@
   "remaining_gates": [
     "independent review of this exact candidate head",
     "fetch and byte-compare live source for pandora-machine-gateway and pandora-projectos-bridge",
-    "preview deployment of the release candidate plus route probes to close the web-tier rehearsal gate",
-    "separate authorization for any production promotion; rollback remains unproven until an actual safe rehearsal completes"
+    "preview deployment plus route probes to close the web-tier rehearsal gate",
+    "separate authorization for any production promotion; rollback remains unproven until a safe rehearsal completes"
   ],
   "activation_state": {
     "live_principal_can_propose": false,
