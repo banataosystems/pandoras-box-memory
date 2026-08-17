@@ -9,9 +9,12 @@ on:
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
+  # Previously this ran on pushes to the feature branch only, so the commit that
+  # actually became canonical `main` never executed this contract. It now runs on
+  # the exact merge result.
   push:
     branches:
-      - feature/projectos-memory-evidence-intake
+      - main
     paths:
       - 'app/api/projectos/memory/evidence-candidates/**'
       - 'supabase/functions/pandora-projectos-bridge/**'
@@ -27,20 +30,21 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      EXPECTED_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
     steps:
       - name: Check out exact source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
 
       - name: Verify exact source checkout
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
 
-      - name: Set up Node 24
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
-          node-version: '24'
+          node-version: '22'
           cache: npm
           cache-dependency-path: package-lock.json
 

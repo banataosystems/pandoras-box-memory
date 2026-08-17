@@ -1,0 +1,41 @@
+{
+  "_comment": [
+    "Prepared branch-protection ruleset for `main`. NOT APPLIED by this change.",
+    "Applying it mutates repository administrative configuration and therefore",
+    "requires the same independent review as any other governed change.",
+    "",
+    "Apply with:",
+    "  gh api -X PUT repos/banataosystems/pandoras-box-memory/branches/main/protection \\",
+    "    --input .github/branch-protection/main.json",
+    "",
+    "Verify afterwards with a provider readback:",
+    "  gh api repos/banataosystems/pandoras-box-memory/branches/main/protection",
+    "Do not record this as applied until that readback proves it."
+  ],
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "Verify exact candidate source",
+      "Validate exact-head evidence registry",
+      "no-literal-secrets",
+      "verify",
+      "Typecheck and build exact candidate",
+      "Prove same-owner cross-namespace denial"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "require_last_push_approval": true
+  },
+  "restrictions": null,
+  "required_linear_history": true,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": true,
+  "lock_branch": false,
+  "allow_fork_syncing": false
+}
