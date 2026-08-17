@@ -19,6 +19,20 @@ Every request passes four independent checks:
 
 A gateway grant never implies unrestricted downstream access.
 
+For service-role adapters, grant authorization and downstream row scope are
+separate mandatory controls. Pandora `memory_search` is authorized only for
+`namespace:real_life`, and its database query must independently constrain
+the same user's rows to `namespace = real_life` before text matching, ordering,
+or limiting. A negative regression must prove that an AU row owned by the same
+user cannot cross this resource boundary. `memory_health` uses the same row
+namespace for its active-item count so metadata cannot disclose same-owner AU
+rows even though the health grant itself has no resource selector.
+
+The function pins its npm imports and commits a function-scoped `package-lock.json`.
+Candidate CI installs that lock with lifecycle scripts disabled before Deno
+type-checking, preventing a floating dependency range from silently changing
+the reviewed source contract.
+
 ## Identity modes
 
 ### User-delegated OAuth

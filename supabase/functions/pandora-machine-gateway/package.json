@@ -1,0 +1,9 @@
+{
+  "name": "pandora-machine-gateway-edge",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@supabase/supabase-js": "2.110.9",
+    "jose": "5.10.0"
+  }
+}
