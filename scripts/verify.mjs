@@ -71,6 +71,11 @@ const STAGES = [
     command: ["node", ["scripts/test_memory_evidence_intake_behavior.mjs"]],
   },
   {
+    name: "learning",
+    description: "ProjectOS learning idempotency, recovery, and audit durability",
+    command: ["node", ["scripts/test_projectos_learning_behavior.mjs"]],
+  },
+  {
     name: "gateway",
     description: "Machine gateway namespace isolation and boundary tests (Deno)",
     command: ["node", ["scripts/run_gateway_tests.mjs"]],
