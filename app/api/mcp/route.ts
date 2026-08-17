@@ -1,5 +1,6 @@
 import { NextRequest } from "next/server";
 
+import { normalizedBearerAuthorization } from "@/lib/http/auth-material";
 import { declaredLengthExceeds, readBounded } from "@/lib/http/bounded";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +38,7 @@ function error(status: number, reason: string, headers: Record<string, string> =
 
 function unauthorized(request: NextRequest) {
   return new Response(
-    JSON.stringify({ error: "unauthorized", reason: "missing_bearer" }),
+    JSON.stringify({ error: "unauthorized", reason: "missing_or_malformed_bearer" }),
     {
       status: 401,
       headers: {
@@ -51,9 +52,10 @@ function unauthorized(request: NextRequest) {
 }
 
 async function proxy(request: NextRequest) {
-  const authorization = request.headers.get("authorization");
-  // Authentication material is required before the proxy will read or forward
-  // any body, so an unauthenticated caller cannot make this route buffer.
+  // Reject Basic, arbitrary, whitespace-bearing, or oversized Authorization
+  // values before reading a request body or initiating an upstream call. Full
+  // OAuth token verification remains at the canonical machine gateway.
+  const authorization = normalizedBearerAuthorization(request.headers);
   if (!authorization) return unauthorized(request);
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD";
