@@ -638,6 +638,176 @@ const parseEvidenceProvenance = (value: unknown): JsonRecord | null => {
   return output;
 };
 
+// Exactly what is (or is about to be) persisted for one evidence candidate.
+// Review-queue reconciliation is always driven from this, never from a fresh
+// submission, so a healed orphan mirrors the row that actually exists.
+type EvidenceSnapshot = {
+  namespace: string;
+  sourceRef: string;
+  summary: string;
+  proofStage: string;
+  claim: string;
+  evidenceRefs: unknown;
+  provenance: unknown;
+  canonicalProjectId: string;
+  canonicalProjectKey: string;
+  idempotencyKey: string;
+  fingerprint: string;
+};
+
+// Rebuild the snapshot of an already-persisted candidate from its own stored
+// columns. Returns null if the row cannot be read faithfully, so reconciliation
+// fails closed rather than writing a review item that misstates the candidate.
+const storedEvidenceSnapshot = (
+  candidate: JsonRecord,
+  namespace: string,
+  sourceRef: string,
+): EvidenceSnapshot | null => {
+  const metadata = isRecord(candidate.metadata) ? candidate.metadata : null;
+  if (!metadata) return null;
+  const summary = typeof candidate.summary === "string" ? candidate.summary : null;
+  const proofStage = typeof metadata.proof_stage === "string" ? metadata.proof_stage : null;
+  const claim = typeof metadata.claim === "string" ? metadata.claim : null;
+  const projectId = typeof metadata.project_id === "string" ? metadata.project_id : null;
+  const projectKey = typeof metadata.project_key === "string" ? metadata.project_key : null;
+  const idempotencyKey = typeof metadata.idempotency_key === "string"
+    ? metadata.idempotency_key
+    : null;
+  const fingerprint = typeof metadata.fingerprint === "string" ? metadata.fingerprint : null;
+  if (
+    !summary || !proofStage || !claim || !projectId || !projectKey ||
+    !idempotencyKey || !fingerprint || metadata.evidence_refs === undefined ||
+    metadata.provenance === undefined
+  ) {
+    return null;
+  }
+  return {
+    namespace,
+    sourceRef,
+    summary,
+    proofStage,
+    claim,
+    evidenceRefs: metadata.evidence_refs,
+    provenance: metadata.provenance,
+    canonicalProjectId: projectId,
+    canonicalProjectKey: projectKey,
+    idempotencyKey,
+    fingerprint,
+  };
+};
+
+type EnsureReviewResult =
+  | { ok: true; id: string; created: boolean }
+  | { ok: false; response: Response };
+
+// Guarantee that the persisted candidate has a pending_review queue item.
+// Called on every submission before any conflict decision, so a candidate left
+// without a queue item by a partial failure is healed on the next request with
+// the same key — including one whose content has changed.
+const ensureEvidenceReviewItem = async (
+  admin: AdminClient,
+  principal: Principal,
+  snapshot: EvidenceSnapshot,
+  candidateId: string,
+): Promise<EnsureReviewResult> => {
+  const { data: existingReview, error: existingReviewError } = await admin
+    .from("memory_review_queue_items")
+    .select("id")
+    .eq("user_id", principal.memory_user_id)
+    .eq("namespace", snapshot.namespace)
+    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
+    .eq("source_ref", snapshot.sourceRef)
+    .maybeSingle();
+
+  if (existingReviewError) {
+    console.error("projectos_evidence_review_lookup_failed", existingReviewError.message);
+    return { ok: false, response: respond({ ok: false, error: "review_lookup_failed" }, 500) };
+  }
+  if (existingReview?.id) {
+    return { ok: true, id: existingReview.id, created: false };
+  }
+
+  const { data: insertedReview, error: reviewInsertError } = await admin
+    .from("memory_review_queue_items")
+    .insert({
+      user_id: principal.memory_user_id,
+      namespace: snapshot.namespace,
+      status: "pending_review",
+      candidate_type: EVIDENCE_CANDIDATE_TYPE,
+      normalized_text: snapshot.summary,
+      evidence_snapshot: {
+        hasEvidence: true,
+        intakeKind: EVIDENCE_INTAKE_KIND,
+        sourceRef: snapshot.sourceRef,
+        proofStage: snapshot.proofStage,
+        claim: snapshot.claim,
+        evidenceRefs: snapshot.evidenceRefs,
+        provenance: snapshot.provenance,
+        candidateId,
+      },
+      sensitivity_snapshot: {
+        classification: "low",
+        containsSecrets: false,
+        containsPersonalData: false,
+        containsRawArguments: false,
+        containsRawResults: false,
+        containsRawErrors: false,
+      },
+      namespace_snapshot: {
+        sourceNamespace: snapshot.namespace,
+        targetNamespace: snapshot.namespace,
+        namespaceMatch: true,
+      },
+      source_metadata: {
+        source: EVIDENCE_SOURCE,
+        sourceKind: "projectos_evidence",
+        sourceRef: snapshot.sourceRef,
+        projectId: snapshot.canonicalProjectId,
+        projectKey: snapshot.canonicalProjectKey,
+        proofStage: snapshot.proofStage,
+      },
+      audit_metadata: {
+        schemaVersion: 1,
+        candidateId,
+        appendOnly: true,
+        reviewRequired: true,
+        idempotencyKey: snapshot.idempotencyKey,
+        fingerprint: snapshot.fingerprint,
+      },
+      append_only: true,
+      proposed_operation: "append",
+      requires_review: true,
+      source_ref: snapshot.sourceRef,
+      request_hash: snapshot.fingerprint,
+      fingerprint: snapshot.fingerprint,
+      persistence_execution_metadata: {},
+    })
+    .select("id")
+    .maybeSingle();
+
+  if (reviewInsertError && errorCode(reviewInsertError) !== "23505") {
+    console.error("projectos_evidence_review_insert_failed", reviewInsertError.message);
+    return { ok: false, response: respond({ ok: false, error: "review_insert_failed" }, 500) };
+  }
+  if (insertedReview?.id) {
+    return { ok: true, id: insertedReview.id, created: true };
+  }
+
+  // Lost the unique race: another concurrent submission created the queue item.
+  const { data: racedReview, error: racedReviewError } = await admin
+    .from("memory_review_queue_items")
+    .select("id")
+    .eq("user_id", principal.memory_user_id)
+    .eq("namespace", snapshot.namespace)
+    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
+    .eq("source_ref", snapshot.sourceRef)
+    .maybeSingle();
+  if (racedReviewError || !racedReview?.id) {
+    return { ok: false, response: respond({ ok: false, error: "review_recovery_failed" }, 500) };
+  }
+  return { ok: true, id: racedReview.id, created: false };
+};
+
 const submitEvidenceCandidate = async (
   body: JsonRecord,
   principal: Principal,
@@ -784,11 +954,28 @@ const submitEvidenceCandidate = async (
   }));
   const now = new Date().toISOString();
 
+  const incomingSnapshot: EvidenceSnapshot = {
+    namespace,
+    sourceRef,
+    summary,
+    proofStage,
+    claim,
+    evidenceRefs,
+    provenance,
+    canonicalProjectId,
+    canonicalProjectKey,
+    idempotencyKey,
+    fingerprint,
+  };
+
   let candidateId: string | null = null;
   let candidateCreated = false;
+  // The snapshot that is actually persisted. On a replay this is the stored
+  // row, not the incoming submission, so reconciliation cannot rewrite history.
+  let persistedSnapshot: EvidenceSnapshot | null = null;
   const { data: existingCandidate, error: existingCandidateError } = await admin
     .from("memory_capture_candidates")
-    .select("id,metadata")
+    .select("id,summary,metadata")
     .eq("user_id", principal.memory_user_id)
     .eq("namespace", namespace)
     .eq("source", EVIDENCE_SOURCE)
@@ -800,14 +987,16 @@ const submitEvidenceCandidate = async (
     return respond({ ok: false, error: "candidate_lookup_failed" }, 500);
   }
 
-  candidateId = existingCandidate?.id ?? null;
-  if (candidateId) {
-    const existingMetadata = isRecord(existingCandidate?.metadata)
-      ? existingCandidate.metadata
-      : null;
-    if (existingMetadata?.fingerprint !== fingerprint) {
-      return respond({ ok: false, error: "idempotency_conflict" }, 409);
+  if (existingCandidate?.id) {
+    // Deliberately do NOT decide the conflict yet. The queue item is reconciled
+    // first (below) so a candidate orphaned by an earlier partial failure
+    // becomes visible to human review even when this retry carries new content.
+    persistedSnapshot = storedEvidenceSnapshot(existingCandidate, namespace, sourceRef);
+    if (!persistedSnapshot) {
+      console.error("projectos_evidence_candidate_unreadable", sourceRef);
+      return respond({ ok: false, error: "candidate_reconcile_failed" }, 500);
     }
+    candidateId = existingCandidate.id;
   }
 
   if (!candidateId) {
@@ -874,10 +1063,13 @@ const submitEvidenceCandidate = async (
     if (insertedCandidate?.id) {
       candidateId = insertedCandidate.id;
       candidateCreated = true;
+      persistedSnapshot = incomingSnapshot;
     } else {
+      // Lost the unique race: adopt the winner's stored row and, as above,
+      // reconcile its queue item before judging the conflict.
       const { data: racedCandidate, error: racedCandidateError } = await admin
         .from("memory_capture_candidates")
-        .select("id,metadata")
+        .select("id,summary,metadata")
         .eq("user_id", principal.memory_user_id)
         .eq("namespace", namespace)
         .eq("source", EVIDENCE_SOURCE)
@@ -886,122 +1078,38 @@ const submitEvidenceCandidate = async (
       if (racedCandidateError || !racedCandidate?.id) {
         return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
       }
-      const racedMetadata = isRecord(racedCandidate.metadata)
-        ? racedCandidate.metadata
-        : null;
-      if (racedMetadata?.fingerprint !== fingerprint) {
-        return respond({ ok: false, error: "idempotency_conflict" }, 409);
+      persistedSnapshot = storedEvidenceSnapshot(racedCandidate, namespace, sourceRef);
+      if (!persistedSnapshot) {
+        console.error("projectos_evidence_candidate_unreadable", sourceRef);
+        return respond({ ok: false, error: "candidate_reconcile_failed" }, 500);
       }
       candidateId = racedCandidate.id;
     }
   }
 
-  let reviewItemId: string | null = null;
-  let reviewCreated = false;
-  const { data: existingReview, error: existingReviewError } = await admin
-    .from("memory_review_queue_items")
-    .select("id,fingerprint")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", namespace)
-    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
-    .eq("source_ref", sourceRef)
-    .maybeSingle();
-
-  if (existingReviewError) {
-    console.error("projectos_evidence_review_lookup_failed", existingReviewError.message);
-    return respond({ ok: false, error: "review_lookup_failed" }, 500);
+  if (!candidateId || !persistedSnapshot) {
+    return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
   }
-  reviewItemId = existingReview?.id ?? null;
-  if (reviewItemId && existingReview?.fingerprint !== fingerprint) {
+
+  // Reconcile the review queue against whatever is actually persisted. This runs
+  // on every submission, so an orphaned candidate can never remain permanently
+  // invisible to human review.
+  const review = await ensureEvidenceReviewItem(
+    admin,
+    principal,
+    persistedSnapshot,
+    candidateId,
+  );
+  if (!review.ok) return review.response;
+  const reviewItemId = review.id;
+  const reviewCreated = review.created;
+
+  // Only now is it safe to report a conflict: the persisted candidate is
+  // queued for review, and this differing submission is rejected rather than
+  // silently overwriting or dropping content.
+  if (persistedSnapshot.fingerprint !== fingerprint) {
     return respond({ ok: false, error: "idempotency_conflict" }, 409);
   }
-
-  if (!reviewItemId) {
-    const { data: insertedReview, error: reviewInsertError } = await admin
-      .from("memory_review_queue_items")
-      .insert({
-        user_id: principal.memory_user_id,
-        namespace,
-        status: "pending_review",
-        candidate_type: EVIDENCE_CANDIDATE_TYPE,
-        normalized_text: summary,
-        evidence_snapshot: {
-          hasEvidence: true,
-          intakeKind: EVIDENCE_INTAKE_KIND,
-          sourceRef,
-          proofStage,
-          claim,
-          evidenceRefs,
-          provenance,
-          candidateId,
-        },
-        sensitivity_snapshot: {
-          classification: "low",
-          containsSecrets: false,
-          containsPersonalData: false,
-          containsRawArguments: false,
-          containsRawResults: false,
-          containsRawErrors: false,
-        },
-        namespace_snapshot: {
-          sourceNamespace: namespace,
-          targetNamespace: namespace,
-          namespaceMatch: true,
-        },
-        source_metadata: {
-          source: EVIDENCE_SOURCE,
-          sourceKind: "projectos_evidence",
-          sourceRef,
-          projectId: canonicalProjectId,
-          projectKey: canonicalProjectKey,
-          proofStage,
-        },
-        audit_metadata: {
-          schemaVersion: 1,
-          candidateId,
-          appendOnly: true,
-          reviewRequired: true,
-          idempotencyKey,
-          fingerprint,
-        },
-        append_only: true,
-        proposed_operation: "append",
-        requires_review: true,
-        source_ref: sourceRef,
-        request_hash: fingerprint,
-        fingerprint,
-        persistence_execution_metadata: {},
-      })
-      .select("id")
-      .maybeSingle();
-
-    if (reviewInsertError && errorCode(reviewInsertError) !== "23505") {
-      console.error("projectos_evidence_review_insert_failed", reviewInsertError.message);
-      return respond({ ok: false, error: "review_insert_failed" }, 500);
-    }
-
-    if (insertedReview?.id) {
-      reviewItemId = insertedReview.id;
-      reviewCreated = true;
-    } else {
-      const { data: racedReview, error: racedReviewError } = await admin
-        .from("memory_review_queue_items")
-        .select("id,fingerprint")
-        .eq("user_id", principal.memory_user_id)
-        .eq("namespace", namespace)
-        .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
-        .eq("source_ref", sourceRef)
-        .maybeSingle();
-      if (racedReviewError || !racedReview?.id) {
-        return respond({ ok: false, error: "review_recovery_failed" }, 500);
-      }
-      if (racedReview.fingerprint !== fingerprint) {
-        return respond({ ok: false, error: "idempotency_conflict" }, 409);
-      }
-      reviewItemId = racedReview.id;
-    }
-  }
-
   return respond({
     ok: true,
     candidate_id: candidateId,

@@ -42,10 +42,16 @@ jobs:
         with:
           node-version: '24'
           cache: npm
-          cache-dependency-path: package.json
+          cache-dependency-path: package-lock.json
 
-      - name: Install
-        run: npm install --no-fund
+      # npm ci installs the exact committed lockfile tree and fails if
+      # package.json and package-lock.json have drifted apart, so the audit and
+      # build evidence below is tied to a reproducible dependency set.
+      - name: Verify lockfile is committed
+        run: git ls-files --error-unmatch package-lock.json
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-fund
 
       - name: Verify governed evidence source contract
         run: node scripts/check_memory_evidence_intake.mjs

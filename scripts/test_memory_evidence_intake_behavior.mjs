@@ -142,9 +142,12 @@ class FakeQuery {
 }
 
 class FakeAdmin {
-  constructor({ grants = true } = {}) {
+  constructor({ grants = true, failReviewInserts = 0 } = {}) {
     this.calls = [];
     this.counter = 0;
+    // Simulates the review-queue write failing after the candidate has landed,
+    // which is the partial-failure window this intake must recover from.
+    this.failReviewInserts = failReviewInserts;
     this.rows = {
       pandora_projects: projectRows(),
       pandora_project_grants: grants
@@ -167,6 +170,10 @@ class FakeAdmin {
     return new FakeQuery(this, table);
   }
   insert(table, input) {
+    if (table === "memory_review_queue_items" && this.failReviewInserts > 0) {
+      this.failReviewInserts -= 1;
+      return { data: null, error: { code: "08006", message: "connection failure" } };
+    }
     const row = structuredClone(input);
     const duplicate = table === "memory_capture_candidates"
       ? this.rows[table].find((candidate) =>
@@ -275,6 +282,75 @@ async function json(response) {
   );
   assert.equal(db.rows.memory_capture_candidates.length, 1);
   assert.equal(db.rows.memory_review_queue_items.length, 1);
+}
+
+// Partial failure: the candidate lands, the review-queue write fails. The
+// candidate must not stay invisible to human review on any supported retry.
+{
+  const db = new FakeAdmin({ failReviewInserts: 1 });
+  const partial = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(partial.status, 500);
+  assert.equal(partial.body.error, "review_insert_failed");
+  assert.equal(db.rows.memory_capture_candidates.length, 1, "candidate persisted");
+  assert.equal(db.rows.memory_review_queue_items.length, 0, "orphaned candidate");
+
+  // Identical retry heals the orphan and reports success.
+  const healed = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(healed.status, 202);
+  assert.equal(db.rows.memory_capture_candidates.length, 1);
+  assert.equal(db.rows.memory_review_queue_items.length, 1, "orphan reconciled");
+  assert.equal(db.rows.memory_review_queue_items[0].status, "pending_review");
+  assert.equal(
+    db.rows.memory_review_queue_items[0].audit_metadata.candidateId,
+    db.rows.memory_capture_candidates[0].id,
+    "review item must point at the persisted candidate",
+  );
+}
+
+// The regression that mattered: after a partial failure, a retry carrying
+// CHANGED content must still heal the orphan before reporting the conflict.
+{
+  const db = new FakeAdmin({ failReviewInserts: 1 });
+  const partial = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(partial.status, 500);
+  assert.equal(db.rows.memory_review_queue_items.length, 0);
+
+  const conflict = await json(await submitEvidenceCandidate(
+    validBody("mcpmaster-pandoras-box", { claim: "Changed content after a partial failure." }),
+    principal,
+    db,
+  ));
+  assert.equal(conflict.status, 409, "changed content is still rejected");
+  assert.equal(conflict.body.error, "idempotency_conflict");
+  assert.equal(
+    db.rows.memory_review_queue_items.length,
+    1,
+    "orphan must be reconciled even when the retry conflicts",
+  );
+
+  // The reconciled queue item must mirror what was actually persisted, not the
+  // rejected submission, so review never sees content that was never stored.
+  const review = db.rows.memory_review_queue_items[0];
+  const candidate = db.rows.memory_capture_candidates[0];
+  assert.equal(review.fingerprint, candidate.metadata.fingerprint);
+  assert.equal(review.evidence_snapshot.claim, candidate.metadata.claim);
+  assert.notEqual(review.evidence_snapshot.claim, "Changed content after a partial failure.");
+  assert.equal(review.normalized_text, candidate.summary);
+  assert.equal(candidate.raw_excerpt, null);
+  assert.equal(db.calls.includes("memory_items"), false, "recovery must not touch canonical memory");
+}
+
+// No supported path leaves a candidate without a queue item once a retry runs.
+{
+  const db = new FakeAdmin({ failReviewInserts: 2 });
+  await json(await submitEvidenceCandidate(validBody(), principal, db));
+  await json(await submitEvidenceCandidate(validBody(), principal, db));
+  const recovered = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(recovered.status, 202);
+  const orphans = db.rows.memory_capture_candidates.filter((candidate) =>
+    !db.rows.memory_review_queue_items.some((item) => item.source_ref === candidate.source_ref)
+  );
+  assert.deepEqual(orphans, [], "no candidate may remain without a review queue item");
 }
 
 console.log("Governed Memory evidence intake behavioral tests: PASS");

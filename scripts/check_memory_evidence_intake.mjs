@@ -76,6 +76,22 @@ assert.ok(helper.includes("imported_personal_identifiers: false"), "privacy meta
 assert.ok(helper.includes("imported_secrets: false"), "secret exclusion metadata missing");
 assert.ok(helper.includes("fingerprint,"), "candidate/review content fingerprint missing");
 
+// Review-queue reconciliation must run before the idempotency-conflict decision,
+// otherwise a candidate orphaned by a partial failure stays invisible to review.
+assert.ok(
+  helper.includes("ensureEvidenceReviewItem"),
+  "review-queue reconciliation helper missing",
+);
+assert.ok(
+  helper.includes("storedEvidenceSnapshot"),
+  "reconciliation must rebuild the persisted snapshot rather than trust the retry",
+);
+assert.ok(
+  helper.indexOf("await ensureEvidenceReviewItem(") <
+    helper.indexOf("persistedSnapshot.fingerprint !== fingerprint"),
+  "reconciliation must precede the idempotency-conflict decision",
+);
+
 const dispatch = bridge.slice(serveStart);
 assert.ok(dispatch.includes('body.action === "submit_evidence_candidate"'), "evidence dispatch missing");
 assert.ok(
