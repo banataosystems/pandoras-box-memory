@@ -29,6 +29,8 @@ import { existsSync, readFileSync } from "node:fs";
 import { argv, exit } from "node:process";
 
 const REGISTRY_PATH = "docs/rollback/RELEASE_ARTIFACT_REGISTRY.json";
+const EVIDENCE_PATH =
+  "docs/capabilities/evidence/EVIDENCE_EDGE_PARITY_ROLLBACK_2026-08-17.json";
 
 /**
  * Immutable artifact-id shapes, per provider.
@@ -47,6 +49,57 @@ const QUALIFYING_VERIFICATIONS = new Set([
   "production_verified",
   "rehearsal_verified",
 ]);
+
+/**
+ * Cross-check the durable evidence against the registry.
+ *
+ * A fourth review finding was that the validator had been corrected while the
+ * committed evidence still asserted the rejected "resolve from origin/main"
+ * model — code and evidence disagreeing, with the evidence being what a future
+ * operator actually reads. Requiring the evidence to name a QUALIFIED artifact
+ * id, rather than describe a target in prose, makes that disagreement
+ * mechanically impossible: prose cannot satisfy this check.
+ */
+export function validateEvidenceAgainstRegistry(evidence, registry) {
+  const errors = [];
+  const rollback = evidence?.rollback;
+  if (!rollback || typeof rollback !== "object") {
+    return ["rollback evidence has no 'rollback' block"];
+  }
+
+  const named = rollback.release_candidate_artifact_id;
+  if (typeof named !== "string" || !named.trim()) {
+    errors.push(
+      "rollback evidence must name release_candidate_artifact_id. Describing the " +
+        "target in prose is how the rejected moving-ref model survived in the " +
+        "evidence after the validator had already rejected it.",
+    );
+    return errors;
+  }
+
+  const artifact = (registry?.artifacts ?? []).find((a) => a?.artifact_id === named);
+  if (!artifact) {
+    errors.push(
+      `rollback evidence names release candidate '${named}', which is not in the ` +
+        `release-artifact registry`,
+    );
+  } else if (artifact.qualified !== true) {
+    errors.push(
+      `rollback evidence names release candidate '${named}', which the registry ` +
+        `records as NOT qualified`,
+    );
+  }
+
+  // A stale field left behind is exactly how the contradiction persisted.
+  if ("release_candidate" in rollback) {
+    errors.push(
+      "rollback evidence still carries the superseded 'release_candidate' prose " +
+        "field; use release_candidate_artifact_id",
+    );
+  }
+
+  return errors;
+}
 
 export function validateRegistry(registry) {
   const errors = [];
@@ -199,7 +252,26 @@ function selfTest() {
     ["duplicate artifact id", clone((r) => { r.artifacts.push({ ...r.artifacts[0] }); r.current_status.qualified_targets = 2; }), true],
   ];
 
+  const evidenceCases = [
+    ["evidence naming the qualified artifact", { rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4" } }, base, false],
+    ["evidence describing the target in prose", { rollback: { release_candidate: "current canonical main, resolved at rollback time" } }, base, true],
+    ["evidence naming an unknown artifact", { rollback: { release_candidate_artifact_id: "dpl_notInTheRegistryAtAll000" } }, base, true],
+    ["evidence naming a disqualified artifact", { rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4" } }, clone((r) => { r.artifacts[0].qualified = false; r.current_status.qualified_targets = 0; r.current_status.rollback_available_for_a_future_deployment = false; }), true],
+    ["evidence keeping the superseded prose field alongside the id", { rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4", release_candidate: "origin/main" } }, base, true],
+    ["evidence with no rollback block", {}, base, true],
+  ];
+
   let failures = 0;
+  for (const [label, evidence, registry, shouldReject] of evidenceCases) {
+    const rejected = validateEvidenceAgainstRegistry(evidence, registry).length > 0;
+    if (rejected !== shouldReject) {
+      console.error(
+        `SELF-TEST FAIL: '${label}' expected ${shouldReject ? "rejection" : "acceptance"}`,
+      );
+      failures += 1;
+    }
+  }
+
   for (const [label, registry, shouldReject] of cases) {
     const rejected = validateRegistry(registry).length > 0;
     if (rejected !== shouldReject) {
@@ -210,7 +282,9 @@ function selfTest() {
     }
   }
   if (failures > 0) exit(1);
-  console.log(`Rollback target self-test passed (${cases.length} cases).`);
+  console.log(
+    `Rollback target self-test passed (${cases.length + evidenceCases.length} cases).`,
+  );
 }
 
 function main() {
@@ -222,6 +296,15 @@ function main() {
   }
   const registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf8"));
   const errors = validateRegistry(registry);
+
+  if (existsSync(EVIDENCE_PATH)) {
+    errors.push(
+      ...validateEvidenceAgainstRegistry(
+        JSON.parse(readFileSync(EVIDENCE_PATH, "utf8")),
+        registry,
+      ),
+    );
+  }
 
   if (errors.length > 0) {
     console.error("Rollback target gate FAILED:");
