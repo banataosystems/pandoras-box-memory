@@ -221,6 +221,31 @@ async function json(response) {
   assert.equal(db.calls.length, 0, "invalid observed_at must fail before DB I/O");
 }
 
+// Privacy boundary: high-confidence identifiers, credentials, nested values,
+// and encoded variants must fail before any database I/O.
+{
+  const attacks = [
+    [validBody(undefined, { summary: "contact +63 917 123 4567" }), "direct_identifier_phone"],
+    [validBody(undefined, { summary: "name: Jane Doe" }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "office 123 Rizal Street, Makati" }), "direct_identifier_address"],
+    [validBody(undefined, { claim: "password=hunter2-super-secret" }), "secret_assignment"],
+    [validBody(undefined, { claim: "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" }), "secret_assignment"],
+    [validBody(undefined, { claim: "AKIAIOSFODNN7EXAMPLE" }), "cloud_credential_signature"],
+    [validBody(undefined, { claim: "-----BEGIN PRIVATE KEY-----" }), "private_key_material"],
+    [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner%40example.com" } }), "direct_identifier_email"],
+    [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner＠example.com" } }), "direct_identifier_email"],
+    [validBody(undefined, { evidence_refs: [{ type: "github_source", ref: "phone%3A%20%2B63%20917%20123%204567" }] }), "direct_identifier_phone"],
+  ];
+  for (const [body, reason] of attacks) {
+    const db = new FakeAdmin();
+    const response = await json(await submitEvidenceCandidate(body, principal, db));
+    assert.equal(response.status, 400);
+    assert.equal(response.body.error, "sensitive_candidate_rejected");
+    assert.equal(response.body.reason, reason);
+    assert.equal(db.calls.length, 0, `${reason} must fail before DB I/O`);
+  }
+}
+
 {
   const db = new FakeAdmin({ grants: false });
   const response = await json(await submitEvidenceCandidate(validBody(), principal, db));

@@ -544,18 +544,107 @@ const evidenceIsoTimestamp = (value: unknown): string | null => {
   return Number.isFinite(parsed) ? normalized : null;
 };
 
-const evidenceSensitiveReason = (value: unknown): string | null => {
-  const serialized = JSON.stringify(value);
+const EVIDENCE_PRIVACY_SCAN_VERSION = "evidence_privacy_v2";
+const EVIDENCE_PRIVACY_TEXT_LIMIT = 20_000;
+const EVIDENCE_SECRET_FIELD_PATTERN = /^(?:password|passwd|passphrase|pwd|pin|secret|client_secret|secret_key|secret_access_key|aws_secret_access_key|aws_access_key_id|access_key_id|api_key|access_token|refresh_token|service_role|private_key|accountkey|sharedaccesssignature)$/i;
+const EVIDENCE_DIRECT_IDENTIFIER_FIELD_PATTERN = /^(?:phone|phone_number|mobile|mobile_number|telephone|address|street_address|home_address|mailing_address|full_name|first_name|last_name|given_name|family_name|ssn|social_security_number|passport|passport_number|tax_id|bank_account|iban|card_number)$/i;
+
+const normalizeEvidencePrivacyKey = (value: string): string =>
+  value
+    .normalize("NFKC")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+const decodeEvidencePrivacyText = (value: string): string => {
+  let text = value
+    .normalize("NFKC")
+    .replace(/[\u200B-\u200F\u2060\uFEFF]/g, "");
+  const decodeHex = (match: string, raw: string): string => {
+    const code = Number.parseInt(raw, 16);
+    return Number.isFinite(code) && code <= 0x10ffff
+      ? String.fromCodePoint(code)
+      : match;
+  };
+  text = text
+    .replace(/\\u\{?([0-9a-f]{4,6})\}?/gi, decodeHex)
+    .replace(/\\x([0-9a-f]{2})/gi, decodeHex)
+    .replace(/&#x([0-9a-f]{2,6});?/gi, decodeHex)
+    .replace(/&#(\d{2,7});?/g, (match: string, raw: string) => {
+      const code = Number.parseInt(raw, 10);
+      return Number.isFinite(code) && code <= 0x10ffff
+        ? String.fromCodePoint(code)
+        : match;
+    })
+    .replace(/&commat;/gi, "@")
+    .replace(/&colon;/gi, ":");
+  for (let depth = 0; depth < 2; depth += 1) {
+    try {
+      const decoded = decodeURIComponent(text);
+      if (decoded === text) break;
+      text = decoded;
+    } catch {
+      break;
+    }
+  }
+  return text.slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT);
+};
+
+const evidencePrivacyTextReason = (value: string): string | null => {
+  const text = decodeEvidencePrivacyText(value);
   const checks: Array<[RegExp, string]> = [
     [/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, "direct_identifier_email"],
+    [/(?:\+\d{1,3}[\s().-]*)?(?:\(?\d{2,4}\)?[\s.-]+)\d{3,4}[\s.-]+\d{3,4}\b/, "direct_identifier_phone"],
+    [/\b(?:\+?63|0)9\d{9}\b/, "direct_identifier_phone"],
+    [/\b(?:full[ _-]?name|first[ _-]?name|last[ _-]?name|given[ _-]?name|family[ _-]?name|name)\s*[:=]\s*["']?[A-Z][A-Z .'-]{2,80}/i, "direct_identifier_name"],
+    [/\b(?:address|street[ _-]?address|home[ _-]?address|mailing[ _-]?address)\s*[:=]\s*[^,;\n]{5,160}/i, "direct_identifier_address"],
+    [/\b\d{1,5}\s+[A-Z0-9.'-]+(?:\s+[A-Z0-9.'-]+){0,5}\s+(?:street|st|road|rd|avenue|ave|boulevard|blvd|drive|dr|lane|ln|court|ct|highway|hwy|barangay|brgy)\b/i, "direct_identifier_address"],
+    [/\b\d{3}-\d{2}-\d{4}\b/, "direct_identifier_government"],
+    [/\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/, "direct_identifier_financial"],
+    [/-----BEGIN (?:[A-Z0-9 -]+ )?PRIVATE KEY-----/i, "private_key_material"],
+    [/\b(?:AKIA|ASIA|AIDA|AROA|AIPA|ANPA|ANVA)[A-Z0-9]{16}\b/, "cloud_credential_signature"],
+    [/\bAIza[0-9A-Za-z_-]{35}\b/, "cloud_credential_signature"],
     [/\b(?:ghp|github_pat|glpat|sk|sbp|xox[baprs])_[A-Za-z0-9_-]{12,}\b/i, "credential_signature"],
     [/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/, "jwt_signature"],
-    [/\b(?:api[_-]?key|access[_-]?token|refresh[_-]?token|service[_-]?role|private[_-]?key)\s*[:=]\s*["']?[A-Za-z0-9_./+=-]{12,}/i, "secret_assignment"],
+    [/\b(?:password|passwd|passphrase|pwd|client[_ -]?secret|secret[_ -]?(?:key|access[_ -]?key)|aws[_ -]?(?:secret[_ -]?access[_ -]?key|access[_ -]?key[_ -]?id)|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|service[_ -]?role|private[_ -]?key|accountkey|sharedaccesssignature)\s*[:=]\s*["']?(?!(?:true|false|null|none|redacted|masked)\b)[^\s"',;}{]{4,}/i, "secret_assignment"],
+    [/https?:\/\/[^/\s:@]+:[^/\s@]{4,}@/i, "credential_in_url"],
   ];
   for (const [pattern, reason] of checks) {
-    if (pattern.test(serialized)) return reason;
+    if (pattern.test(text)) return reason;
   }
   return null;
+};
+
+const evidenceSensitiveReason = (value: unknown): string | null => {
+  const visit = (entry: unknown, key: string | null = null): string | null => {
+    if (key !== null) {
+      const normalizedKey = normalizeEvidencePrivacyKey(key);
+      if (EVIDENCE_SECRET_FIELD_PATTERN.test(normalizedKey)) {
+        return "secret_field";
+      }
+      if (EVIDENCE_DIRECT_IDENTIFIER_FIELD_PATTERN.test(normalizedKey)) {
+        return "direct_identifier_field";
+      }
+    }
+    if (typeof entry === "string") {
+      return evidencePrivacyTextReason(entry);
+    }
+    if (Array.isArray(entry)) {
+      for (const item of entry) {
+        const reason = visit(item);
+        if (reason) return reason;
+      }
+      return null;
+    }
+    if (isRecord(entry)) {
+      for (const [childKey, childValue] of Object.entries(entry)) {
+        const reason = visit(childValue, childKey);
+        if (reason) return reason;
+      }
+    }
+    return null;
+  };
+  return visit(value);
 };
 
 const evidenceSha256 = async (value: string): Promise<string> => {
@@ -1033,12 +1122,13 @@ const submitEvidenceCandidate = async (
         provenance,
         idempotency_key: idempotencyKey,
         fingerprint,
-        privacy_policy: "metadata_only_v1",
+        privacy_policy: "metadata_only_v2_fail_closed",
+        privacy_scan_version: EVIDENCE_PRIVACY_SCAN_VERSION,
+        privacy_scan_passed: true,
+        privacy_scan_scope: "canonicalized_candidate_payload",
         imported_raw_arguments: false,
         imported_raw_results: false,
         imported_raw_errors: false,
-        imported_personal_identifiers: false,
-        imported_secrets: false,
       },
       usefulness_score: 0.9,
       confidence_score: 0.95,

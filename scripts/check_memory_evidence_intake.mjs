@@ -57,7 +57,13 @@ for (const marker of [
   'status: "pending_review"',
   'proposed_operation: "append"',
   "canonical_memory_written: false",
-  'privacy_policy: "metadata_only_v1"',
+  'privacy_policy: "metadata_only_v2_fail_closed"',
+  "EVIDENCE_PRIVACY_SCAN_VERSION",
+  '"direct_identifier_phone"',
+  '"direct_identifier_name"',
+  '"direct_identifier_address"',
+  '"cloud_credential_signature"',
+  '"private_key_material"',
   'body.action === "submit_evidence_candidate"',
 ]) {
   assert.ok(bridge.includes(marker), `bridge marker missing: ${marker}`);
@@ -72,8 +78,11 @@ assert.ok(!helper.includes('.from("memory_items")'), "candidate helper must not 
 assert.ok(!helper.includes("hard_canon"), "candidate helper must not promote hard canon");
 assert.ok(!helper.includes("soft_canon"), "candidate helper must not promote soft canon");
 assert.ok(helper.includes("raw_excerpt: null"), "candidate helper must force raw excerpt null");
-assert.ok(helper.includes("imported_personal_identifiers: false"), "privacy metadata missing");
-assert.ok(helper.includes("imported_secrets: false"), "secret exclusion metadata missing");
+assert.ok(helper.includes("privacy_scan_version: EVIDENCE_PRIVACY_SCAN_VERSION"), "privacy scan version metadata missing");
+assert.ok(helper.includes("privacy_scan_passed: true"), "privacy scan result metadata missing");
+assert.ok(helper.includes("privacy_scan_scope: \"canonicalized_candidate_payload\""), "privacy scan scope metadata missing");
+assert.ok(!helper.includes("imported_personal_identifiers: false"), "categorical identifier claim must not be persisted");
+assert.ok(!helper.includes("imported_secrets: false"), "categorical secret claim must not be persisted");
 assert.ok(helper.includes("fingerprint,"), "candidate/review content fingerprint missing");
 
 // Review-queue reconciliation must run before the idempotency-conflict decision,
