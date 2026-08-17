@@ -1,0 +1,112 @@
+name: Pandora verify
+
+# The single reproducible source-quality gate.
+#
+# This workflow exists to close a specific governance hole: before it, several
+# mandatory checks ran only on pull-request heads. A PR could be green while the
+# commit that actually became canonical `main` was never verified as a whole.
+# This runs the identical `npm run verify` contract on both the pull-request head
+# and the exact commit pushed to `main`, and asserts the checkout matches the
+# expected SHA so the evidence is bound to a specific tree.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pandora-verify-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+env:
+  # On a pull request this is the PR head. On a push to main this is the exact
+  # commit that became canonical, i.e. the real merge result.
+  EXPECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  verify:
+    name: Verify exact candidate source
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out exact candidate head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.EXPECTED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          if [[ "$actual_head" != "$EXPECTED_HEAD" ]]; then
+            echo "Expected $EXPECTED_HEAD but checked out $actual_head" >&2
+            exit 1
+          fi
+          echo "verified_head=$actual_head"
+          echo "verified_tree=$(git rev-parse HEAD^{tree})"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+          cache: npm
+          # Bind the dependency cache to the lockfile, never to package.json, so
+          # a cache hit cannot resurrect a dependency tree the lockfile no longer
+          # describes.
+          cache-dependency-path: package-lock.json
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.4.3
+
+      - name: Verify lockfile is committed
+        run: git ls-files --error-unmatch package-lock.json
+
+      - name: Reject tracked build output and dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Generated output must never become source. If any of these are
+          # tracked, a build artifact can silently outrank the code that made it.
+          if git ls-files -- 'node_modules/**' '.next/**' '**/node_modules/**' '**/.next/**' \
+             | grep -q .; then
+            echo "Build output or node_modules is tracked in git:" >&2
+            git ls-files -- 'node_modules/**' '.next/**' '**/node_modules/**' '**/.next/**' >&2
+            exit 1
+          fi
+          echo "No tracked build output or dependency trees."
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-fund
+
+      - name: Install exact locked Edge Function dependencies
+        run: npm ci --ignore-scripts --prefix supabase/functions/pandora-machine-gateway
+
+      - name: Run the full verification gate
+        run: npm run verify
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Record verified identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "### Pandora verify"
+            echo
+            echo "- event: \`${{ github.event_name }}\`"
+            echo "- verified head: \`$(git rev-parse HEAD)\`"
+            echo "- verified tree: \`$(git rev-parse HEAD^{tree})\`"
+            echo
+            echo "This proves source-tested only. It does not prove deployed or production-verified."
+          } >> "$GITHUB_STEP_SUMMARY"

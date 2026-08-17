@@ -9,7 +9,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/verify.mjs --only unit --only behavior --only memory --only gateway --only security",
+    "test:unit": "node --test scripts/test/*_test.mjs",
+    "test:behavior": "node scripts/test_memory_evidence_intake_behavior.mjs",
+    "test:security": "bash scripts/check_no_literal_secrets.sh && node scripts/check_evidence_metadata.mjs --self-test",
+    "test:gateway": "node scripts/run_gateway_tests.mjs",
+    "test:memory": "node scripts/check_memory_evidence_intake.mjs",
+    "test:registry": "node scripts/validate_capability_registry.mjs --self-test",
+    "verify": "node scripts/verify.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.3",
