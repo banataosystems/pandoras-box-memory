@@ -496,6 +496,25 @@
       "rollback_ref": null
     },
     {
+      "evidence_id": "recovery-migration-provenance-2026-08-17",
+      "path": "docs/capabilities/evidence/RECOVERY_MIGRATION_PROVENANCE_2026-08-17.json",
+      "observed_at": "2026-08-17T11:00:00Z",
+      "source_commit": "7cb4d646bfc620f549fef64b6165749638c11ebe",
+      "source_tree": "dd37b88e059ab487bc7cbdda134191869d0f5aa4",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box-memory#31",
+      "proof_stage": "source_tested",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "78f1de1b938209591e8ae989f3b81434a5394773b29abdc58517b0557e9ea2a0",
+      "review_status": "awaiting_independent_review",
+      "deployment_status": "source_only",
+      "production_verified": false,
+      "rollback_ref": null
+    },
+    {
       "evidence_id": "source-recovery-manifest",
       "path": "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
       "observed_at": "2026-08-08T19:23:16Z",
