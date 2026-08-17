@@ -7,11 +7,12 @@
   "source": {
     "pull_request": 33,
     "branch": "hardening/gateway-api-boundaries",
-    "candidate_head": "ddf61a5bc5bed7bb7ebffe90cac1d8acec0e4389",
-    "candidate_tree": "bf99948413c86f509caac6dc5d7333e4bf5a302c",
+    "candidate_head": "689513f6ec019b68df20d380a8668f9399df8920",
+    "candidate_tree": "9e9955f9a78c588162ef97be01c287a99a9a889a",
     "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
     "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
     "describes_commits": [
+      "689513f6ec019b68df20d380a8668f9399df8920",
       "ddf61a5bc5bed7bb7ebffe90cac1d8acec0e4389",
       "6b4ed643f9d8692f5bf37bb4335c8d79a4496b78",
       "9f27e355589f0856020b53a392a430f2486a2fad",
@@ -144,6 +145,18 @@
       "mismatched candidate_tree is rejected",
       "lane resolution precedence, including that a tag ref is not a lane"
     ],
-    "self_tests": 25
+    "self_tests": 35,
+    "fourth_review_findings_closed": [
+      "shaOf treated an absent binding field as acceptable, so candidate_head, candidate_tree or canonical_base could be DELETED rather than kept correct",
+      "ownership was decided by the artifact own source.branch, so a changed artifact could exempt itself by claiming another lane; a self-test had wrongly encoded that bypass as expected behaviour"
+    ],
+    "binding_model": "source.branch is now RESOLVED against git rather than trusted or ignored. An artifact naming a lane must bind to that lane real head or its parent, and the named lane must exist. Binding fields are mandatory for any artifact that names a lane or was changed in this lane diff.",
+    "why_not_diff_ownership_alone": "deriving ownership only from the lane diff wrongly required an artifact merged in from another lane to bind to THIS head. Resolving the declared lane against git handles integration correctly while still closing the bypass.",
+    "evasion_routes_verified_closed": [
+      "delete the binding fields",
+      "rename own lane to a fabricated lane",
+      "point at a real other lane to escape",
+      "drop the whole source block"
+    ]
   }
 }
