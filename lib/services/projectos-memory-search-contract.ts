@@ -60,6 +60,53 @@ function exactApprovedBridgeStatuses(value: unknown): boolean {
 }
 
 /**
+ * Fields on an individual record that can carry an internal Memory canon label.
+ *
+ * `canon_status` is the obvious one. `memory_type` is not: it is a separate
+ * field that nonetheless holds values like `soft_canon` in live data, so
+ * leaving it alone would leak exactly the vocabulary this contract promises to
+ * keep internal. Both are normalized.
+ */
+const RECORD_CANON_LABEL_FIELDS = ["canon_status", "memory_type"] as const;
+
+const CANON_LABEL_FIELD_SET = new Set<string>(RECORD_CANON_LABEL_FIELDS);
+
+/**
+ * Rewrite canon-label *fields* at any depth, and only those fields.
+ *
+ * Spreading the bridge record through unchanged — as an earlier revision did —
+ * satisfied the top-level contract while still exposing `hard_canon` /
+ * `soft_canon` per record, so the promise that internal labels stay internal
+ * was false in practice. Validation still happens against the internal values;
+ * only what is handed back is rewritten.
+ *
+ * Deliberately keyed on field name rather than on the string value. A blanket
+ * search-and-replace for `hard_canon` / `soft_canon` anywhere in the payload
+ * would also rewrite free text — record bodies, summaries, and provenance notes
+ * legitimately discuss canon status — silently corrupting content in the name of
+ * hiding a label. Nesting still has to be handled, because a shallow pass over
+ * the record's own keys misses a label carried inside a nested structure.
+ */
+function withPublicCanonLabels(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withPublicCanonLabels);
+  if (!isRecord(value)) return value;
+
+  const normalized: JsonRecord = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (
+      CANON_LABEL_FIELD_SET.has(key) &&
+      typeof entry === "string" &&
+      APPROVED_STATUS_SET.has(entry)
+    ) {
+      normalized[key] = PROJECTOS_APPROVED_CANON_ALIAS;
+      continue;
+    }
+    normalized[key] = withPublicCanonLabels(entry);
+  }
+  return normalized;
+}
+
+/**
  * Convert the internal bridge response back to the stable ProjectOS contract.
  * The route fails closed if the bridge returns a draft, an unapproved record,
  * a mismatched count, or an unexpected internal canon selection.
@@ -107,6 +154,33 @@ export function normalizeProjectOSSearchResponse(
     value: {
       ...input,
       requested_canon_statuses: [...selection.requestedStatuses],
+      // Records are rebuilt, not spread through, so no internal canon label
+      // survives into the ProjectOS response.
+      canonical_records: canonicalRecords.map(withPublicCanonLabels),
     },
   };
+}
+
+/**
+ * True when no internal canon label appears anywhere in a normalized response.
+ *
+ * Exported so tests can assert the contract over the whole payload rather than
+ * over the handful of fields a test happens to remember to check. Scoped to
+ * canon-label fields, so prose that merely mentions a canon status is not a
+ * false positive.
+ */
+export function containsInternalCanonLabel(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(containsInternalCanonLabel);
+  if (!isRecord(value)) return false;
+
+  return Object.entries(value).some(([key, entry]) => {
+    if (
+      CANON_LABEL_FIELD_SET.has(key) &&
+      typeof entry === "string" &&
+      APPROVED_STATUS_SET.has(entry)
+    ) {
+      return true;
+    }
+    return containsInternalCanonLabel(entry);
+  });
 }

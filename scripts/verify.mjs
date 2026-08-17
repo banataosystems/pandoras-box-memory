@@ -46,6 +46,11 @@ const STAGES = [
     optional: true,
   },
   {
+    name: "binding",
+    description: "Capability evidence is bound to the current candidate head",
+    command: ["node", ["scripts/check_capability_evidence_binding.mjs", "--self-test"]],
+  },
+  {
     name: "protection",
     description: "Required branch-protection contexts can actually report",
     command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],
