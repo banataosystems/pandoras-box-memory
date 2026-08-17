@@ -7,9 +7,9 @@
   "source": {
     "pull_request": 30,
     "branch": "governance/main-proof-enforcement",
-    "candidate_head": "f225678ab595078cd865420580d22283d719cf86",
-    "candidate_tree": "641b3feb2a9c71265e3df941f5eed647df06314e",
-    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+    "candidate_head": "0b52110d30262e768bd5889736a93d23dcf72361",
+    "candidate_tree": "d9b1ec98f80867162a050bbd780f723da5286900",
+    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
   },
   "lifecycle": {
     "documented": true,
@@ -20,10 +20,13 @@
     "production_verified": false
   },
   "change_scope": "repository governance, CI determinism, unified verification interface, and evidence classification. No runtime, application, database, or provider state is modified.",
-  "defect_closed": {
-    "registry_blocker": "registry-required-check-not-enforced",
-    "boundary": "mandatory gates ran only on pull-request heads, so the commit that became canonical main was never verified as a whole; main was additionally unprotected",
-    "observed_failure": "capability registry gate failed on main@d0e689556cc01428500b796cade87032ea5c0ad8"
+  "review_remediation": {
+    "finding": "the prepared branch-protection ruleset required contexts produced by path-filtered workflows",
+    "consequence": "GitHub blocks a pull request until every required context reports; a path-filtered workflow never reports on a PR outside its paths, so a valid PR would have been permanently unmergeable",
+    "severity": "would have caused a merge-path outage worse than the governance gap it closed",
+    "fix": "required contexts are now restricted to workflows that run unconditionally on pull_request; capability-registry-gate and machine-gateway-namespace-isolation had their path filters removed; web-recovery-build and memory-evidence-intake are no longer required because pandora-verify already runs typecheck, build, and the Memory evidence intake contract on every PR",
+    "regression_guard": "scripts/check_branch_protection_contexts.mjs parses the workflow files and fails on any required context that is path-filtered, unknown, ambiguous, or lacking a pull_request trigger; wired into npm run verify with 9 self-tests and 2 unit tests",
+    "guard_verified_against_original_defect": true
   },
   "enforcement": {
     "gates_now_running_on_main_push": [
@@ -35,6 +38,13 @@
       "machine-gateway-namespace-isolation",
       "verify-memory-searchpath-advisor"
     ],
+    "required_contexts": [
+      "Verify exact candidate source",
+      "no-literal-secrets",
+      "Validate exact-head evidence registry",
+      "Prove same-owner cross-namespace denial"
+    ],
+    "all_required_contexts_report_unconditionally": true,
     "exact_head_assertion": true,
     "npm_ci_replaces_npm_install": true,
     "cache_keyed_on_lockfile": true,
@@ -46,15 +56,13 @@
     "ruleset_path": ".github/branch-protection/main.json",
     "applied": false,
     "provider_readback_verified": false,
-    "note": "applying branch protection mutates repository administrative configuration and requires its own review; it must not be recorded as enforced without a provider readback"
+    "main_currently_protected": false
   },
   "evidence_normalization": {
     "index_path": "docs/evidence/EVIDENCE_INDEX.json",
-    "artifacts_classified": 22,
-    "current": 12,
-    "historical": 10,
     "historical_bytes_modified": 0,
-    "immutability_enforced_by_ci": true
+    "immutability_enforced_by_ci": true,
+    "pr35_artifact_classified": "MCP_GITHUB_ACTIONS_WRITE_2026-08-17.md recorded as production_verified for the narrow claim it makes, after the coverage gate caught it as unclassified"
   },
   "activation_state": {
     "live_principal_can_propose": false,

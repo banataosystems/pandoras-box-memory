@@ -46,6 +46,11 @@ const STAGES = [
     optional: true,
   },
   {
+    name: "protection",
+    description: "Required branch-protection contexts can actually report",
+    command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],
+  },
+  {
     name: "security",
     description: "Literal-secret and privacy-exclusion scan of runtime source",
     command: ["bash", ["scripts/check_no_literal_secrets.sh"]],
