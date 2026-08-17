@@ -42,7 +42,36 @@ recorded statement content:
 
 Trailing whitespace is normalized before comparison — the provider does not
 store a consistent trailing newline, and that difference is not semantic.
-Everything else is treated as a real difference.
+**Everything else is treated as a real difference**, including whitespace inside
+the SQL itself.
+
+### Why comparison is byte-exact, not "semantic"
+
+An earlier draft shipped a `normalizeSql()` helper that stripped comments, split
+statements, and collapsed runs of whitespace before comparing. Independent
+review caught that the whitespace collapsing was applied **globally** — including
+inside single-quoted string literals and dollar-quoted function bodies. Under
+that helper:
+
+```sql
+insert into t values ('a  b');   -- two spaces
+insert into t values ('a b');    -- one space
+```
+
+normalize to the same string, so two migrations that insert **different data**
+would have compared as equal. For a routine body, the same flaw would have
+equated two different stored functions.
+
+The helper was never wired into the parity gate — the gate always used exact
+SHA-256 comparison — so no parity result was ever produced by it. It has been
+**deleted** rather than repaired: a dead module with a subtle
+false-equality bug is a trap for the next reader who imports it assuming it is
+sound, and the gate does not need it.
+
+Comparison is therefore exact bytes, modulo trailing whitespace only. That can
+report a difference where none is semantically meaningful (a reformatted
+migration), which is the safe direction: it fails loudly and a human classifies
+it, rather than silently declaring two different migrations identical.
 
 ### The one sanitized migration
 
