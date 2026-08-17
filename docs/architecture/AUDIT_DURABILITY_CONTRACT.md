@@ -40,9 +40,31 @@ handler returns `500 audit_persistence_failed` when it is not. A failed audit
 *lookup* also fails closed (`500 audit_lookup_failed`) — an unreadable audit
 table cannot be used to conclude that no audit row is needed.
 
+**Ordering rule.** Audit reconciliation runs **before** the changed-content
+conflict decision, not after. Independent review caught the inverted order,
+which left this hole:
+
+1. a first request persists candidate, review item, and digest, then its audit
+   write fails, so it returns `500`;
+2. the caller retries with changed content;
+3. the retry reconciles review and digest, then returns `409` — never reaching
+   the audit write;
+4. every subsequent changed retry does the same, so the persisted candidate is
+   stranded **permanently without audit evidence**.
+
+The audit row is evidence about the *persisted* candidate, not about the request
+in flight — exactly like the review item and the digest. So it is healed on every
+submission, including one that is about to be rejected. The conflict decision
+comes last.
+
 **Tested by:** `scripts/test_projectos_learning_behavior.mjs`
-— audit insert failure fails closed, audit lookup failure fails closed, and a
-retry heals the audit row without duplicating the candidate.
+— audit insert failure fails closed, audit lookup failure fails closed, a retry
+heals the audit row without duplicating the candidate, a **changed-content**
+retry heals the audit row and only then conflicts, repeated changed retries heal
+exactly once, and an audit failure on a changed retry still surfaces as
+`audit_persistence_failed` rather than being masked behind a `409`. All three
+ordering tests were verified to fail when the conflict is moved back ahead of
+the audit write.
 
 ### 2. Completion-first / outbox-reconciled
 

@@ -605,24 +605,28 @@ const persistLearningEvent = async (
     }
   }
 
-  // ---- Changed-content conflict, decided only after reconciliation ---------
-  // The persisted candidate is now queued for review and has a digest, so
-  // rejecting this differing submission cannot orphan it.
-  if (persisted.fingerprint !== incoming.fingerprint) {
-    return json(409, {
-      ok: false,
-      error: "idempotency_conflict",
-      source_ref: sourceRef,
-      review_required: true,
-      canonical_memory_written: false,
-    });
-  }
-
-  // ---- Audit: required, fail closed ---------------------------------------
+  // ---- Audit: required, fail closed, and reconciled BEFORE the conflict ----
+  //
   // This operation is in the audit-required class. Failing here is safe because
   // every write above is idempotent: the caller retries and heals rather than
   // duplicating. Returning success without durable audit evidence would be a
   // lie about the security contract, so it is not an option.
+  //
+  // Ordering matters, and an earlier revision got it wrong. The audit row is
+  // evidence about the PERSISTED candidate, not about the request that happens
+  // to be in flight — exactly like the review item and the digest. If the
+  // conflict were decided first, this sequence would leave persisted state with
+  // no audit evidence, permanently:
+  //
+  //   1. first request persists candidate/review/digest, then its audit write
+  //      fails, so it returns 500;
+  //   2. the caller retries with changed content;
+  //   3. the retry reconciles review and digest, then returns 409 — never
+  //      reaching the audit write;
+  //   4. every subsequent changed retry does the same.
+  //
+  // So the audit is healed on every submission, including one that is about to
+  // be rejected. The conflict decision comes after.
   const existingAudit = await admin
     .from("audit_logs")
     .select("id")
@@ -666,6 +670,20 @@ const persistLearningEvent = async (
     if (!durable) {
       return json(500, { ok: false, error: "audit_persistence_failed" });
     }
+  }
+
+  // ---- Changed-content conflict, decided last ------------------------------
+  // The persisted candidate is now queued for review, has a digest, and has
+  // durable audit evidence, so rejecting this differing submission can neither
+  // orphan it nor strand it without an audit trail.
+  if (persisted.fingerprint !== incoming.fingerprint) {
+    return json(409, {
+      ok: false,
+      error: "idempotency_conflict",
+      source_ref: sourceRef,
+      review_required: true,
+      canonical_memory_written: false,
+    });
   }
 
   const created = candidateCreated || reviewItemCreated || digestCreated;
