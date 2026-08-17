@@ -16,11 +16,32 @@
 // evidence. Anything without all four is a candidate, not a target — and if no
 // artifact qualifies, rollback is unavailable and forward recovery is the safe
 // path. Saying so is the honest outcome; inventing a target is not.
+//
+// A third defect was found in review: the first version tried to keep moving
+// refs out by BLOCKLISTING `origin/*`, `refs/*`, `main`, and `HEAD`. That set is
+// unenumerable — `v1.2.3`, `release/foo`, and `feature/x` all sailed through and
+// could be marked production_verified, letting the exact model the registry
+// prohibits return silently. Identifiers are therefore validated against a
+// per-provider ALLOWLIST of immutable artifact shapes. An unknown provider
+// cannot contribute a target at all.
 
 import { existsSync, readFileSync } from "node:fs";
 import { argv, exit } from "node:process";
 
 const REGISTRY_PATH = "docs/rollback/RELEASE_ARTIFACT_REGISTRY.json";
+
+/**
+ * Immutable artifact-id shapes, per provider.
+ *
+ * Allowlist, not blocklist. The question is "is this a real deployment id?",
+ * never "does this happen to look like a branch name?". Enumerating every ref
+ * naming convention is impossible; enumerating a provider's own id format is
+ * exact.
+ */
+const PROVIDER_ARTIFACT_ID_PATTERNS = {
+  // Vercel deployment ids: dpl_ followed by a long base62 token.
+  vercel: /^dpl_[A-Za-z0-9]{20,}$/,
+};
 const VERIFICATIONS = ["production_verified", "rehearsal_verified", "unverified"];
 const QUALIFYING_VERIFICATIONS = new Set([
   "production_verified",
@@ -50,14 +71,23 @@ export function validateRegistry(registry) {
     }
     seen.add(artifact?.artifact_id);
 
-    // A moving ref can never be an artifact id.
-    if (
-      typeof artifact?.artifact_id === "string" &&
-      /^(origin\/|refs\/|main$|HEAD$)/.test(artifact.artifact_id)
+    // Allowlist by provider. This covers every branch, tag, and ref naming
+    // convention without trying to enumerate them.
+    const pattern = PROVIDER_ARTIFACT_ID_PATTERNS[artifact?.provider];
+    if (!pattern) {
+      errors.push(
+        `${id}: provider '${artifact?.provider}' has no registered immutable ` +
+          `artifact-id format, so its identifiers cannot be validated. Register ` +
+          `the provider's id shape before listing artifacts for it.`,
+      );
+    } else if (
+      typeof artifact?.artifact_id !== "string" ||
+      !pattern.test(artifact.artifact_id)
     ) {
       errors.push(
-        `${id}: artifact_id looks like a git ref. A rollback target must be an ` +
-          `immutable provider artifact, not a moving reference.`,
+        `${id}: artifact_id is not a valid immutable ${artifact.provider} ` +
+          `artifact id. A rollback target must be a pinned provider artifact — ` +
+          `a branch, tag, or any other moving reference cannot be one.`,
       );
     }
 
@@ -126,7 +156,8 @@ function selfTest() {
   const base = {
     required_capability_routes: ["/api/projectos/health"],
     artifacts: [{
-      artifact_id: "dpl_abc",
+      artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+      provider: "vercel",
       verification: "production_verified",
       capability_manifest_covers_required_routes: true,
       source_commit: "a".repeat(40),
@@ -143,7 +174,18 @@ function selfTest() {
 
   const cases = [
     ["valid registry", base, false],
-    ["git ref as artifact id", clone((r) => { r.artifacts[0].artifact_id = "origin/main"; }), true],
+    // Moving references of every shape, not just those a blocklist named.
+    // v1.2.3, release/foo and feature/x all passed the first version.
+    ["origin/main as artifact id", clone((r) => { r.artifacts[0].artifact_id = "origin/main"; }), true],
+    ["main as artifact id", clone((r) => { r.artifacts[0].artifact_id = "main"; }), true],
+    ["HEAD as artifact id", clone((r) => { r.artifacts[0].artifact_id = "HEAD"; }), true],
+    ["semver tag as artifact id", clone((r) => { r.artifacts[0].artifact_id = "v1.2.3"; }), true],
+    ["release branch as artifact id", clone((r) => { r.artifacts[0].artifact_id = "release/foo"; }), true],
+    ["feature branch as artifact id", clone((r) => { r.artifacts[0].artifact_id = "feature/x"; }), true],
+    ["bare word as artifact id", clone((r) => { r.artifacts[0].artifact_id = "production"; }), true],
+    ["truncated deployment id", clone((r) => { r.artifacts[0].artifact_id = "dpl_abc"; }), true],
+    ["unregistered provider", clone((r) => { r.artifacts[0].provider = "someprovider"; }), true],
+    ["missing provider", clone((r) => { delete r.artifacts[0].provider; }), true],
     ["qualified but unverified", clone((r) => { r.artifacts[0].verification = "unverified"; }), true],
     ["qualified but drops capabilities", clone((r) => { r.artifacts[0].capability_manifest_covers_required_routes = false; }), true],
     ["qualified without exact source", clone((r) => { r.artifacts[0].source_commit = null; }), true],
