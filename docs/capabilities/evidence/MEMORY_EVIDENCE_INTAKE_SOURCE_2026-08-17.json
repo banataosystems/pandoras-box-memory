@@ -1,0 +1,67 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-evidence-intake-source-2026-08-17",
+  "observed_at": "2026-08-17T10:07:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "review-gated-project-evidence-candidate-intake",
+  "source": {
+    "pull_request": 27,
+    "final_pull_request_head": "ab70b3456e79b1e2037de1fc69cc45e7f2ec01f0",
+    "merge_commit": "d0e689556cc01428500b796cade87032ea5c0ad8",
+    "merge_tree": "8f31f2f752ce5d8704a25d70266763f30faa72f2",
+    "merge_parent": "f7b7063b95310d3126d9a37aa3f08fc097e684f5",
+    "merge_signature_verified": true
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": true,
+    "deployed": false,
+    "production_verified": false
+  },
+  "exact_source_proof": {
+    "pull_request_contract_runs": [
+      31997898862,
+      31997895935
+    ],
+    "pull_request_source_security_run": 31997898845,
+    "pull_request_web_build_run": 31997898841,
+    "merged_main_source_security_run": 32015564945,
+    "merged_main_capability_registry_run": 32015564911,
+    "merged_main_capability_registry_conclusion": "failure",
+    "failure_boundary": "tracked source merged without the required registry, manifest, evidence, or roadmap co-change",
+    "repair_scope": "evidence-only provenance co-change; no runtime, schema, provider, authorization, or production mutation"
+  },
+  "security_and_privacy_contract": {
+    "maximum_request_bytes": 16384,
+    "projectos_oidc_boundary_reused": true,
+    "memory_write_scope_required": true,
+    "canonical_project_binding_required": true,
+    "active_can_propose_grant_required": true,
+    "project_scoped_idempotency": true,
+    "changed_content_conflict_status": 409,
+    "raw_excerpt_forced_null": true,
+    "direct_identifiers_and_common_secret_signatures_rejected": true,
+    "canonical_promotion_from_intake_forbidden": true,
+    "result_state": "pending_review"
+  },
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false
+  },
+  "remaining_gates": [
+    "fresh distinct qualified review of the exact release head",
+    "separate review and authorization of any live memory:write principal grant and can_propose enablement",
+    "source-provenanced preview and production deployment verification",
+    "harmless candidate submission with replay, changed-content conflict, and pending-review proof",
+    "human review and canonical readback proof",
+    "rollback verification and separate production authorization"
+  ]
+}
