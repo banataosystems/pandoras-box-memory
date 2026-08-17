@@ -18,6 +18,11 @@ jobs:
         with:
           ref: feature/projectos-memory-evidence-intake
           fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --no-fund
       - name: Make fake access key runtime-only
         shell: bash
         run: |
