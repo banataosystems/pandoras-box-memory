@@ -57,7 +57,8 @@ for (const marker of [
   'status: "pending_review"',
   'proposed_operation: "append"',
   "canonical_memory_written: false",
-  'privacy_policy: "metadata_only_v2_fail_closed"',
+  'const EVIDENCE_PRIVACY_POLICY = "metadata_only_v2_fail_closed"',
+  "privacy_policy: EVIDENCE_PRIVACY_POLICY,",
   "EVIDENCE_PRIVACY_SCAN_VERSION",
   '"direct_identifier_phone"',
   '"direct_identifier_name"',
@@ -68,6 +69,20 @@ for (const marker of [
 ]) {
   assert.ok(bridge.includes(marker), `bridge marker missing: ${marker}`);
 }
+
+// The stored candidate metadata and the API response previously reported
+// different privacy-policy strings, so a caller could not tell which policy
+// actually applied. Enforce a single canonical identifier rather than a literal
+// at each site, and require that no competing literal creeps back in.
+assert.equal(
+  (bridge.match(/privacy_policy: EVIDENCE_PRIVACY_POLICY/g) || []).length,
+  2,
+  "both stored candidate metadata and the API response must report EVIDENCE_PRIVACY_POLICY",
+);
+assert.ok(
+  !/privacy_policy: "/.test(bridge),
+  "privacy_policy must never be set from a bare literal; use EVIDENCE_PRIVACY_POLICY",
+);
 
 const helperStart = bridge.indexOf("const EVIDENCE_PROOF_STAGES");
 const serveStart = bridge.search(/Deno\.serve\(/);

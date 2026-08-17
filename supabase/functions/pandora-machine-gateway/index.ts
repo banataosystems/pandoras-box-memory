@@ -5,6 +5,12 @@ import {
   jwtVerify,
 } from "npm:jose@5.10.0";
 import {
+  boundedInteger,
+  boundedString,
+  readBoundedBody,
+} from "../_shared/request-limits.ts";
+import { type AuditClass, mustFailClosed } from "../_shared/audit-policy.ts";
+import {
   applyMemoryHealthScope,
   buildMemorySearchQuery,
   MEMORY_SEARCH_RESOURCE,
@@ -203,8 +209,8 @@ async function audit(
   decision: "allow" | "deny" | "error",
   reason: string,
   latencyMs?: number,
-) {
-  await admin.from("gateway_audit_events").insert({
+): Promise<boolean> {
+  const { error } = await admin.from("gateway_audit_events").insert({
     request_id: requestId || crypto.randomUUID(),
     principal_id: identity?.principalId || null,
     principal_key: identity?.principalKey || null,
@@ -218,6 +224,47 @@ async function audit(
     latency_ms: latencyMs ?? null,
     metadata: {},
   });
+  if (error) {
+    // Classification only. The audit row and the Supabase error message can
+    // both echo request content, and a failure path is the worst place to widen
+    // what reaches logs.
+    console.error("gateway_audit_persist_failed");
+    return false;
+  }
+  return true;
+}
+
+// See docs/architecture/AUDIT_DURABILITY_CONTRACT.md.
+//
+// An `allow` decision is audit-required and fails closed: the data has not left
+// the boundary yet, so it can still be withheld, and returning it unaudited
+// would be an unrecorded disclosure.
+//
+// A `deny` decision is never blocked on audit success. Denial is already the
+// safe outcome; an audit outage must not be able to weaken it into an allow.
+const MEMORY_AUDIT_CLASS: AuditClass = "audit_required_fail_closed";
+
+async function auditAllowOrFail(
+  identity: Identity,
+  requestId: string | null,
+  service: string,
+  action: string,
+  resource: string | null,
+  reason: string,
+  latencyMs: number,
+): Promise<boolean> {
+  const durable = await audit(
+    identity,
+    requestId,
+    identity.authMode,
+    service,
+    action,
+    resource,
+    "allow",
+    reason,
+    latencyMs,
+  );
+  return !mustFailClosed(MEMORY_AUDIT_CLASS, "allow", durable);
 }
 
 async function authenticateOauth(
@@ -539,17 +586,18 @@ async function callTool(req: Request, body: RpcRequest) {
       return rpcError(body.id, -32603, "memory_health_failed");
     }
 
-    await audit(
+    const healthAudited = await auditAllowOrFail(
       identity,
       requestId,
-      identity.authMode,
       "pandora_memory",
       "health",
       null,
-      "allow",
       "authorized",
       Date.now() - started,
     );
+    if (!healthAudited) {
+      return rpcError(body.id, -32603, "audit_persistence_failed");
+    }
 
     return rpc(body.id, {
       content: [{
@@ -566,15 +614,18 @@ async function callTool(req: Request, body: RpcRequest) {
   }
 
   if (name === "memory_search") {
-    const query = typeof args.query === "string"
-      ? args.query.trim().slice(0, MAX_QUERY)
-      : "";
-    const limit = Math.max(
-      1,
-      Math.min(MAX_LIMIT, Number(args.limit || 10)),
-    );
-
+    // Reject rather than coerce. The previous chain,
+    // Math.max(1, Math.min(MAX_LIMIT, Number(args.limit || 10))), evaluated to
+    // NaN for any non-numeric limit and passed NaN into the downstream query.
+    const query = boundedString(args.query, MAX_QUERY);
     if (!query) return rpcError(body.id, -32602, "query_required");
+
+    const limit = boundedInteger(args.limit, {
+      min: 1,
+      max: MAX_LIMIT,
+      fallback: 10,
+    });
+    if (limit === null) return rpcError(body.id, -32602, "invalid_limit");
 
     const safe = sanitizeMemorySearchQuery(query);
     if (!safe) return rpcError(body.id, -32602, "query_required");
@@ -613,17 +664,18 @@ async function callTool(req: Request, body: RpcRequest) {
       return rpcError(body.id, -32603, "memory_search_failed");
     }
 
-    await audit(
+    const searchAudited = await auditAllowOrFail(
       identity,
       requestId,
-      identity.authMode,
       "pandora_memory",
       "search",
       MEMORY_SEARCH_RESOURCE,
-      "allow",
       "authorized",
       Date.now() - started,
     );
+    if (!searchAudited) {
+      return rpcError(body.id, -32603, "audit_persistence_failed");
+    }
 
     return rpc(body.id, {
       content: [{
@@ -669,16 +721,25 @@ Deno.serve(async (req: Request) => {
     return json({ error: "method_not_allowed" }, 405);
   }
 
-  const length = Number(req.headers.get("content-length") || "0");
-  if (length > MAX_BODY_BYTES) {
+  // Enforce actual bytes, not the declared header. A missing Content-Length
+  // previously yielded Number("0") and passed this check, so a chunked or
+  // unlabelled body reached JSON.parse with no limit at all.
+  const bounded = await readBoundedBody(req, MAX_BODY_BYTES);
+  if (!bounded.ok) {
+    if (bounded.reason === "read_failed") {
+      return json({ error: "request_read_failed" }, 400);
+    }
     return json({ error: "payload_too_large" }, 413);
   }
 
   let body: RpcRequest;
   try {
-    body = await req.json();
+    body = JSON.parse(bounded.text);
   } catch {
     return rpcError(null, -32700, "parse_error", undefined, 400);
+  }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return rpcError(null, -32600, "invalid_request", undefined, 400);
   }
 
   if (body.method === "tools/call") {
