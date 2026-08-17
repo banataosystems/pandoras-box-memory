@@ -151,7 +151,7 @@
       "current": true,
       "supersedes": [],
       "superseded_by": null,
-      "evidence_sha256": "d7c376b958bc6fbd3c0adba55443736153ded0a50e6bff4ff08bae8257da0009",
+      "evidence_sha256": "67baee912d47c31003927577f0b8e4cc2e9cb455662984e215c7ff7f240175a8",
       "review_status": "awaiting_independent_review",
       "deployment_status": "source_only",
       "production_verified": false,

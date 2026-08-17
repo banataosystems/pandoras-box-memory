@@ -7,9 +7,25 @@
   "source": {
     "pull_request": 33,
     "branch": "hardening/gateway-api-boundaries",
-    "candidate_head": "e7666300c41c07de28e2c273a610cd28fb162e30",
-    "candidate_tree": "91d634c71bb39fa768e12385df81fe959e2d7ff7",
-    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+    "candidate_head": "6b4ed643f9d8692f5bf37bb4335c8d79a4496b78",
+    "candidate_tree": "bbd7a79ffc53af9f3c24d436074b3d1de832cc58",
+    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+    "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
+    "describes_commits": [
+      "6b4ed643f9d8692f5bf37bb4335c8d79a4496b78",
+      "9f27e355589f0856020b53a392a430f2486a2fad",
+      "0b52110d30262e768bd5889736a93d23dcf72361",
+      "a50fffa6954490aca1316ef81dfc80113dcad4a3",
+      "d31ed60290f3e65b1cf95f739828b110955d39ef",
+      "1a8f5cc1df6e75213b3f628dcd8a5456501a6df9",
+      "78aa167e768edfaa67d5469be620b693beb3c823",
+      "f94c14b95ea7f4afaa1bf14251ed8dd370057623",
+      "d3f37080cfe27113713b678fff53aeb86b2ba7b9",
+      "6c7033bf384fedc24a86904b3e3184a966558191",
+      "826418e18890bb41c055b8733e3aa182bb0bffb9",
+      "e7666300c41c07de28e2c273a610cd28fb162e30",
+      "f225678ab595078cd865420580d22283d719cf86"
+    ]
   },
   "lifecycle": {
     "documented": true,
@@ -107,5 +123,13 @@
     "merge into canonical main with the exact-merge-result gates green",
     "source-provenanced preview deployment verification",
     "separate production deployment authorization and rollback rehearsal"
-  ]
+  ],
+  "review_remediation": {
+    "second_review_findings_closed": [
+      "durable evidence binding was stale: candidate_head, candidate_tree, and canonical_base predated the second-author commits and the governance reconciliation. Refreshing only the pull-request body did not repair it.",
+      "the approved-canon contract leaked internal hard_canon/soft_canon labels because the response normalizer spread canonical_records through unchanged."
+    ],
+    "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when canonical_base is not the merge-base with the default branch, or when a recorded historical commit does not exist. 13 self-tests.",
+    "canon_label_fix": "canonical_records are rebuilt rather than spread; canon-label fields are rewritten to the stable approved alias at any depth, keyed on field name so free text discussing canon status is never corrupted."
+  }
 }
