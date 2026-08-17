@@ -1,0 +1,29 @@
+{
+  "fixture": true,
+  "purpose": "Synthetic positive fixture for verifier logic only. This is not provider evidence and must never be cited as proof that the hosted candidate is applied.",
+  "lints": [
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_private_flutterflow_github_oidc_attempts"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_private_flutterflow_github_oidc_grants"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_env_audit_events"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_env_key_versions"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_env_managed_keys"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_env_managed_projects"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_gateway_audit_events"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_gateway_grants"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_gateway_principals"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_gateway_service_actions"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_memory_ingest_response_cache"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_approval_audits"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_ingestion_failures"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_memory_conflicts"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_memory_record_versions"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_project_grants"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_projects"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_service_principals"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_source_snapshot_files"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_source_snapshots"},
+    {"name":"rls_enabled_no_policy","level":"INFO","cache_key":"rls_enabled_no_policy_public_pandora_sync_runs"},
+    {"name":"extension_in_public","level":"WARN","cache_key":"extension_in_public_vector"},
+    {"name":"auth_leaked_password_protection","level":"WARN","cache_key":"auth_leaked_password_protection"}
+  ]
+}

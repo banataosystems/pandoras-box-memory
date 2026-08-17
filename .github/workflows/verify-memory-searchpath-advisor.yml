@@ -1,0 +1,66 @@
+name: Verify Memory search-path advisor proof contract
+
+on:
+  pull_request:
+    paths:
+      - 'docs/verification/2026-08-11-security-advisor-baseline.json'
+      - 'docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json'
+      - 'scripts/verify_memory_searchpath_advisor.py'
+      - 'scripts/verify_memory_searchpath_source.py'
+      - 'supabase/recovery/20260810_memory_searchpath_001.sql'
+      - 'supabase/recovery/20260810_memory_searchpath_001.rollback.sql'
+      - '.github/workflows/verify-memory-searchpath-advisor.yml'
+  push:
+    branches:
+      - 'verification/hosted-security-advisor-20260811'
+    paths:
+      - 'docs/verification/2026-08-11-security-advisor-baseline.json'
+      - 'docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json'
+      - 'scripts/verify_memory_searchpath_advisor.py'
+      - 'scripts/verify_memory_searchpath_source.py'
+      - 'supabase/recovery/20260810_memory_searchpath_001.sql'
+      - 'supabase/recovery/20260810_memory_searchpath_001.rollback.sql'
+      - '.github/workflows/verify-memory-searchpath-advisor.yml'
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  prove-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+          persist-credentials: false
+      - name: Prove exact candidate head
+        shell: bash
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Bind exact Pandora candidate and rollback source
+        run: python scripts/verify_memory_searchpath_source.py
+      - name: Current provider baseline must not pass as repaired
+        shell: bash
+        run: |
+          set -euo pipefail
+          if python scripts/verify_memory_searchpath_advisor.py \
+            docs/verification/2026-08-11-security-advisor-baseline.json \
+            docs/verification/2026-08-11-security-advisor-baseline.json; then
+            echo 'FAIL: unchanged provider baseline was incorrectly accepted as repaired' >&2
+            exit 1
+          fi
+      - name: Search-path-only disappearance fixture must pass
+        run: >-
+          python scripts/verify_memory_searchpath_advisor.py
+          docs/verification/2026-08-11-security-advisor-baseline.json
+          docs/verification/fixtures/2026-08-11-searchpath-only-candidate.json
+      - name: Safety statement
+        run: |
+          echo 'This workflow validates exact candidate source plus the proof contract only.'
+          echo 'The positive fixture is synthetic and is not hosted-provider evidence.'
+          echo 'MEMORY-SEARCHPATH-001 remains incomplete until a real isolated candidate advisor export passes this verifier.'
