@@ -26,6 +26,7 @@ import {
 // classified in the index.
 const EVIDENCE_GLOB_ROOTS = [
   "docs/capabilities/evidence",
+  "docs/migrations",
   "docs/project-state",
   "docs/recovery",
   "docs/verification",

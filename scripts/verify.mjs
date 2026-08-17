@@ -43,7 +43,6 @@ const STAGES = [
     name: "migrations",
     description: "Live migration ledger parity, duplicates, and hash drift",
     command: ["node", ["scripts/check_migration_parity.mjs", "--self-test"]],
-    optional: true,
   },
   {
     name: "protection",
