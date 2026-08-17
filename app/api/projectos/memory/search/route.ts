@@ -3,6 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { projectOSWorkloadToken } from "@/lib/http/auth-material";
 import { declaredLengthExceeds, readBounded, unknownFields } from "@/lib/http/bounded";
 import { proxyProjectOSMemoryRequest } from "@/lib/services/projectos-memory-bridge-client";
+import {
+  normalizeProjectOSSearchResponse,
+  projectOSCanonSelection,
+} from "@/lib/services/projectos-memory-search-contract";
 
 export const dynamic = "force-dynamic";
 
@@ -27,18 +31,16 @@ function unauthorized() {
   );
 }
 
+function contractError(error: string, status = 400) {
+  return NextResponse.json(
+    { ok: false, error },
+    { status, headers: { "cache-control": "no-store" } },
+  );
+}
+
 // Contract decision: this is a governed machine interface, so unknown top-level
 // fields are REJECTED rather than silently dropped — matching the stricter
 // evidence-candidate endpoint.
-//
-// The previous behavior filtered unknown keys out and proceeded. That is worse
-// than it looks: a caller that misspells `max_items` gets a successful response
-// computed with a different limit than it asked for, and never learns. Failing
-// the request makes the mismatch visible at the boundary.
-//
-// There is no backward-compatibility requirement forcing permissiveness here:
-// the only in-repo caller is the ProjectOS bridge client, which sends exactly
-// these fields.
 export async function POST(request: NextRequest) {
   // Reject missing or malformed workload authentication material before reading
   // any caller-controlled body. The Edge bridge performs cryptographic OIDC and
@@ -46,37 +48,58 @@ export async function POST(request: NextRequest) {
   if (!projectOSWorkloadToken(request.headers)) return unauthorized();
 
   if (declaredLengthExceeds(request.headers.get("content-length"), MAX_BODY_BYTES)) {
-    return NextResponse.json({ ok: false, error: "body_too_large" }, { status: 413 });
+    return contractError("body_too_large", 413);
   }
 
   const bounded = await readBounded(request, MAX_BODY_BYTES);
   if (!bounded.ok) {
     return bounded.reason === "read_failed"
-      ? NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 })
-      : NextResponse.json({ ok: false, error: "body_too_large" }, { status: 413 });
+      ? contractError("invalid_json")
+      : contractError("body_too_large", 413);
   }
 
   let parsed: unknown;
   try {
     parsed = JSON.parse(bounded.text);
   } catch {
-    return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
+    return contractError("invalid_json");
   }
 
   if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
+    return contractError("invalid_json");
   }
 
   const body = parsed as Record<string, unknown>;
   const unexpected = unknownFields(body, ALLOWED_KEYS);
   if (unexpected.length > 0) {
-    // Name the offending keys — they are caller-supplied field names, not values,
-    // so echoing them leaks nothing while making the error actionable.
     return NextResponse.json(
       { ok: false, error: "unexpected_field", fields: unexpected.sort() },
-      { status: 400 },
+      { status: 400, headers: { "cache-control": "no-store" } },
     );
   }
 
-  return proxyProjectOSMemoryRequest(request, { action: "search", ...body });
+  const selection = projectOSCanonSelection(body.canon_statuses);
+  if (!selection) return contractError("invalid_canon_statuses");
+
+  const bridgeResponse = await proxyProjectOSMemoryRequest(request, {
+    action: "search",
+    ...body,
+    canon_statuses: [...selection.bridgeStatuses],
+  });
+  if (!bridgeResponse.ok) return bridgeResponse;
+
+  let bridgeBody: unknown;
+  try {
+    bridgeBody = await bridgeResponse.json();
+  } catch {
+    return contractError("invalid_bridge_response", 502);
+  }
+
+  const normalized = normalizeProjectOSSearchResponse(bridgeBody, selection);
+  if (!normalized.ok) return contractError(normalized.error, 502);
+
+  return NextResponse.json(normalized.value, {
+    status: bridgeResponse.status,
+    headers: { "cache-control": "no-store" },
+  });
 }
