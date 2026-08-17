@@ -24,6 +24,7 @@ Observed 2026-08-17, read-only.
 | `pandora-machine-gateway` | v3 |
 | Applied migrations | 68 |
 | Canonical source at time of audit | `d0e689556cc01428500b796cade87032ea5c0ad8` |
+| Canonical `main` at time of writing | `aa228d5bfb59c0e54ed85415d6faaea3340f6c56` (tree `852c6a4df8b9c20176c9b9aa701782dc23d5eddf`) |
 
 **The 2026-08-17 source changes are not production deployed.** Production is
 serving code that predates canonical main.
@@ -38,14 +39,24 @@ serving code that predates canonical main.
 
 ## Release candidate
 
-The capability-preserving release candidate is **canonical `main`**, not an
-older deployment: `main` is the first ref that contains the full current
-capability set *and* builds reproducibly from a committed lockfile.
+The capability-preserving release candidate is **whatever commit canonical
+`main` points at when the rollback is performed** — not an older deployment, and
+not a SHA copied out of this document.
 
-| Property | Value |
+That distinction is the point. Independent review caught an earlier draft naming
+`d0e689556cc01428500b796cade87032ea5c0ad8` as *the* full-capability target.
+`main` has since advanced, so that SHA is now a historical observation, not a
+valid target: rolling to it would drop everything merged after it. **A rollback
+target read from a document is stale by construction.**
+
+**Rule: resolve the target from the repository at rollback time**, then verify it
+carries the capability set below. The row underneath is an observation recorded
+when this document was written, useful for comparison and nothing else.
+
+| Property | Value (observed aa228d5, not a fixed target) |
 | --- | --- |
-| Ref | `main@d0e689556cc01428500b796cade87032ea5c0ad8` |
-| Tree | `8f31f2f752ce5d8704a25d70266763f30faa72f2` |
+| Ref | `main@aa228d5bfb59c0e54ed85415d6faaea3340f6c56` |
+| Tree | `852c6a4df8b9c20176c9b9aa701782dc23d5eddf` |
 | Build | `npm ci && npm run build` |
 | Build inputs | `package-lock.json` committed; caches keyed on it |
 | Credentials required to build | none beyond the two public `NEXT_PUBLIC_*` values |
@@ -58,17 +69,19 @@ Reproducibility is enforced by `pandora-verify.yml`, which runs `npm ci` and
 1. Identify the target deployment id from the Vercel deployment list for the
    project. Do not rely on a deployment id recorded in any document — read it
    from the provider at rollback time.
-2. Confirm the target's source commit matches a ref containing the required
-   capability set above. **A target that predates those routes is not a valid
-   rollback.**
-3. Promote the target to production via the Vercel dashboard or API.
-4. Re-read the production alias from the provider and confirm it points at the
+2. Resolve the intended target from `git rev-parse origin/main` (or the exact
+   reviewed release ref), **not** from any SHA written in this document.
+3. Confirm the target's source commit contains the required capability set
+   above. **A target that predates those routes is not a valid rollback**, and
+   a target older than current `main` silently discards everything merged since.
+4. Promote the target to production via the Vercel dashboard or API.
+5. Re-read the production alias from the provider and confirm it points at the
    promoted deployment. **A promotion is not complete until provider readback
    proves it.**
-5. Probe each route in "Routes that must survive" and confirm the expected
+6. Probe each route in "Routes that must survive" and confirm the expected
    status — including that `/api/mcp` returns `401` with a `WWW-Authenticate`
    challenge for an unauthenticated request, not `200` and not `500`.
-6. Record the resulting deployment id, source commit, and probe results as new
+7. Record the resulting deployment id, source commit, and probe results as new
    evidence. Do not edit this document; supersede it.
 
 ### Edge Functions and database
