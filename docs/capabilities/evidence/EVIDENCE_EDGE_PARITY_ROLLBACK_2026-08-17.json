@@ -7,8 +7,8 @@
   "source": {
     "pull_request": 34,
     "branch": "evidence/edge-parity-and-rollback",
-    "candidate_head": "732f58b914afcb26102d9004a89c0621a40ece06",
-    "candidate_tree": "93f41054d4ea10b243b2641104016b09409d64ec",
+    "candidate_head": "54cba03e847589097a8c977560cd4a42bf40ed2f",
+    "candidate_tree": "6b7be46f8b766a29ca1bd9b6f7691f9a1f8c954d",
     "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
     "binding_note": "candidate_head names the parent of the commit carrying this artifact. Enforced by scripts/check_capability_evidence_binding.mjs, which lands on the gateway-boundaries lane."
   },
@@ -24,7 +24,7 @@
   "review_remediation": {
     "finding": "the rollback document named d0e689556cc01428500b796cade87032ea5c0ad8 as the full-capability target, but canonical main has advanced to aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
     "consequence": "rolling to the documented SHA would silently discard everything merged after it, so it no longer proves capability-preserving rollback",
-    "fix": "rollback targets are now selected from docs/rollback/RELEASE_ARTIFACT_REGISTRY.json, which admits only immutable provider artifacts carrying an exact source commit, a capability manifest covering the required routes, and production_verified or rehearsal_verified evidence.",
+    "fix": "artifact identifiers are validated against a per-provider allowlist of immutable id shapes; a provider with no registered shape cannot contribute a target at all",
     "recurrence_prevention": "the procedure states that a rollback target read from a document is stale by construction and instructs the operator to resolve it from origin/main, so this cannot silently rot again",
     "parity_manifest_updated": "canonical_commit refreshed to current main with a note to recompute if main advances",
     "second_review_finding": "replacing the stale fixed SHA with \"whatever origin/main points at\" was itself unsafe: current main can contain work merged but never production-authorized, deployed, rehearsed, or verified, so promoting it mid-incident would ship unreleased changes rather than restore known-good state.",
@@ -38,7 +38,21 @@
     "unclosed_limitations": [
       "the qualified artifact capability manifest was not re-probed (Vercel unauthenticated in this session)",
       "its source commit is asserted by prior evidence and was not independently rebound to the artifact"
-    ]
+    ],
+    "third_review_finding": "the validator kept moving refs out with a blocklist of origin/*, refs/*, main and HEAD, so v1.2.3, release/foo and feature/x could be listed as artifacts, marked production_verified and qualify — reintroducing the moving-ref model the registry prohibits",
+    "negative_tests_added": [
+      "origin/main",
+      "main",
+      "HEAD",
+      "v1.2.3",
+      "release/foo",
+      "feature/x",
+      "production",
+      "truncated dpl_ id",
+      "unregistered provider",
+      "missing provider"
+    ],
+    "self_tests": 19
   },
   "edge_parity": {
     "method": "read-only list_edge_functions and get_edge_function; no function deployed, updated, or invoked",

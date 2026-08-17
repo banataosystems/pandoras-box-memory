@@ -63,9 +63,17 @@ all four of:
 | `production_verified` or `rehearsal_verified` | Otherwise it is a candidate, not a target. |
 
 `scripts/check_rollback_targets.mjs` enforces this and runs in `npm run verify`.
-It rejects a git ref used as an artifact id, a qualified artifact missing
-verification, capabilities, an exact source commit, or a limitations list, and
-any summary that overstates what the artifact list supports.
+It rejects a qualified artifact missing verification, capabilities, an exact
+source commit, or a limitations list, and any summary that overstates what the
+artifact list supports.
+
+Artifact identifiers are validated against a **per-provider allowlist** of
+immutable id shapes. An earlier version tried to keep moving refs out with a
+blocklist of `origin/*`, `refs/*`, `main`, and `HEAD` — which let `v1.2.3`,
+`release/foo`, and `feature/x` through, so the moving-ref model the registry
+prohibits could return silently. Ref naming conventions are unenumerable; a
+provider's own id format is exact. A provider with no registered id shape cannot
+contribute a target at all.
 
 ### Currently qualified
 
