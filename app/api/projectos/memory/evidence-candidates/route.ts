@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { projectOSWorkloadToken } from "@/lib/http/auth-material";
+import { declaredLengthExceeds, readBounded, unknownFields } from "@/lib/http/bounded";
 import { proxyProjectOSMemoryRequest } from "@/lib/services/projectos-memory-bridge-client";
 
 export const dynamic = "force-dynamic";
@@ -18,25 +20,38 @@ const ALLOWED_KEYS = new Set([
   "idempotency_key",
 ]);
 
-const byteLength = (value: string) => new TextEncoder().encode(value).byteLength;
+function unauthorized() {
+  return NextResponse.json(
+    { ok: false, error: "unauthorized" },
+    { status: 401, headers: { "cache-control": "no-store" } },
+  );
+}
 
 export async function POST(request: NextRequest) {
-  const declaredLength = Number(request.headers.get("content-length") || "0");
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+  // Do not buffer evidence payloads from callers that did not even present valid
+  // workload authentication material. The Edge bridge performs full Vercel OIDC
+  // and principal/scope authorization before accepting a candidate.
+  if (!projectOSWorkloadToken(request.headers)) return unauthorized();
+
+  if (declaredLengthExceeds(request.headers.get("content-length"), MAX_BODY_BYTES)) {
     return NextResponse.json({ ok: false, error: "body_too_large" }, { status: 413 });
   }
 
-  const raw = await request.text();
-  if (!raw || byteLength(raw) > MAX_BODY_BYTES) {
-    return NextResponse.json(
-      { ok: false, error: raw ? "body_too_large" : "invalid_json" },
-      { status: raw ? 413 : 400 },
-    );
+  // Meter the actual stream. `request.text()` is intentionally forbidden here:
+  // an absent, chunked, or understated Content-Length must never remove the cap.
+  const bounded = await readBounded(request, MAX_BODY_BYTES);
+  if (!bounded.ok) {
+    return bounded.reason === "read_failed"
+      ? NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 })
+      : NextResponse.json({ ok: false, error: "body_too_large" }, { status: 413 });
+  }
+  if (!bounded.text) {
+    return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
 
   let body: unknown;
   try {
-    body = JSON.parse(raw);
+    body = JSON.parse(bounded.text);
   } catch {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
@@ -45,13 +60,17 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "invalid_json" }, { status: 400 });
   }
 
-  const entries = Object.entries(body);
-  if (entries.some(([key]) => !ALLOWED_KEYS.has(key))) {
-    return NextResponse.json({ ok: false, error: "unexpected_field" }, { status: 400 });
+  const record = body as Record<string, unknown>;
+  const unexpected = unknownFields(record, ALLOWED_KEYS);
+  if (unexpected.length > 0) {
+    return NextResponse.json(
+      { ok: false, error: "unexpected_field", fields: unexpected.sort() },
+      { status: 400 },
+    );
   }
 
   return proxyProjectOSMemoryRequest(request, {
     action: "submit_evidence_candidate",
-    ...Object.fromEntries(entries),
+    ...record,
   });
 }

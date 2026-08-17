@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { projectOSWorkloadToken } from "@/lib/http/auth-material";
 import { declaredLengthExceeds, readBounded, unknownFields } from "@/lib/http/bounded";
 import { proxyProjectOSMemoryRequest } from "@/lib/services/projectos-memory-bridge-client";
 
@@ -19,6 +20,13 @@ const ALLOWED_KEYS = new Set([
   "canon_statuses",
 ]);
 
+function unauthorized() {
+  return NextResponse.json(
+    { ok: false, error: "unauthorized" },
+    { status: 401, headers: { "cache-control": "no-store" } },
+  );
+}
+
 // Contract decision: this is a governed machine interface, so unknown top-level
 // fields are REJECTED rather than silently dropped — matching the stricter
 // evidence-candidate endpoint.
@@ -32,6 +40,11 @@ const ALLOWED_KEYS = new Set([
 // the only in-repo caller is the ProjectOS bridge client, which sends exactly
 // these fields.
 export async function POST(request: NextRequest) {
+  // Reject missing or malformed workload authentication material before reading
+  // any caller-controlled body. The Edge bridge performs cryptographic OIDC and
+  // principal/scope verification after this syntactic early gate.
+  if (!projectOSWorkloadToken(request.headers)) return unauthorized();
+
   if (declaredLengthExceeds(request.headers.get("content-length"), MAX_BODY_BYTES)) {
     return NextResponse.json({ ok: false, error: "body_too_large" }, { status: 413 });
   }

@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { projectOSWorkloadToken } from "@/lib/http/auth-material";
+
 const MAX_RESPONSE_BYTES = 500_000;
 const TIMEOUT_MS = 8_000;
 
@@ -9,14 +11,6 @@ const TIMEOUT_MS = 8_000;
 // production service-principal authentication to another project.
 const BRIDGE_URL =
   "https://ivmvufhcsezyhczzondn.supabase.co/functions/v1/pandora-projectos-bridge";
-
-function workloadToken(request: NextRequest) {
-  const dedicated = request.headers.get("x-pandora-vercel-oidc")?.trim();
-  if (dedicated) return dedicated;
-  const authorization = request.headers.get("authorization") ?? "";
-  const [scheme, token] = authorization.split(" ");
-  return scheme?.toLowerCase() === "bearer" && token ? token : null;
-}
 
 async function readBounded(response: Response) {
   const declared = Number(response.headers.get("content-length"));
@@ -64,9 +58,15 @@ export async function proxyProjectOSMemoryRequest(
   request: NextRequest,
   payload: Record<string, unknown>,
 ) {
-  const token = workloadToken(request);
+  // Routes run the same syntactic early gate before body consumption. Repeat it
+  // here as defense in depth for any future in-repo caller that invokes this
+  // proxy directly. The Edge bridge still owns cryptographic verification.
+  const token = projectOSWorkloadToken(request.headers);
   if (!token) {
-    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { ok: false, error: "unauthorized" },
+      { status: 401, headers: { "cache-control": "no-store" } },
+    );
   }
 
   const controller = new AbortController();
@@ -83,7 +83,7 @@ export async function proxyProjectOSMemoryRequest(
         "x-pandora-vercel-oidc": token,
         accept: "application/json",
         "content-type": "application/json",
-        "user-agent": "Pandora-Memory-ProjectOS-Proxy/1.2",
+        "user-agent": "Pandora-Memory-ProjectOS-Proxy/1.3",
       },
       body: JSON.stringify(payload),
       signal: controller.signal,
