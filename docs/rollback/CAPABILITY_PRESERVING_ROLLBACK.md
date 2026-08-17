@@ -37,66 +37,85 @@ serving code that predates canonical main.
 - `/.well-known/oauth-protected-resource/api/mcp`
 - `/oauth/consent`, `/auth/confirm`, `/auth/login`
 
-## Release candidate
+## Rollback target — an immutable artifact, not a ref
 
-The capability-preserving release candidate is **whatever commit canonical
-`main` points at when the rollback is performed** — not an older deployment, and
-not a SHA copied out of this document.
+Two target models have now been rejected in review, and both failures are worth
+keeping visible:
 
-That distinction is the point. Independent review caught an earlier draft naming
-`d0e689556cc01428500b796cade87032ea5c0ad8` as *the* full-capability target.
-`main` has since advanced, so that SHA is now a historical observation, not a
-valid target: rolling to it would drop everything merged after it. **A rollback
-target read from a document is stale by construction.**
+1. **A hard-coded SHA in this document** (`d0e6895…`). It rotted the moment
+   `main` advanced, and the document went on asserting it.
+2. **"Whatever `origin/main` points at, at rollback time."** This fixed the rot
+   but introduced a worse failure: current `main` can contain work that was
+   merged but never production-authorized, deployed, rehearsed, or
+   production-verified. Promoting it mid-incident would **ship unreleased
+   changes while claiming to restore known-good state** — the opposite of a
+   rollback.
 
-**Rule: resolve the target from the repository at rollback time**, then verify it
-carries the capability set below. The row underneath is an observation recorded
-when this document was written, useful for comparison and nothing else.
+**The target is an immutable provider artifact**, selected from
+`docs/rollback/RELEASE_ARTIFACT_REGISTRY.json`. To qualify, an artifact needs
+all four of:
 
-| Property | Value (observed aa228d5, not a fixed target) |
+| Requirement | Why |
 | --- | --- |
-| Ref | `main@aa228d5bfb59c0e54ed85415d6faaea3340f6c56` |
-| Tree | `852c6a4df8b9c20176c9b9aa701782dc23d5eddf` |
-| Build | `npm ci && npm run build` |
-| Build inputs | `package-lock.json` committed; caches keyed on it |
-| Credentials required to build | none beyond the two public `NEXT_PUBLIC_*` values |
+| Immutable artifact id | A branch or tag moves; a deployment id does not. |
+| Exact source commit | So what is being restored is knowable. |
+| Capability manifest covering the required routes | A target that drops routes is a partial outage, not a recovery. |
+| `production_verified` or `rehearsal_verified` | Otherwise it is a candidate, not a target. |
 
-Reproducibility is enforced by `pandora-verify.yml`, which runs `npm ci` and
-`npm run build` against the exact commit on every push to `main`.
+`scripts/check_rollback_targets.mjs` enforces this and runs in `npm run verify`.
+It rejects a git ref used as an artifact id, a qualified artifact missing
+verification, capabilities, an exact source commit, or a limitations list, and
+any summary that overstates what the artifact list supports.
+
+### Currently qualified
+
+| Artifact | Role | Qualified | Note |
+| --- | --- | --- | --- |
+| `dpl_7CbTiMxMXQZjrLQDKchf455iBxi4` | current production | **yes** | Production-verified, carries the full capability set. It is the target for a *future* deployment — it is what production runs now. |
+| `dpl_9EkwxicRPzigkvUis5m1qk644CrG` | preserved prior baseline | **no** | Predates the ProjectOS health and Memory search routes. Promoting it would silently drop capabilities. |
+
+**Both limitations are recorded and neither was closed in this pass:** the
+capability manifest was not re-probed (Vercel is unauthenticated in this
+session), and the source commit is asserted by prior evidence rather than
+independently rebound to the artifact.
+
+**If no artifact qualifies, rollback is UNAVAILABLE** and forward recovery is the
+safe path. Saying that plainly is the correct outcome; inventing a target is not.
 
 ## Rollback procedure (NOT YET REHEARSED)
 
-1. Identify the target deployment id from the Vercel deployment list for the
-   project. Do not rely on a deployment id recorded in any document — read it
-   from the provider at rollback time.
-2. Resolve the intended target from `git rev-parse origin/main` (or the exact
-   reviewed release ref), **not** from any SHA written in this document.
-3. Confirm the target's source commit contains the required capability set
-   above. **A target that predates those routes is not a valid rollback**, and
-   a target older than current `main` silently discards everything merged since.
-4. Promote the target to production via the Vercel dashboard or API.
+1. Select the most recent artifact with `qualified: true` from the registry
+   whose capability manifest covers the routes the incident requires. **Do not
+   take a target from prose, a branch, or `main`.**
+2. Re-read that artifact from the provider and confirm it still exists and still
+   reports the recorded source commit. A registry entry is a claim; the provider
+   is the authority.
+3. Confirm its capability manifest covers every route under "Routes that must
+   survive". If the manifest was never probed, probe it in preview first, or
+   treat rollback as unavailable.
+4. Promote the pinned artifact id.
 5. Re-read the production alias from the provider and confirm it points at the
-   promoted deployment. **A promotion is not complete until provider readback
+   promoted artifact. **A promotion is not complete until provider readback
    proves it.**
-6. Probe each route in "Routes that must survive" and confirm the expected
-   status — including that `/api/mcp` returns `401` with a `WWW-Authenticate`
-   challenge for an unauthenticated request, not `200` and not `500`.
-7. Record the resulting deployment id, source commit, and probe results as new
-   evidence. Do not edit this document; supersede it.
+6. Probe each required route, including that `/api/mcp` returns `401` with a
+   `WWW-Authenticate` challenge for an unauthenticated request — not `200`, not
+   `500`.
+7. Record the resulting artifact id, source commit, and probe results as new
+   evidence, and add the artifact to the registry. Do not edit this document;
+   supersede it.
 
 ### Edge Functions and database
 
 - **Edge Functions do not roll back with Vercel.** They are versioned
-  independently at Supabase. A Vercel rollback leaves the gateway at v3, the
-  bridge at v13, and learning at v1.
+  independently at Supabase. A web rollback leaves the gateway at v3, the bridge
+  at v13, and learning at v1.
 - **The database does not roll back at all.** No applied migration has rollback
-  metadata at the provider (0 of 68 — see
-  `docs/migrations/MIGRATION_RECOVERY.md`). Any schema change must be reversed
-  by a new, reviewed forward migration. **There is no down-migration path.**
+  metadata (0 of 68 — see `docs/migrations/MIGRATION_RECOVERY.md`). Any schema
+  change must be reversed by a new, reviewed forward migration.
 
-This means a rollback is only safe for changes that are web-tier only. A change
-that spans the web tier and the database is not rollback-safe today, and that is
-a real constraint on what may be deployed.
+A change spanning the web tier and the database is therefore **not rollback-safe
+today**, and that is a constraint on what may be deployed, not a documentation
+gap.
 
 ## Forward-recovery procedure
 
@@ -114,7 +133,10 @@ If a rollback is performed, recovering forward requires:
 
 - **No rehearsal was performed.** This procedure has never been executed.
   Promoting a deployment and re-pointing a production alias are production
-  mutations, which are outside the authorization of this remediation pass.
+  mutations, outside the authorization of this pass.
+- **The qualified target's capability manifest was not re-probed**, and its
+  source commit was not independently rebound to the artifact. Both are recorded
+  as limitations in the registry rather than assumed away.
 - **No non-production environment was built or probed.** The release candidate
   is proven to build in CI; it has **not** been deployed to a preview
   environment, and its routes have **not** been exercised against a running

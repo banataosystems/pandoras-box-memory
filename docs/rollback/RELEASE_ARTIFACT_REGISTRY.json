@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "pandora-memory-release-artifacts",
+  "observed_at": "2026-08-17T18:20:00Z",
+  "purpose": "Enumerate immutable release artifacts that may serve as a rollback target, with the verification evidence that qualifies each one. A rollback target is selected from this registry, never from a moving ref.",
+  "target_contract": {
+    "must_be_immutable": "A pinned provider artifact id (e.g. a Vercel deployment id). Never a branch, tag, or 'current main', all of which move and can carry work that was merged but never released.",
+    "must_have_exact_source": "The exact source commit the artifact was built from.",
+    "must_have_capability_manifest": "The routes and capabilities the artifact is known to serve, so a rollback cannot silently drop functionality.",
+    "must_have_verification": "Either production_verified (it served production and was verified there) or rehearsal_verified (deployed to non-production and probed). Anything else is a candidate, not a target.",
+    "selection_rule": "At incident start, select the most recent artifact with qualified=true whose capability manifest covers the required routes, and pin its exact id. Re-read the artifact from the provider before promoting it. If no qualified target exists, rollback is UNAVAILABLE and forward recovery is the safe path."
+  },
+  "required_capability_routes": [
+    "/api/projectos/health",
+    "/api/projectos/memory/search",
+    "/api/mcp",
+    "/.well-known/oauth-protected-resource/api/mcp",
+    "/oauth/consent",
+    "/auth/confirm",
+    "/auth/login"
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+      "provider": "vercel",
+      "role": "current_production",
+      "source_commit": "fc6eea5b228533464633d2304b159e097b9e2b4f",
+      "source_commit_binding": "asserted_by_prior_evidence_not_rebound_in_this_pass",
+      "capability_manifest_covers_required_routes": true,
+      "capability_manifest_source": "prior production verification recorded in Pandora Memory and ops/projectos-memory-connector-recovery-2026-08-10.md; health and Memory search were probed end-to-end after deployment",
+      "verification": "production_verified",
+      "verified_at": "2026-08-10",
+      "reverified_in_this_pass": false,
+      "qualified": true,
+      "qualification_note": "Qualified as the rollback target for any FUTURE deployment: it is immutable, production-verified, and carries the full current capability set. It is not a rollback target for itself — it is what production is running now.",
+      "limitations": [
+        "The capability manifest was not re-probed in this pass; Vercel is unauthenticated in this session.",
+        "The source commit is asserted by prior evidence and was not independently rebound to the artifact."
+      ]
+    },
+    {
+      "artifact_id": "dpl_9EkwxicRPzigkvUis5m1qk644CrG",
+      "provider": "vercel",
+      "role": "preserved_prior_baseline",
+      "source_commit": null,
+      "source_commit_binding": "unknown",
+      "capability_manifest_covers_required_routes": false,
+      "capability_manifest_source": "predates the restoration of the ProjectOS health and Memory search routes",
+      "verification": "production_verified",
+      "verified_at": "before 2026-08-10",
+      "reverified_in_this_pass": false,
+      "qualified": false,
+      "qualification_note": "DISQUALIFIED as a capability-preserving rollback target. Promoting it would restore a working Memory while silently dropping /api/projectos/health and /api/projectos/memory/search — a partial outage presented as a recovery.",
+      "limitations": [
+        "Retained only as historical provenance."
+      ]
+    }
+  ],
+  "explicitly_not_targets": [
+    {
+      "ref": "origin/main",
+      "reason": "A moving ref. Current main can contain work that was merged but never production-authorized, deployed, rehearsed, or production-verified. Promoting it during an incident would ship unreleased changes instead of restoring known-good state. An earlier revision of the rollback procedure made exactly this mistake."
+    },
+    {
+      "ref": "any branch or tag",
+      "reason": "Mutable. A tag can be moved and a branch advances; neither is a pinned artifact."
+    }
+  ],
+  "current_status": {
+    "qualified_targets": 1,
+    "rollback_available_for_a_future_deployment": true,
+    "rollback_rehearsed": false,
+    "rehearsal_gate": "No rehearsal has been performed. Availability here means a qualified artifact exists and is selectable, NOT that promoting it has been exercised end to end.",
+    "edge_function_coverage": false,
+    "database_coverage": false,
+    "coverage_note": "This registry covers the Vercel web tier only. Edge Functions version independently at Supabase and do not roll back with a web promotion. No applied migration has rollback metadata, so there is no database rollback path at all. A change spanning the web tier and the database is not rollback-safe."
+  }
+}

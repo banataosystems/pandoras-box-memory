@@ -46,6 +46,12 @@ const STAGES = [
     optional: true,
   },
   {
+    name: "rollback",
+    description: "Rollback targets are immutable, verified, capability-complete",
+    command: ["node", ["scripts/check_rollback_targets.mjs", "--self-test"]],
+    optional: true,
+  },
+  {
     name: "protection",
     description: "Required branch-protection contexts can actually report",
     command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],
