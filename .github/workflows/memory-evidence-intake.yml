@@ -1,0 +1,75 @@
+name: Memory evidence intake contract
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'app/api/projectos/memory/evidence-candidates/**'
+      - 'supabase/functions/pandora-projectos-bridge/**'
+      - 'scripts/check_memory_evidence_intake.mjs'
+      - 'scripts/test_memory_evidence_intake_behavior.mjs'
+      - '.github/workflows/memory-evidence-intake.yml'
+  push:
+    branches:
+      - feature/projectos-memory-evidence-intake
+    paths:
+      - 'app/api/projectos/memory/evidence-candidates/**'
+      - 'supabase/functions/pandora-projectos-bridge/**'
+      - 'scripts/check_memory_evidence_intake.mjs'
+      - 'scripts/test_memory_evidence_intake_behavior.mjs'
+      - '.github/workflows/memory-evidence-intake.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+
+      - name: Verify exact source checkout
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Set up Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      # npm ci installs the exact committed lockfile tree and fails if
+      # package.json and package-lock.json have drifted apart, so the audit and
+      # build evidence below is tied to a reproducible dependency set.
+      - name: Verify lockfile is committed
+        run: git ls-files --error-unmatch package-lock.json
+
+      - name: Install exact locked dependencies
+        run: npm ci --no-fund
+
+      - name: Verify governed evidence source contract
+        run: node scripts/check_memory_evidence_intake.mjs
+
+      - name: Exercise evidence intake behavior
+        run: node scripts/test_memory_evidence_intake_behavior.mjs
+
+      - name: Reject literal secrets
+        run: bash scripts/check_no_literal_secrets.sh
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Typecheck web boundary
+        run: npm run typecheck
+
+      - name: Build web boundary
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ivmvufhcsezyhczzondn.supabase.co
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ci_placeholder
+        run: npm run build

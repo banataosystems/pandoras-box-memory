@@ -14,7 +14,7 @@
   "dependencies": {
     "@supabase/ssr": "0.12.3",
     "@supabase/supabase-js": "2.110.9",
-    "next": "15.5.22",
+    "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },
