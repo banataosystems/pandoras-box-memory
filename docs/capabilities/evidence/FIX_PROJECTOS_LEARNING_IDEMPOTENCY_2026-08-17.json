@@ -7,9 +7,9 @@
   "source": {
     "pull_request": 32,
     "branch": "fix/projectos-learning-idempotency-audit",
-    "candidate_head": "594347320e3652dc9fd188ea1846e4642b2ec3ab",
-    "candidate_tree": "744b00dc0a08a2108b9b4f0d1592af60406069db",
-    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+    "candidate_head": "6bc2aadd4dee2699aaf60573c939c14bd513aa99",
+    "candidate_tree": "64664b0cc43bdb7c8d67e21a6b96ae35a0482c8e",
+    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
   },
   "lifecycle": {
     "documented": true,
@@ -20,37 +20,35 @@
     "production_verified": false
   },
   "change_scope": "pandora-projectos-learning Edge Function source and its behavioral test suite. No schema change, no deployment, no production data mutation.",
-  "defect_closed": {
-    "boundary": "an idempotent retry reused the persisted candidate while rebuilding review and digest metadata from the NEW request",
-    "consequence": "candidate A persisted alongside review metadata describing request B, so the review queue entry did not describe the item under review",
-    "principle_applied": "persisted-snapshot reconciliation, as already used by the review-gated evidence-candidate intake"
+  "review_remediation": {
+    "finding": "the changed-content 409 was returned before audit reconciliation",
+    "consequence": "after an earlier audit-write failure, a changed-content retry reconciled review and digest and then returned 409 without ever writing the audit row, stranding persisted candidate/review/digest state permanently without mandatory audit evidence",
+    "fix": "audit reconciliation now runs before the conflict decision, on the same principle already applied to the review item and digest: the audit row is evidence about the persisted candidate, not about the request in flight",
+    "regression_tests_added": 3,
+    "tests_verified_to_fail_under_old_ordering": true
   },
   "behavior_contract": {
     "recovery_source_of_truth": "persisted candidate row, never the retry content",
     "unreadable_persisted_state": "fail closed",
-    "fingerprint_basis": "canonical validated content, not raw request bytes",
     "identical_replay": "idempotent",
     "changed_content_replay": "409 conflict, persisted candidate never overwritten",
-    "reconciliation_precedes_conflict_decision": true,
-    "orphaned_candidate_possible": false,
+    "reconciliation_order": "candidate, review item, digest, audit, THEN conflict decision",
+    "persisted_state_without_audit_evidence_possible": false,
     "canonical_promotion_from_intake": false
   },
   "audit_durability": {
     "classification": "audit_required_fail_closed",
     "supabase_error_checked": true,
-    "success_without_durable_audit": false,
     "audit_lookup_failure": "fail closed",
-    "retry_heals_audit": true,
-    "raw_error_message_logged": false,
-    "contract_document": "docs/architecture/AUDIT_DURABILITY_CONTRACT.md"
+    "audit_failure_on_changed_retry": "surfaces as audit_persistence_failed, not masked behind 409",
+    "retry_heals_audit_exactly_once": true,
+    "raw_error_message_logged": false
   },
   "test_evidence": {
     "suite": "scripts/test_projectos_learning_behavior.mjs",
-    "tests_passed": 18,
-    "tests_total": 18,
+    "tests_passed": 21,
+    "tests_total": 21,
     "bound_to_production_source": true,
-    "regression_test_verified_by_reintroducing_defect": true,
-    "result_when_defect_reintroduced": "17/18 — the changed-content recovery test fails",
     "limitation": "a fake Supabase client is used; PostgREST and Postgres constraint behavior, including the 23505 path, is not exercised against a real database"
   },
   "activation_state": {

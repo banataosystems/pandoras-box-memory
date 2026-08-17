@@ -453,6 +453,77 @@ test("a failed audit lookup fails closed", async () => {
   assert.equal((await body(response)).error, "audit_lookup_failed");
 });
 
+test("changed retry after an audit failure heals audit, then conflicts", async () => {
+  // The exact sequence independent review identified:
+  //   1. first request persists candidate/review/digest, audit write fails -> 500
+  //   2. caller retries with CHANGED content
+  //   3. if the conflict were decided before audit healing, the retry would
+  //      return 409 without ever writing the audit row, leaving persisted state
+  //      permanently without mandatory audit evidence.
+  const store = {};
+  await persistLearningEvent(
+    createAdmin(store, { [`fail${AUDITS}Insert`]: true }),
+    MEMORY_USER,
+    snapshot(),
+  );
+  assert.equal(store[CANDIDATES].length, 1);
+  assert.equal((store[AUDITS] ?? []).length, 0, "precondition: no audit yet");
+
+  const response = await persistLearningEvent(
+    createAdmin(store),
+    MEMORY_USER,
+    changedSnapshot(),
+  );
+
+  assert.equal(response.status, 409, "changed content must still conflict");
+  assert.equal(
+    store[AUDITS].length,
+    1,
+    "audit must be healed even though the submission is rejected",
+  );
+  // The audit row describes what is persisted, not the rejected submission.
+  assert.equal(store[AUDITS][0].after_snapshot.outcomeStatus, snapshot().outcomeStatus);
+  assert.equal(store[AUDITS][0].metadata.project_key, snapshot().projectKey);
+});
+
+test("no persisted candidate can survive without audit evidence", async () => {
+  // Drive several changed-content retries after an audit failure and assert the
+  // invariant directly: a persisted candidate always ends with an audit row.
+  const store = {};
+  await persistLearningEvent(
+    createAdmin(store, { [`fail${AUDITS}Insert`]: true }),
+    MEMORY_USER,
+    snapshot(),
+  );
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await persistLearningEvent(createAdmin(store), MEMORY_USER, changedSnapshot());
+  }
+
+  assert.equal(store[CANDIDATES].length, 1);
+  assert.equal(store[AUDITS].length, 1, "healed exactly once, not duplicated");
+});
+
+test("audit failure on a changed retry still fails closed", async () => {
+  const store = {};
+  await persistLearningEvent(
+    createAdmin(store, { [`fail${AUDITS}Insert`]: true }),
+    MEMORY_USER,
+    snapshot(),
+  );
+
+  // Audit still failing: the changed retry must surface the audit failure
+  // rather than masking it behind a 409.
+  const response = await persistLearningEvent(
+    createAdmin(store, { [`fail${AUDITS}Insert`]: true }),
+    MEMORY_USER,
+    changedSnapshot(),
+  );
+
+  assert.equal(response.status, 500);
+  assert.equal((await body(response)).error, "audit_persistence_failed");
+  assert.equal((store[AUDITS] ?? []).length, 0);
+});
+
 // --- privacy and promotion negatives ---------------------------------------
 
 test("no path writes canonical memory or promotes a candidate", async () => {

@@ -120,6 +120,25 @@
       "rollback_ref": null
     },
     {
+      "evidence_id": "fix-projectos-learning-idempotency-2026-08-17",
+      "path": "docs/capabilities/evidence/FIX_PROJECTOS_LEARNING_IDEMPOTENCY_2026-08-17.json",
+      "observed_at": "2026-08-17T11:00:00Z",
+      "source_commit": "6bc2aadd4dee2699aaf60573c939c14bd513aa99",
+      "source_tree": "64664b0cc43bdb7c8d67e21a6b96ae35a0482c8e",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box-memory#32",
+      "proof_stage": "source_tested",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "b5050fea7104d8f961d5d37e514984a785cf5d7c1f015759c3139ff45088f934",
+      "review_status": "awaiting_independent_review",
+      "deployment_status": "source_only",
+      "production_verified": false,
+      "rollback_ref": null
+    },
+    {
       "evidence_id": "governance-main-proof-enforcement-2026-08-17",
       "path": "docs/capabilities/evidence/GOVERNANCE_MAIN_PROOF_ENFORCEMENT_2026-08-17.json",
       "observed_at": "2026-08-17T11:00:00Z",
