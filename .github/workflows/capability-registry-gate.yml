@@ -1,0 +1,121 @@
+name: Capability Registry Gate
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - "app/**"
+      - "docs/capabilities/**"
+      - "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md"
+      - "lib/**"
+      - "next.config.ts"
+      - "package.json"
+      - "scripts/**"
+      - "supabase/**"
+      - "tsconfig.json"
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/**"
+      - "app/**"
+      - "docs/capabilities/**"
+      - "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md"
+      - "lib/**"
+      - "next.config.ts"
+      - "package.json"
+      - "scripts/**"
+      - "supabase/**"
+      - "tsconfig.json"
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+  BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+
+jobs:
+  validate:
+    name: Validate exact-head evidence registry
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out exact candidate head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.EXPECTED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          if [[ "$actual_head" != "$EXPECTED_HEAD" ]]; then
+            echo "Expected $EXPECTED_HEAD but checked out $actual_head" >&2
+            exit 1
+          fi
+
+      - name: Require registry evidence co-change for tracked source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          comparison_base="$BASE_SHA"
+          if [[ ! "$comparison_base" =~ ^[0-9a-f]{40}$ ]] || \
+             ! git cat-file -e "${comparison_base}^{commit}" 2>/dev/null; then
+            comparison_base="$(git rev-parse HEAD^)"
+          fi
+
+          source_changed=false
+          registry_changed=false
+          while IFS= read -r changed_path; do
+            case "$changed_path" in
+              .github/workflows/*|app/*|docs/capabilities/*|docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md|lib/*|next.config.ts|package.json|scripts/*|supabase/*|tsconfig.json)
+                source_changed=true
+                ;;
+            esac
+            case "$changed_path" in
+              docs/capabilities/PANDORA_CAPABILITY_REGISTRY_V2.json|docs/capabilities/PANDORA_CANONICAL_SOURCE_MANIFEST_DB409325.json|docs/capabilities/evidence/*|docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md)
+                registry_changed=true
+                ;;
+            esac
+          done < <(git diff --name-only "$comparison_base"...HEAD)
+
+          if [[ "$source_changed" == true && "$registry_changed" != true ]]; then
+            echo "Tracked source changed without a registry, manifest, evidence, or roadmap update." >&2
+            exit 1
+          fi
+
+      - name: Validate registry and rejection tests
+        run: >-
+          node scripts/validate_capability_registry.mjs
+          --self-test
+          --attestation "${RUNNER_TEMP}/capability-registry-attestation.json"
+
+      - name: Print content digests
+        shell: bash
+        run: |
+          set -euo pipefail
+          sha256sum \
+            docs/capabilities/PANDORA_CANONICAL_SOURCE_MANIFEST_DB409325.json \
+            docs/capabilities/PANDORA_CAPABILITY_REGISTRY_V2.json \
+            docs/capabilities/PANDORA_CAPABILITY_REGISTRY_V2.md \
+            docs/capabilities/evidence/LIVE_SUPABASE_STATE_2026-08-14.json \
+            docs/capabilities/evidence/LIVE_VERCEL_PROJECTOS_STATE_2026-08-14.json \
+            docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md \
+            "${RUNNER_TEMP}/capability-registry-attestation.json"
+
+      - name: Upload exact-head attestation
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: capability-registry-attestation-${{ env.EXPECTED_HEAD }}
+          path: ${{ runner.temp }}/capability-registry-attestation.json
+          if-no-files-found: error
+          retention-days: 30

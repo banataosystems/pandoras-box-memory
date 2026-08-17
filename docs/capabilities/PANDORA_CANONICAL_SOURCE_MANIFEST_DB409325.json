@@ -1,0 +1,324 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "pandora-canonical-source-db409325",
+  "repository": "banataosystems/pandoras-box-memory",
+  "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+  "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+  "evidence_date": "2026-08-14 Asia/Manila",
+  "file_count": 62,
+  "total_bytes": 237809,
+  "files_array_sha256": "342036ffa57c8148efe7144136afa91892011f8c235023d7a89510aaa6026311",
+  "checksum_contract": "SHA-256 of UTF-8 compact JSON for files, bytewise path order, keys path,sha,size",
+  "files": [
+    {
+      "path": ".github/workflows/security-source-gate.yml",
+      "sha": "d9a3fc3d6b02636108fd2805cbc82bd1d6764b29",
+      "size": 371
+    },
+    {
+      "path": ".github/workflows/web-recovery-build.yml",
+      "sha": "3fafcec1ee0606cee35440c5ea713c5ad6bb1eb9",
+      "size": 899
+    },
+    {
+      "path": "PROJECT_CUSTOM_INSTRUCTION.md",
+      "sha": "a8835c6af12600f417a33e2b3d2ec5eeb6e71262",
+      "size": 7538
+    },
+    {
+      "path": "RECOVERY_STATUS_2026-08-09.md",
+      "sha": "c02122f851a7e2245e5c71778f69065cbe70f05f",
+      "size": 3880
+    },
+    {
+      "path": "app/.well-known/oauth-protected-resource/api/mcp/route.ts",
+      "sha": "1c47ceef07cc86cb73b0669563b47f019263c2a4",
+      "size": 523
+    },
+    {
+      "path": "app/api/mcp/route.ts",
+      "sha": "0b279db89d69213d3169efc328167820680b4715",
+      "size": 2077
+    },
+    {
+      "path": "app/api/projectos/health/route.ts",
+      "sha": "67d9df545b7f9007e624f4b5369d301a25ce8308",
+      "size": 299
+    },
+    {
+      "path": "app/api/projectos/memory/search/route.ts",
+      "sha": "1bfaaf1c864af2f9c391f17598dd79f9bb19794b",
+      "size": 862
+    },
+    {
+      "path": "app/auth/confirm/route.ts",
+      "sha": "1fa672c4f8432a771f4894f2d0ad7a89bcf1c54b",
+      "size": 2065
+    },
+    {
+      "path": "app/auth/login/page.tsx",
+      "sha": "87cba278a99e214ed137ee5a19364c076461827d",
+      "size": 2348
+    },
+    {
+      "path": "app/globals.css",
+      "sha": "e9899b4dc1e2db2dfef5bfdf3b140bd6070b194b",
+      "size": 1188
+    },
+    {
+      "path": "app/layout.tsx",
+      "sha": "fb1dd3e36a2005b3b37d9dc13601fb2fd4e6801c",
+      "size": 360
+    },
+    {
+      "path": "app/oauth/consent/page.tsx",
+      "sha": "a878c4c6a04346f90fc5271521716ef6969ddc8f",
+      "size": 3610
+    },
+    {
+      "path": "app/page.tsx",
+      "sha": "f3dcbab630ce0b2b5b8a936b8d5237880b95acaf",
+      "size": 660
+    },
+    {
+      "path": "docs/adapters/FLUTTERFLOW_GATEWAY_ADAPTER.md",
+      "sha": "d3e94e23ad352601a1d11266dc72b449f52e0dd8",
+      "size": 5335
+    },
+    {
+      "path": "docs/architecture/ALWAYS_ON_MEMORY_ARCHITECTURE.md",
+      "sha": "77e41263c12795230f10e6babdf48b562665a355",
+      "size": 11272
+    },
+    {
+      "path": "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+      "sha": "609e0fe7c9814faa55632fafd99d18c3b0b6cd30",
+      "size": 7929
+    },
+    {
+      "path": "docs/auth/OAUTH_CONSENT_SURFACE.md",
+      "sha": "0c932ff673d54789be0ae85c0dd001fa04f28f3e",
+      "size": 4950
+    },
+    {
+      "path": "docs/project-state/PANDORA_FULL_CAPACITY_MEMORY_CANON_PROOF_2026-08-12.md",
+      "sha": "55a0a8c91ede49caba0fd9ed08ce827574b84022",
+      "size": 3159
+    },
+    {
+      "path": "docs/project-state/PANDORA_FULL_CAPACITY_PLAN_2026-08-12.md",
+      "sha": "acb492e0298c3b48bd719b89c6dc530637a83d67",
+      "size": 7396
+    },
+    {
+      "path": "docs/recovery/AUTH_RECOVERY_2026-08-09.md",
+      "sha": "950211ce13712708634d1cbbd7fcc4a5906d819f",
+      "size": 5293
+    },
+    {
+      "path": "docs/recovery/EXTERNAL_MCP_ACCESS_BLOCKER_2026-08-09.md",
+      "sha": "8505a5965897ece4e5386ffb3ffc30f10dccd3cd",
+      "size": 5372
+    },
+    {
+      "path": "docs/recovery/LIVE_MEMORY_STATE_2026-08-09.md",
+      "sha": "5788138681383419f4cd85e5f8d38bfa6909c975",
+      "size": 8787
+    },
+    {
+      "path": "docs/recovery/LIVE_MIGRATION_INVENTORY_2026-08-09.md",
+      "sha": "e2beeef9e3a5b7f5dc52ed3faea5eff95e4ad907",
+      "size": 4271
+    },
+    {
+      "path": "docs/recovery/LIVE_PARITY_RECONCILIATION_2026-08-10.md",
+      "sha": "b67586804a2debdb984ff635ace7e408c30dda06",
+      "size": 5346
+    },
+    {
+      "path": "docs/recovery/PHASE0_SOURCE_RECOVERY_GATE.md",
+      "sha": "b289b6af72c7bfda95838c4e80e575b9599301bb",
+      "size": 3526
+    },
+    {
+      "path": "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
+      "sha": "f3f9537ed5ec8f250afa77321bf0ae3a52e9c7eb",
+      "size": 1800
+    },
+    {
+      "path": "docs/roadmap/ALWAYS_ON_MEMORY_IMPLEMENTATION_ROADMAP.md",
+      "sha": "b4de602f270a29995a6e804db3737d36c5317497",
+      "size": 8849
+    },
+    {
+      "path": "docs/security/2026-08-09_LEGACY_SECRET_MIGRATION_FINDING.md",
+      "sha": "7ef7395205603c21a75a251aac62ce6a65c54ed5",
+      "size": 3035
+    },
+    {
+      "path": "lib/services/projectos-memory-bridge-client.ts",
+      "sha": "568e0318c991750b5c4483f17da4445062e66f49",
+      "size": 3609
+    },
+    {
+      "path": "lib/supabase/client.ts",
+      "sha": "31993ab199f1868c1b061263284aa0adc4f64215",
+      "size": 615
+    },
+    {
+      "path": "lib/supabase/server.ts",
+      "sha": "976064c2acfd85ef96d51c1be9193712665b909c",
+      "size": 815
+    },
+    {
+      "path": "next-env.d.ts",
+      "sha": "6112bfd06ed9026e0e8fa0d461535174dcbffaf6",
+      "size": 157
+    },
+    {
+      "path": "next.config.ts",
+      "sha": "dcf478452042490bb80ab95e300ce09d99e7b965",
+      "size": 156
+    },
+    {
+      "path": "ops/PRODUCTION_MCP_RECOVERY_2026-08-09.md",
+      "sha": "6f187bcba6110a78f0835b95ec84d83e0126f8d2",
+      "size": 1995
+    },
+    {
+      "path": "ops/projectos-memory-connector-recovery-2026-08-10.md",
+      "sha": "f110969dd0e8c10efd3dee6fc6e4682697cbc060",
+      "size": 5199
+    },
+    {
+      "path": "ops/vercel-rebind-probe-2026-08-09.md",
+      "sha": "f52a3636d154774cd1a7eb554ff763a58a7447b3",
+      "size": 456
+    },
+    {
+      "path": "package.json",
+      "sha": "b5e33602df4a482e73b80a60485d58017f5e9b55",
+      "size": 573
+    },
+    {
+      "path": "recovery/web-overlay/app/auth/confirm/route.ts",
+      "sha": "c821902596f6e3fb80314734dbfbe52f04b7437c",
+      "size": 1690
+    },
+    {
+      "path": "recovery/web-overlay/app/oauth/consent/page.tsx",
+      "sha": "c1bb0b1916ff6c73eed6cd0d7282a5503ce80a04",
+      "size": 6963
+    },
+    {
+      "path": "recovery/web-overlay/components/auth/login-form.tsx",
+      "sha": "c1a672c51e8de63f6508bebbeb96b0aa0021ac8d",
+      "size": 4774
+    },
+    {
+      "path": "scripts/check_no_literal_secrets.sh",
+      "sha": "4d93c14a4dc14f021f0c8a9177968718b9e42244",
+      "size": 1985
+    },
+    {
+      "path": "supabase/functions/pandora-machine-gateway/index.ts",
+      "sha": "b4fa5019859c7cfd3e39ec649d7f6426235dc0d6",
+      "size": 17825
+    },
+    {
+      "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+      "sha": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+      "size": 113
+    },
+    {
+      "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+      "sha": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+      "size": 18758
+    },
+    {
+      "path": "supabase/functions/pandora-projectos-learning/index.ts",
+      "sha": "6a2f9a339db0d860e8212d111505dc464b91427f",
+      "size": 20528
+    },
+    {
+      "path": "supabase/migrations/20260808170034_migrate_pandora_integration_credentials_to_vault.sql",
+      "sha": "689123feac289af062c5d00ecbec780dcdaa7e17",
+      "size": 2008
+    },
+    {
+      "path": "supabase/migrations/20260808181824_add_machine_gateway_authorization_registry.sql",
+      "sha": "af5d1358f5003ce3140d67d35fcb83d3c4fee5cf",
+      "size": 4829
+    },
+    {
+      "path": "supabase/migrations/20260808183717_add_gateway_service_action_registry.sql",
+      "sha": "f2ae2193be0bf4e521c29928421784a00d5c850a",
+      "size": 4549
+    },
+    {
+      "path": "supabase/migrations/20260808190813_add_gateway_workload_oidc.sql",
+      "sha": "aa2754649b270643b0940a1025d8a0fb278f362a",
+      "size": 4582
+    },
+    {
+      "path": "supabase/migrations/20260808220117_record_owner_env_admin_recovery_grant.sql",
+      "sha": "817f879e056c013eecfe16774df1e9e020c855cb",
+      "size": 813
+    },
+    {
+      "path": "supabase/migrations/20260809140538_gateway_auto_enroll_oauth_memory_clients.sql",
+      "sha": "c3750b0e10e39069cddc2f3852d8d3c6a61b7023",
+      "size": 3334
+    },
+    {
+      "path": "supabase/migrations/20260810032703_flutterflow_secure_credential_handoff_v1.sql",
+      "sha": "c2fefee987343fe08c50061b2d9e370ffbc72dfc",
+      "size": 3218
+    },
+    {
+      "path": "supabase/migrations/20260810044812_flutterflow_manual_vault_secret_lookup_v1.sql",
+      "sha": "fc315782386bb91879121387d5ad84ff3e98b544",
+      "size": 1265
+    },
+    {
+      "path": "supabase/migrations/20260810045632_flutterflow_private_yaml_snapshot_cache_v1.sql",
+      "sha": "943103da2f3c017037572f3207f65ef106269076",
+      "size": 1048
+    },
+    {
+      "path": "supabase/migrations/20260810052850_flutterflow_private_snapshot_writer_v1.sql",
+      "sha": "c971b5a5802c9d01fd9452905c4afb25d14785c7",
+      "size": 1679
+    },
+    {
+      "path": "supabase/migrations/20260810055928_flutterflow_private_snapshot_reader_v1.sql",
+      "sha": "7a9d0866de4dfbd689ffbb4da3dd3099dbb5769e",
+      "size": 526
+    },
+    {
+      "path": "supabase/migrations/20260810060747_flutterflow_private_snapshot_files_reader_v1.sql",
+      "sha": "8c20036ed4fa2629f553ece14b99aead70443eb6",
+      "size": 532
+    },
+    {
+      "path": "supabase/migrations/20260810102152_flutterflow_github_oidc_broker.sql",
+      "sha": "ed8e16b324ec15099c276840297928ca278d530e",
+      "size": 4239
+    },
+    {
+      "path": "supabase/migrations/20260810103038_fix_flutterflow_oidc_service_role_gate.sql",
+      "sha": "2121de6402da9300bdd54c9bf549341d929a78bf",
+      "size": 2925
+    },
+    {
+      "path": "supabase/migrations/20260810115547_record_flutterflow_oidc_attempts.sql",
+      "sha": "557c7108ad56d98c38906563677c236e31ee3274",
+      "size": 2409
+    },
+    {
+      "path": "tsconfig.json",
+      "sha": "9b174f8c39c55399d16c216de6f1510078aadf7c",
+      "size": 642
+    }
+  ]
+}

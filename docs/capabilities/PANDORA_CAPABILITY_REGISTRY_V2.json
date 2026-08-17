@@ -1,0 +1,3537 @@
+{
+  "schema_version": "2.0.0",
+  "registry_id": "pandora-evidence-first-reconciliation-foundation-v2",
+  "scope": "Phase 1 registry foundation for immutable baseline and dated provider observations; not Phase 1 completion, current-tree completeness, original archive recovery, or parity completion.",
+  "authority": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "roadmap_issue": 22,
+    "duplicate_issue": 23,
+    "roadmap_source_path": "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md",
+    "roadmap_source_sha256": "35d6e6ca3e5fc0d367b9eca4c5aa25f518af0b771c77dfd48460516d9b591b07",
+    "baseline_commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+    "baseline_tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+    "baseline_manifest_path": "docs/capabilities/PANDORA_CANONICAL_SOURCE_MANIFEST_DB409325.json",
+    "baseline_manifest_sha256": "93bdbd3847c2f51bf53000529d9265ad384b7c65aaff58eb8fdb8b8e7c61f546"
+  },
+  "allowed_planes": [
+    "original",
+    "canonical",
+    "live"
+  ],
+  "allowed_lifecycle_states": [
+    "baseline",
+    "current-as-of-observation",
+    "historical",
+    "blocked"
+  ],
+  "allowed_fact_statuses": [
+    "recorded",
+    "verified",
+    "contradicted",
+    "blocked"
+  ],
+  "allowed_reconciliation_statuses": [
+    "not-compared",
+    "exact",
+    "different",
+    "blocked-pending-proof"
+  ],
+  "evidence": [
+    {
+      "id": "git-baseline-file-001",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": ".github/workflows/security-source-gate.yml",
+      "blob_sha": "d9a3fc3d6b02636108fd2805cbc82bd1d6764b29",
+      "byte_size": 371
+    },
+    {
+      "id": "git-baseline-file-002",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": ".github/workflows/web-recovery-build.yml",
+      "blob_sha": "3fafcec1ee0606cee35440c5ea713c5ad6bb1eb9",
+      "byte_size": 899
+    },
+    {
+      "id": "git-baseline-file-003",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "PROJECT_CUSTOM_INSTRUCTION.md",
+      "blob_sha": "a8835c6af12600f417a33e2b3d2ec5eeb6e71262",
+      "byte_size": 7538
+    },
+    {
+      "id": "git-baseline-file-004",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "RECOVERY_STATUS_2026-08-09.md",
+      "blob_sha": "c02122f851a7e2245e5c71778f69065cbe70f05f",
+      "byte_size": 3880
+    },
+    {
+      "id": "git-baseline-file-005",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/.well-known/oauth-protected-resource/api/mcp/route.ts",
+      "blob_sha": "1c47ceef07cc86cb73b0669563b47f019263c2a4",
+      "byte_size": 523
+    },
+    {
+      "id": "git-baseline-file-006",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/api/mcp/route.ts",
+      "blob_sha": "0b279db89d69213d3169efc328167820680b4715",
+      "byte_size": 2077
+    },
+    {
+      "id": "git-baseline-file-007",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/api/projectos/health/route.ts",
+      "blob_sha": "67d9df545b7f9007e624f4b5369d301a25ce8308",
+      "byte_size": 299
+    },
+    {
+      "id": "git-baseline-file-008",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/api/projectos/memory/search/route.ts",
+      "blob_sha": "1bfaaf1c864af2f9c391f17598dd79f9bb19794b",
+      "byte_size": 862
+    },
+    {
+      "id": "git-baseline-file-009",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/auth/confirm/route.ts",
+      "blob_sha": "1fa672c4f8432a771f4894f2d0ad7a89bcf1c54b",
+      "byte_size": 2065
+    },
+    {
+      "id": "git-baseline-file-010",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/auth/login/page.tsx",
+      "blob_sha": "87cba278a99e214ed137ee5a19364c076461827d",
+      "byte_size": 2348
+    },
+    {
+      "id": "git-baseline-file-011",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/globals.css",
+      "blob_sha": "e9899b4dc1e2db2dfef5bfdf3b140bd6070b194b",
+      "byte_size": 1188
+    },
+    {
+      "id": "git-baseline-file-012",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/layout.tsx",
+      "blob_sha": "fb1dd3e36a2005b3b37d9dc13601fb2fd4e6801c",
+      "byte_size": 360
+    },
+    {
+      "id": "git-baseline-file-013",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/oauth/consent/page.tsx",
+      "blob_sha": "a878c4c6a04346f90fc5271521716ef6969ddc8f",
+      "byte_size": 3610
+    },
+    {
+      "id": "git-baseline-file-014",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "app/page.tsx",
+      "blob_sha": "f3dcbab630ce0b2b5b8a936b8d5237880b95acaf",
+      "byte_size": 660
+    },
+    {
+      "id": "git-baseline-file-015",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/adapters/FLUTTERFLOW_GATEWAY_ADAPTER.md",
+      "blob_sha": "d3e94e23ad352601a1d11266dc72b449f52e0dd8",
+      "byte_size": 5335
+    },
+    {
+      "id": "git-baseline-file-016",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/architecture/ALWAYS_ON_MEMORY_ARCHITECTURE.md",
+      "blob_sha": "77e41263c12795230f10e6babdf48b562665a355",
+      "byte_size": 11272
+    },
+    {
+      "id": "git-baseline-file-017",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+      "blob_sha": "609e0fe7c9814faa55632fafd99d18c3b0b6cd30",
+      "byte_size": 7929
+    },
+    {
+      "id": "git-baseline-file-018",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/auth/OAUTH_CONSENT_SURFACE.md",
+      "blob_sha": "0c932ff673d54789be0ae85c0dd001fa04f28f3e",
+      "byte_size": 4950
+    },
+    {
+      "id": "git-baseline-file-019",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/project-state/PANDORA_FULL_CAPACITY_MEMORY_CANON_PROOF_2026-08-12.md",
+      "blob_sha": "55a0a8c91ede49caba0fd9ed08ce827574b84022",
+      "byte_size": 3159
+    },
+    {
+      "id": "git-baseline-file-020",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/project-state/PANDORA_FULL_CAPACITY_PLAN_2026-08-12.md",
+      "blob_sha": "acb492e0298c3b48bd719b89c6dc530637a83d67",
+      "byte_size": 7396
+    },
+    {
+      "id": "git-baseline-file-021",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/AUTH_RECOVERY_2026-08-09.md",
+      "blob_sha": "950211ce13712708634d1cbbd7fcc4a5906d819f",
+      "byte_size": 5293
+    },
+    {
+      "id": "git-baseline-file-022",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/EXTERNAL_MCP_ACCESS_BLOCKER_2026-08-09.md",
+      "blob_sha": "8505a5965897ece4e5386ffb3ffc30f10dccd3cd",
+      "byte_size": 5372
+    },
+    {
+      "id": "git-baseline-file-023",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/LIVE_MEMORY_STATE_2026-08-09.md",
+      "blob_sha": "5788138681383419f4cd85e5f8d38bfa6909c975",
+      "byte_size": 8787
+    },
+    {
+      "id": "git-baseline-file-024",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/LIVE_MIGRATION_INVENTORY_2026-08-09.md",
+      "blob_sha": "e2beeef9e3a5b7f5dc52ed3faea5eff95e4ad907",
+      "byte_size": 4271
+    },
+    {
+      "id": "git-baseline-file-025",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/LIVE_PARITY_RECONCILIATION_2026-08-10.md",
+      "blob_sha": "b67586804a2debdb984ff635ace7e408c30dda06",
+      "byte_size": 5346
+    },
+    {
+      "id": "git-baseline-file-026",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/PHASE0_SOURCE_RECOVERY_GATE.md",
+      "blob_sha": "b289b6af72c7bfda95838c4e80e575b9599301bb",
+      "byte_size": 3526
+    },
+    {
+      "id": "git-baseline-file-027",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
+      "blob_sha": "f3f9537ed5ec8f250afa77321bf0ae3a52e9c7eb",
+      "byte_size": 1800
+    },
+    {
+      "id": "git-baseline-file-028",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/roadmap/ALWAYS_ON_MEMORY_IMPLEMENTATION_ROADMAP.md",
+      "blob_sha": "b4de602f270a29995a6e804db3737d36c5317497",
+      "byte_size": 8849
+    },
+    {
+      "id": "git-baseline-file-029",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "docs/security/2026-08-09_LEGACY_SECRET_MIGRATION_FINDING.md",
+      "blob_sha": "7ef7395205603c21a75a251aac62ce6a65c54ed5",
+      "byte_size": 3035
+    },
+    {
+      "id": "git-baseline-file-030",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "lib/services/projectos-memory-bridge-client.ts",
+      "blob_sha": "568e0318c991750b5c4483f17da4445062e66f49",
+      "byte_size": 3609
+    },
+    {
+      "id": "git-baseline-file-031",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "lib/supabase/client.ts",
+      "blob_sha": "31993ab199f1868c1b061263284aa0adc4f64215",
+      "byte_size": 615
+    },
+    {
+      "id": "git-baseline-file-032",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "lib/supabase/server.ts",
+      "blob_sha": "976064c2acfd85ef96d51c1be9193712665b909c",
+      "byte_size": 815
+    },
+    {
+      "id": "git-baseline-file-033",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "next-env.d.ts",
+      "blob_sha": "6112bfd06ed9026e0e8fa0d461535174dcbffaf6",
+      "byte_size": 157
+    },
+    {
+      "id": "git-baseline-file-034",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "next.config.ts",
+      "blob_sha": "dcf478452042490bb80ab95e300ce09d99e7b965",
+      "byte_size": 156
+    },
+    {
+      "id": "git-baseline-file-035",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "ops/PRODUCTION_MCP_RECOVERY_2026-08-09.md",
+      "blob_sha": "6f187bcba6110a78f0835b95ec84d83e0126f8d2",
+      "byte_size": 1995
+    },
+    {
+      "id": "git-baseline-file-036",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "ops/projectos-memory-connector-recovery-2026-08-10.md",
+      "blob_sha": "f110969dd0e8c10efd3dee6fc6e4682697cbc060",
+      "byte_size": 5199
+    },
+    {
+      "id": "git-baseline-file-037",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "ops/vercel-rebind-probe-2026-08-09.md",
+      "blob_sha": "f52a3636d154774cd1a7eb554ff763a58a7447b3",
+      "byte_size": 456
+    },
+    {
+      "id": "git-baseline-file-038",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "package.json",
+      "blob_sha": "b5e33602df4a482e73b80a60485d58017f5e9b55",
+      "byte_size": 573
+    },
+    {
+      "id": "git-baseline-file-039",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "recovery/web-overlay/app/auth/confirm/route.ts",
+      "blob_sha": "c821902596f6e3fb80314734dbfbe52f04b7437c",
+      "byte_size": 1690
+    },
+    {
+      "id": "git-baseline-file-040",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "recovery/web-overlay/app/oauth/consent/page.tsx",
+      "blob_sha": "c1bb0b1916ff6c73eed6cd0d7282a5503ce80a04",
+      "byte_size": 6963
+    },
+    {
+      "id": "git-baseline-file-041",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "recovery/web-overlay/components/auth/login-form.tsx",
+      "blob_sha": "c1a672c51e8de63f6508bebbeb96b0aa0021ac8d",
+      "byte_size": 4774
+    },
+    {
+      "id": "git-baseline-file-042",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "scripts/check_no_literal_secrets.sh",
+      "blob_sha": "4d93c14a4dc14f021f0c8a9177968718b9e42244",
+      "byte_size": 1985
+    },
+    {
+      "id": "git-baseline-file-043",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/functions/pandora-machine-gateway/index.ts",
+      "blob_sha": "b4fa5019859c7cfd3e39ec649d7f6426235dc0d6",
+      "byte_size": 17825
+    },
+    {
+      "id": "git-baseline-file-044",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+      "blob_sha": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+      "byte_size": 113
+    },
+    {
+      "id": "git-baseline-file-045",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+      "blob_sha": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+      "byte_size": 18758
+    },
+    {
+      "id": "git-baseline-file-046",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/functions/pandora-projectos-learning/index.ts",
+      "blob_sha": "6a2f9a339db0d860e8212d111505dc464b91427f",
+      "byte_size": 20528
+    },
+    {
+      "id": "git-baseline-file-047",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260808170034_migrate_pandora_integration_credentials_to_vault.sql",
+      "blob_sha": "689123feac289af062c5d00ecbec780dcdaa7e17",
+      "byte_size": 2008
+    },
+    {
+      "id": "git-baseline-file-048",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260808181824_add_machine_gateway_authorization_registry.sql",
+      "blob_sha": "af5d1358f5003ce3140d67d35fcb83d3c4fee5cf",
+      "byte_size": 4829
+    },
+    {
+      "id": "git-baseline-file-049",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260808183717_add_gateway_service_action_registry.sql",
+      "blob_sha": "f2ae2193be0bf4e521c29928421784a00d5c850a",
+      "byte_size": 4549
+    },
+    {
+      "id": "git-baseline-file-050",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260808190813_add_gateway_workload_oidc.sql",
+      "blob_sha": "aa2754649b270643b0940a1025d8a0fb278f362a",
+      "byte_size": 4582
+    },
+    {
+      "id": "git-baseline-file-051",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260808220117_record_owner_env_admin_recovery_grant.sql",
+      "blob_sha": "817f879e056c013eecfe16774df1e9e020c855cb",
+      "byte_size": 813
+    },
+    {
+      "id": "git-baseline-file-052",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260809140538_gateway_auto_enroll_oauth_memory_clients.sql",
+      "blob_sha": "c3750b0e10e39069cddc2f3852d8d3c6a61b7023",
+      "byte_size": 3334
+    },
+    {
+      "id": "git-baseline-file-053",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810032703_flutterflow_secure_credential_handoff_v1.sql",
+      "blob_sha": "c2fefee987343fe08c50061b2d9e370ffbc72dfc",
+      "byte_size": 3218
+    },
+    {
+      "id": "git-baseline-file-054",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810044812_flutterflow_manual_vault_secret_lookup_v1.sql",
+      "blob_sha": "fc315782386bb91879121387d5ad84ff3e98b544",
+      "byte_size": 1265
+    },
+    {
+      "id": "git-baseline-file-055",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810045632_flutterflow_private_yaml_snapshot_cache_v1.sql",
+      "blob_sha": "943103da2f3c017037572f3207f65ef106269076",
+      "byte_size": 1048
+    },
+    {
+      "id": "git-baseline-file-056",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810052850_flutterflow_private_snapshot_writer_v1.sql",
+      "blob_sha": "c971b5a5802c9d01fd9452905c4afb25d14785c7",
+      "byte_size": 1679
+    },
+    {
+      "id": "git-baseline-file-057",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810055928_flutterflow_private_snapshot_reader_v1.sql",
+      "blob_sha": "7a9d0866de4dfbd689ffbb4da3dd3099dbb5769e",
+      "byte_size": 526
+    },
+    {
+      "id": "git-baseline-file-058",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810060747_flutterflow_private_snapshot_files_reader_v1.sql",
+      "blob_sha": "8c20036ed4fa2629f553ece14b99aead70443eb6",
+      "byte_size": 532
+    },
+    {
+      "id": "git-baseline-file-059",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810102152_flutterflow_github_oidc_broker.sql",
+      "blob_sha": "ed8e16b324ec15099c276840297928ca278d530e",
+      "byte_size": 4239
+    },
+    {
+      "id": "git-baseline-file-060",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810103038_fix_flutterflow_oidc_service_role_gate.sql",
+      "blob_sha": "2121de6402da9300bdd54c9bf549341d929a78bf",
+      "byte_size": 2925
+    },
+    {
+      "id": "git-baseline-file-061",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "supabase/migrations/20260810115547_record_flutterflow_oidc_attempts.sql",
+      "blob_sha": "557c7108ad56d98c38906563677c236e31ee3274",
+      "byte_size": 2409
+    },
+    {
+      "id": "git-baseline-file-062",
+      "kind": "git-object",
+      "repository": "banataosystems/pandoras-box-memory",
+      "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+      "path": "tsconfig.json",
+      "blob_sha": "9b174f8c39c55399d16c216de6f1510078aadf7c",
+      "byte_size": 642
+    },
+    {
+      "id": "github-issue-22-roadmap",
+      "kind": "github-issue",
+      "repository": "banataosystems/pandoras-box-memory",
+      "issue_number": 22,
+      "body_sha256": "6edfccb01d9b0a386906383b2c954471544f86ed15c5338005edb8f569048548",
+      "state": "open"
+    },
+    {
+      "id": "github-comment-5284217273-delivery-envelope",
+      "kind": "github-issue-comment",
+      "repository": "banataosystems/pandoras-box-memory",
+      "issue_number": 22,
+      "comment_id": 5284217273,
+      "body_sha256": "3afe307454316ef83f09cf9b72c11e875c59222b9c614bc0cb4861fb08220474"
+    },
+    {
+      "id": "github-comment-5284323907-provider-correction",
+      "kind": "github-issue-comment",
+      "repository": "banataosystems/pandoras-box-memory",
+      "issue_number": 22,
+      "comment_id": 5284323907,
+      "body_sha256": "fd58431c6b454220cd6fe9a0ea2f3ef07c787d00385ad03d9a19c53ac48dab71"
+    },
+    {
+      "id": "provider-snapshot-supabase-20260814",
+      "kind": "provider-snapshot",
+      "provider": "Supabase",
+      "project_resource": "ivmvufhcsezyhczzondn",
+      "environment": "production",
+      "immutable_resource_versions": [
+        "pandora-projectos-bridge@13",
+        "pandora-projectos-learning@1",
+        "pandora-machine-gateway@3",
+        "migration-ledger@20260813114649"
+      ],
+      "observation_timestamp": "2026-08-13T17:40:23Z",
+      "request_query_fingerprint_sha256": "9822aebfe15eb1264f47b3c9a2903f8b631c960edd84ad2a2ab2acd8e4d54083",
+      "canonicalized_result_sha256": "67236aeb69b7544474779baf59eeb33470f7529ab7536c5fa0153a164f9f56ac",
+      "artifact_path": "docs/capabilities/evidence/LIVE_SUPABASE_STATE_2026-08-14.json",
+      "artifact_sha256": "e1f966b4e2716759fa58603f5cbac084615a77c8c98d47a0145812373e36af0d"
+    },
+    {
+      "id": "provider-snapshot-vercel-20260814",
+      "kind": "provider-snapshot",
+      "provider": "Vercel",
+      "project_resource": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4+dpl_9EkwxicRPzigkvUis5m1qk644CrG",
+      "environment": "production",
+      "immutable_resource_versions": [
+        "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+        "dpl_9EkwxicRPzigkvUis5m1qk644CrG"
+      ],
+      "observation_timestamp": "2026-08-13T17:39:20Z",
+      "request_query_fingerprint_sha256": "660cca95829ce6771173b9ac2866e4eb6223a6728819f98f9b23ae88ac6bc8a9",
+      "canonicalized_result_sha256": "8a0537af07abc33058945352492452069c78e7b5c8e35900ff7d6126402e168c",
+      "artifact_path": "docs/capabilities/evidence/LIVE_VERCEL_PROJECTOS_STATE_2026-08-14.json",
+      "artifact_sha256": "363d590efbbf30448e30a5d3af6a52d2e4ed967d47b9e88ddcd5d1dfdf5b2d35"
+    }
+  ],
+  "entries": [
+    {
+      "id": "original-archive-aggregate",
+      "plane": "original",
+      "kind": "archive-aggregate",
+      "lifecycle_state": "blocked",
+      "identity": {
+        "aliases": [
+          "Memory-main (4).zip",
+          "Memory-main (4)(2).zip"
+        ],
+        "alias_drift_resolved": false
+      },
+      "facts": [
+        {
+          "name": "recorded_regular_file_count",
+          "value": 782,
+          "status": "recorded",
+          "evidence_ids": [
+            "git-baseline-file-027",
+            "git-baseline-file-004",
+            "github-issue-22-roadmap",
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Aggregate value only; no original per-file path inventory is available."
+          ]
+        },
+        {
+          "name": "recorded_archive_byte_size",
+          "value": 1085918,
+          "status": "recorded",
+          "evidence_ids": [
+            "git-baseline-file-027",
+            "git-baseline-file-004",
+            "github-issue-22-roadmap",
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Recorded value cannot be recomputed because archive bytes are unavailable."
+          ]
+        },
+        {
+          "name": "recorded_zip_sha256",
+          "value": "b0cfc83e04798887d9e889f45a1b9c8cf0e42cc51ce7f46fb3923b3a22434f2b",
+          "status": "recorded",
+          "evidence_ids": [
+            "git-baseline-file-027",
+            "git-baseline-file-004",
+            "github-issue-22-roadmap",
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": null,
+          "limitations": [
+            "recomputed=false"
+          ]
+        },
+        {
+          "name": "recorded_capsule_sha256",
+          "value": "458e7fa22541f103d6ed22198418d38928bba9c43006136c70534f0afdefbb13",
+          "status": "recorded",
+          "evidence_ids": [
+            "git-baseline-file-027",
+            "git-baseline-file-004",
+            "github-issue-22-roadmap",
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Recomputation algorithm and per-file manifest are unavailable."
+          ]
+        },
+        {
+          "name": "recorded_historical_commit",
+          "value": "7d4ec6cb30edb922024cf05f043807759d1fded7",
+          "status": "recorded",
+          "evidence_ids": [
+            "git-baseline-file-027",
+            "git-baseline-file-004",
+            "github-issue-22-roadmap",
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Commit object and parent history are not independently verified in this evidence set."
+          ]
+        },
+        {
+          "name": "archive_bytes_available",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": "2026-08-14T00:00:00+08:00",
+          "limitations": [
+            "Availability is scoped to the current governed workspace and connected evidence surfaces."
+          ]
+        },
+        {
+          "name": "deterministic_per_file_manifest_available",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "github-comment-5284217273-delivery-envelope"
+          ],
+          "as_of": "2026-08-14T00:00:00+08:00",
+          "limitations": [
+            "No original file-level mapping or coverage claim is permitted."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Recover the exact archive bytes or deterministic per-file path/size/SHA manifest, resolve alias drift, and recompute every anchor before file-level reconciliation."
+    },
+    {
+      "id": "original-capability-families-aggregate",
+      "plane": "original",
+      "kind": "archive-aggregate",
+      "lifecycle_state": "blocked",
+      "identity": {
+        "aggregate": "capability-families"
+      },
+      "facts": [
+        {
+          "name": "recorded_capability_families",
+          "value": [
+            "adaptive memory",
+            "autopilot/distillation",
+            "compaction/scoring",
+            "candidate review",
+            "persistence/readback/retrieval",
+            "operator/admin consoles",
+            "operating brain",
+            "project context engine",
+            "shadow context packs",
+            "preflight",
+            "promotion requests/execution/rollback",
+            "operator actions",
+            "MCP/OAuth",
+            "environment governance",
+            "tests",
+            "docs",
+            "skills"
+          ],
+          "status": "recorded",
+          "evidence_ids": [
+            "github-issue-22-roadmap"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Family labels are roadmap aggregates, not independently inventoried original capabilities.",
+            "No original file is assigned to a family."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Map original files to these aggregate labels only after per-file evidence is recovered."
+    },
+    {
+      "id": "original-test-suite-aggregate",
+      "plane": "original",
+      "kind": "archive-aggregate",
+      "lifecycle_state": "blocked",
+      "identity": {
+        "aggregate": "test-suite"
+      },
+      "facts": [
+        {
+          "name": "recorded_test_suite_label",
+          "value": {
+            "recorded_count": 113,
+            "count_unit": "roadmap suite label; semantics unverified"
+          },
+          "status": "recorded",
+          "evidence_ids": [
+            "github-issue-22-roadmap"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Exact test paths, bytes, count semantics, results, and present-day relevance are unavailable.",
+            "No test enumeration or execution claim is made."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Recover the original test manifest/source before adapting or running any test."
+    },
+    {
+      "id": "canonical-source-file-001",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": ".github/workflows/security-source-gate.yml",
+        "blob_sha": "d9a3fc3d6b02636108fd2805cbc82bd1d6764b29",
+        "byte_size": 371
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-001"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-002",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": ".github/workflows/web-recovery-build.yml",
+        "blob_sha": "3fafcec1ee0606cee35440c5ea713c5ad6bb1eb9",
+        "byte_size": 899
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-002"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-003",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "PROJECT_CUSTOM_INSTRUCTION.md",
+        "blob_sha": "a8835c6af12600f417a33e2b3d2ec5eeb6e71262",
+        "byte_size": 7538
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-003"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-004",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "RECOVERY_STATUS_2026-08-09.md",
+        "blob_sha": "c02122f851a7e2245e5c71778f69065cbe70f05f",
+        "byte_size": 3880
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-004"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-005",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/.well-known/oauth-protected-resource/api/mcp/route.ts",
+        "blob_sha": "1c47ceef07cc86cb73b0669563b47f019263c2a4",
+        "byte_size": 523
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-005"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-006",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/api/mcp/route.ts",
+        "blob_sha": "0b279db89d69213d3169efc328167820680b4715",
+        "byte_size": 2077
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-006"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-007",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/api/projectos/health/route.ts",
+        "blob_sha": "67d9df545b7f9007e624f4b5369d301a25ce8308",
+        "byte_size": 299
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-007"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-008",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/api/projectos/memory/search/route.ts",
+        "blob_sha": "1bfaaf1c864af2f9c391f17598dd79f9bb19794b",
+        "byte_size": 862
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-008"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-009",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/auth/confirm/route.ts",
+        "blob_sha": "1fa672c4f8432a771f4894f2d0ad7a89bcf1c54b",
+        "byte_size": 2065
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-009"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-010",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/auth/login/page.tsx",
+        "blob_sha": "87cba278a99e214ed137ee5a19364c076461827d",
+        "byte_size": 2348
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-010"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-011",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/globals.css",
+        "blob_sha": "e9899b4dc1e2db2dfef5bfdf3b140bd6070b194b",
+        "byte_size": 1188
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-011"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-012",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/layout.tsx",
+        "blob_sha": "fb1dd3e36a2005b3b37d9dc13601fb2fd4e6801c",
+        "byte_size": 360
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-012"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-013",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/oauth/consent/page.tsx",
+        "blob_sha": "a878c4c6a04346f90fc5271521716ef6969ddc8f",
+        "byte_size": 3610
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-013"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-014",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "app/page.tsx",
+        "blob_sha": "f3dcbab630ce0b2b5b8a936b8d5237880b95acaf",
+        "byte_size": 660
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-014"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-015",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/adapters/FLUTTERFLOW_GATEWAY_ADAPTER.md",
+        "blob_sha": "d3e94e23ad352601a1d11266dc72b449f52e0dd8",
+        "byte_size": 5335
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-015"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-016",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/architecture/ALWAYS_ON_MEMORY_ARCHITECTURE.md",
+        "blob_sha": "77e41263c12795230f10e6babdf48b562665a355",
+        "byte_size": 11272
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-016"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-017",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+        "blob_sha": "609e0fe7c9814faa55632fafd99d18c3b0b6cd30",
+        "byte_size": 7929
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-017"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-018",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/auth/OAUTH_CONSENT_SURFACE.md",
+        "blob_sha": "0c932ff673d54789be0ae85c0dd001fa04f28f3e",
+        "byte_size": 4950
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-018"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-019",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/project-state/PANDORA_FULL_CAPACITY_MEMORY_CANON_PROOF_2026-08-12.md",
+        "blob_sha": "55a0a8c91ede49caba0fd9ed08ce827574b84022",
+        "byte_size": 3159
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-019"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-020",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/project-state/PANDORA_FULL_CAPACITY_PLAN_2026-08-12.md",
+        "blob_sha": "acb492e0298c3b48bd719b89c6dc530637a83d67",
+        "byte_size": 7396
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-020"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-021",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/AUTH_RECOVERY_2026-08-09.md",
+        "blob_sha": "950211ce13712708634d1cbbd7fcc4a5906d819f",
+        "byte_size": 5293
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-021"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-022",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/EXTERNAL_MCP_ACCESS_BLOCKER_2026-08-09.md",
+        "blob_sha": "8505a5965897ece4e5386ffb3ffc30f10dccd3cd",
+        "byte_size": 5372
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-022"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-023",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/LIVE_MEMORY_STATE_2026-08-09.md",
+        "blob_sha": "5788138681383419f4cd85e5f8d38bfa6909c975",
+        "byte_size": 8787
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-023"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-024",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/LIVE_MIGRATION_INVENTORY_2026-08-09.md",
+        "blob_sha": "e2beeef9e3a5b7f5dc52ed3faea5eff95e4ad907",
+        "byte_size": 4271
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-024"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-025",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/LIVE_PARITY_RECONCILIATION_2026-08-10.md",
+        "blob_sha": "b67586804a2debdb984ff635ace7e408c30dda06",
+        "byte_size": 5346
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-025"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-026",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/PHASE0_SOURCE_RECOVERY_GATE.md",
+        "blob_sha": "b289b6af72c7bfda95838c4e80e575b9599301bb",
+        "byte_size": 3526
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-026"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-027",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
+        "blob_sha": "f3f9537ed5ec8f250afa77321bf0ae3a52e9c7eb",
+        "byte_size": 1800
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-027"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-028",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/roadmap/ALWAYS_ON_MEMORY_IMPLEMENTATION_ROADMAP.md",
+        "blob_sha": "b4de602f270a29995a6e804db3737d36c5317497",
+        "byte_size": 8849
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-028"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-029",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "docs/security/2026-08-09_LEGACY_SECRET_MIGRATION_FINDING.md",
+        "blob_sha": "7ef7395205603c21a75a251aac62ce6a65c54ed5",
+        "byte_size": 3035
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-029"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-030",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "lib/services/projectos-memory-bridge-client.ts",
+        "blob_sha": "568e0318c991750b5c4483f17da4445062e66f49",
+        "byte_size": 3609
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-030"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-031",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "lib/supabase/client.ts",
+        "blob_sha": "31993ab199f1868c1b061263284aa0adc4f64215",
+        "byte_size": 615
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-031"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-032",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "lib/supabase/server.ts",
+        "blob_sha": "976064c2acfd85ef96d51c1be9193712665b909c",
+        "byte_size": 815
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-032"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-033",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "next-env.d.ts",
+        "blob_sha": "6112bfd06ed9026e0e8fa0d461535174dcbffaf6",
+        "byte_size": 157
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-033"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-034",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "next.config.ts",
+        "blob_sha": "dcf478452042490bb80ab95e300ce09d99e7b965",
+        "byte_size": 156
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-034"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-035",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "ops/PRODUCTION_MCP_RECOVERY_2026-08-09.md",
+        "blob_sha": "6f187bcba6110a78f0835b95ec84d83e0126f8d2",
+        "byte_size": 1995
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-035"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-036",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "ops/projectos-memory-connector-recovery-2026-08-10.md",
+        "blob_sha": "f110969dd0e8c10efd3dee6fc6e4682697cbc060",
+        "byte_size": 5199
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-036"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-037",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "ops/vercel-rebind-probe-2026-08-09.md",
+        "blob_sha": "f52a3636d154774cd1a7eb554ff763a58a7447b3",
+        "byte_size": 456
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-037"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-038",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "package.json",
+        "blob_sha": "b5e33602df4a482e73b80a60485d58017f5e9b55",
+        "byte_size": 573
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-038"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-039",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "recovery/web-overlay/app/auth/confirm/route.ts",
+        "blob_sha": "c821902596f6e3fb80314734dbfbe52f04b7437c",
+        "byte_size": 1690
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-039"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-040",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "recovery/web-overlay/app/oauth/consent/page.tsx",
+        "blob_sha": "c1bb0b1916ff6c73eed6cd0d7282a5503ce80a04",
+        "byte_size": 6963
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-040"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-041",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "recovery/web-overlay/components/auth/login-form.tsx",
+        "blob_sha": "c1a672c51e8de63f6508bebbeb96b0aa0021ac8d",
+        "byte_size": 4774
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-041"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-042",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "scripts/check_no_literal_secrets.sh",
+        "blob_sha": "4d93c14a4dc14f021f0c8a9177968718b9e42244",
+        "byte_size": 1985
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-042"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-043",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/functions/pandora-machine-gateway/index.ts",
+        "blob_sha": "b4fa5019859c7cfd3e39ec649d7f6426235dc0d6",
+        "byte_size": 17825
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-043"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-044",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+        "blob_sha": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+        "byte_size": 113
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-044"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-045",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+        "blob_sha": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+        "byte_size": 18758
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-045"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-046",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/functions/pandora-projectos-learning/index.ts",
+        "blob_sha": "6a2f9a339db0d860e8212d111505dc464b91427f",
+        "byte_size": 20528
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-046"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-047",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260808170034_migrate_pandora_integration_credentials_to_vault.sql",
+        "blob_sha": "689123feac289af062c5d00ecbec780dcdaa7e17",
+        "byte_size": 2008
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-047"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-048",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260808181824_add_machine_gateway_authorization_registry.sql",
+        "blob_sha": "af5d1358f5003ce3140d67d35fcb83d3c4fee5cf",
+        "byte_size": 4829
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-048"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-049",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260808183717_add_gateway_service_action_registry.sql",
+        "blob_sha": "f2ae2193be0bf4e521c29928421784a00d5c850a",
+        "byte_size": 4549
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-049"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-050",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260808190813_add_gateway_workload_oidc.sql",
+        "blob_sha": "aa2754649b270643b0940a1025d8a0fb278f362a",
+        "byte_size": 4582
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-050"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-051",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260808220117_record_owner_env_admin_recovery_grant.sql",
+        "blob_sha": "817f879e056c013eecfe16774df1e9e020c855cb",
+        "byte_size": 813
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-051"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-052",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260809140538_gateway_auto_enroll_oauth_memory_clients.sql",
+        "blob_sha": "c3750b0e10e39069cddc2f3852d8d3c6a61b7023",
+        "byte_size": 3334
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-052"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-053",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810032703_flutterflow_secure_credential_handoff_v1.sql",
+        "blob_sha": "c2fefee987343fe08c50061b2d9e370ffbc72dfc",
+        "byte_size": 3218
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-053"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-054",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810044812_flutterflow_manual_vault_secret_lookup_v1.sql",
+        "blob_sha": "fc315782386bb91879121387d5ad84ff3e98b544",
+        "byte_size": 1265
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-054"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-055",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810045632_flutterflow_private_yaml_snapshot_cache_v1.sql",
+        "blob_sha": "943103da2f3c017037572f3207f65ef106269076",
+        "byte_size": 1048
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-055"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-056",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810052850_flutterflow_private_snapshot_writer_v1.sql",
+        "blob_sha": "c971b5a5802c9d01fd9452905c4afb25d14785c7",
+        "byte_size": 1679
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-056"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-057",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810055928_flutterflow_private_snapshot_reader_v1.sql",
+        "blob_sha": "7a9d0866de4dfbd689ffbb4da3dd3099dbb5769e",
+        "byte_size": 526
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-057"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-058",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810060747_flutterflow_private_snapshot_files_reader_v1.sql",
+        "blob_sha": "8c20036ed4fa2629f553ece14b99aead70443eb6",
+        "byte_size": 532
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-058"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-059",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810102152_flutterflow_github_oidc_broker.sql",
+        "blob_sha": "ed8e16b324ec15099c276840297928ca278d530e",
+        "byte_size": 4239
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-059"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-060",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810103038_fix_flutterflow_oidc_service_role_gate.sql",
+        "blob_sha": "2121de6402da9300bdd54c9bf549341d929a78bf",
+        "byte_size": 2925
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-060"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-061",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "supabase/migrations/20260810115547_record_flutterflow_oidc_attempts.sql",
+        "blob_sha": "557c7108ad56d98c38906563677c236e31ee3274",
+        "byte_size": 2409
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-061"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "canonical-source-file-062",
+      "plane": "canonical",
+      "kind": "source-file",
+      "lifecycle_state": "baseline",
+      "identity": {
+        "repository": "banataosystems/pandoras-box-memory",
+        "commit_sha": "db409325c15778a1a701dad3f931e4c0fd19447c",
+        "tree_sha": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+        "path": "tsconfig.json",
+        "blob_sha": "9b174f8c39c55399d16c216de6f1510078aadf7c",
+        "byte_size": 642
+      },
+      "facts": [
+        {
+          "name": "artifact_presence",
+          "value": true,
+          "status": "verified",
+          "evidence_ids": [
+            "git-baseline-file-062"
+          ],
+          "as_of": null,
+          "limitations": [
+            "Proves only Git path/blob/byte presence at the immutable baseline.",
+            "Does not prove capability family, implementation behavior, runtime activity, obsolescence, or original/live parity."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "not-compared",
+      "next_action": "Retain this exact Git object as baseline evidence; classify semantics only after authority-backed source review and original/live comparison."
+    },
+    {
+      "id": "live-supabase-migration-ledger",
+      "plane": "live",
+      "kind": "provider-resource",
+      "lifecycle_state": "current-as-of-observation",
+      "identity": {
+        "provider": "Supabase",
+        "project_ref": "ivmvufhcsezyhczzondn",
+        "resource": "migration-ledger"
+      },
+      "facts": [
+        {
+          "name": "project_status",
+          "value": "ACTIVE_HEALTHY",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Project health does not prove migration replayability or application behavior."
+          ]
+        },
+        {
+          "name": "applied_identity_count",
+          "value": 68,
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Identity count does not prove canonical SQL body parity."
+          ]
+        },
+        {
+          "name": "latest_identity",
+          "value": "20260813114649_remove_temporary_flutterflow_http_probe_20260813",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814",
+            "github-comment-5284323907-provider-correction"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Exact SQL source is absent from the canonical baseline."
+          ]
+        },
+        {
+          "name": "branch_migration_status",
+          "value": "MIGRATIONS_FAILED",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Only the live main branch record was observed."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "different",
+      "next_action": "Recover the exact 68th migration source/hash without replaying production and reconcile the branch failure state."
+    },
+    {
+      "id": "live-edge-pandora-projectos-bridge-v13",
+      "plane": "live",
+      "kind": "provider-resource",
+      "lifecycle_state": "current-as-of-observation",
+      "identity": {
+        "provider": "Supabase",
+        "project_ref": "ivmvufhcsezyhczzondn",
+        "resource": "pandora-projectos-bridge",
+        "version": 13
+      },
+      "facts": [
+        {
+          "name": "deployment_status",
+          "value": "ACTIVE",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "ACTIVE is deployment state, not full behavioral acceptance."
+          ]
+        },
+        {
+          "name": "provider_hash",
+          "value": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Provider hash algorithm/content envelope is provider-defined."
+          ]
+        },
+        {
+          "name": "positive_path_observed",
+          "value": true,
+          "status": "recorded",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Bounded observation only; source-bound reliability acceptance is incomplete."
+          ]
+        },
+        {
+          "name": "exact_source_parity",
+          "value": null,
+          "status": "blocked",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Both raw content artifacts and a durable comparison digest are required."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Preserve deployment evidence and add content-addressed source comparison plus bounded reliability proof."
+    },
+    {
+      "id": "live-edge-pandora-projectos-learning-v1",
+      "plane": "live",
+      "kind": "provider-resource",
+      "lifecycle_state": "current-as-of-observation",
+      "identity": {
+        "provider": "Supabase",
+        "project_ref": "ivmvufhcsezyhczzondn",
+        "resource": "pandora-projectos-learning",
+        "version": 1
+      },
+      "facts": [
+        {
+          "name": "deployment_status",
+          "value": "ACTIVE",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "ACTIVE is deployment state only."
+          ]
+        },
+        {
+          "name": "provider_hash",
+          "value": "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Provider hash algorithm/content envelope is provider-defined."
+          ]
+        },
+        {
+          "name": "invocation_observed",
+          "value": true,
+          "status": "recorded",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "An invocation does not prove the durable postcondition."
+          ]
+        },
+        {
+          "name": "durable_postcondition",
+          "value": null,
+          "status": "blocked",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "An idempotent durable postcondition was not reverified."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Reverify an idempotent durable postcondition and preserve content-addressed source comparison before advancing the claim."
+    },
+    {
+      "id": "live-edge-pandora-machine-gateway-v3",
+      "plane": "live",
+      "kind": "provider-resource",
+      "lifecycle_state": "current-as-of-observation",
+      "identity": {
+        "provider": "Supabase",
+        "project_ref": "ivmvufhcsezyhczzondn",
+        "resource": "pandora-machine-gateway",
+        "version": 3
+      },
+      "facts": [
+        {
+          "name": "deployment_status",
+          "value": "ACTIVE",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "ACTIVE is deployment state only."
+          ]
+        },
+        {
+          "name": "provider_hash",
+          "value": "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Provider hash algorithm/content envelope is provider-defined."
+          ]
+        },
+        {
+          "name": "exact_source_parity",
+          "value": null,
+          "status": "blocked",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "Raw source differs; no content-addressed normalized diff is preserved in this registry."
+          ]
+        },
+        {
+          "name": "same_owner_cross_namespace_negative_test",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-supabase-20260814"
+          ],
+          "as_of": "2026-08-13T17:40:23Z",
+          "limitations": [
+            "No incident is claimed; the missing test and explicit row predicate make production verification incomplete."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Implement an explicit real_life row predicate and same-owner AU negative test in isolation; require exact-candidate qualified review before release."
+    },
+    {
+      "id": "live-vercel-projectos-production",
+      "plane": "live",
+      "kind": "provider-resource",
+      "lifecycle_state": "current-as-of-observation",
+      "identity": {
+        "provider": "Vercel",
+        "resource": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+        "alias": "pandorasbox-memory.vercel.app"
+      },
+      "facts": [
+        {
+          "name": "deployment_status",
+          "value": "READY",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "READY does not prove application acceptance."
+          ]
+        },
+        {
+          "name": "positive_health_search_path_observed",
+          "value": true,
+          "status": "recorded",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "Bounded positive observation only."
+          ]
+        },
+        {
+          "name": "reliability_state",
+          "value": {
+            "search_200": 7,
+            "search_503": 4
+          },
+          "status": "recorded",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "One bounded log window; root cause remains an inference."
+          ]
+        },
+        {
+          "name": "git_source_binding",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "Deployment contains no Git SHA metadata."
+          ]
+        },
+        {
+          "name": "production_acceptance_complete",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "Reliability, exact source binding, and functional recovery remain open."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "blocked-pending-proof",
+      "next_action": "Diagnose the return path, bind an exact Git source, and prove functional recovery before any broad production-verified claim."
+    },
+    {
+      "id": "live-vercel-historical-deployment-dpl9ekw",
+      "plane": "live",
+      "kind": "provider-resource",
+      "lifecycle_state": "historical",
+      "identity": {
+        "provider": "Vercel",
+        "resource": "dpl_9EkwxicRPzigkvUis5m1qk644CrG"
+      },
+      "facts": [
+        {
+          "name": "deployment_status",
+          "value": "READY",
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "READY historical artifact only."
+          ]
+        },
+        {
+          "name": "current_projectos_routes_present",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "Exact current health route returns 404."
+          ]
+        },
+        {
+          "name": "rollback_capable_for_current_connector",
+          "value": false,
+          "status": "verified",
+          "evidence_ids": [
+            "provider-snapshot-vercel-20260814"
+          ],
+          "as_of": "2026-08-13T17:39:20Z",
+          "limitations": [
+            "This deployment cannot restore the current health/search capability."
+          ]
+        }
+      ],
+      "capability_family": "unclassified",
+      "reconciliation_status": "different",
+      "next_action": "Retain as historical evidence and build a separately tested capability-preserving recovery candidate."
+    }
+  ],
+  "comparisons": [
+    {
+      "id": "comparison-original-to-canonical-files",
+      "subject_entry_ids": [
+        "original-archive-aggregate",
+        "canonical-source-file-001",
+        "canonical-source-file-002",
+        "canonical-source-file-003",
+        "canonical-source-file-004",
+        "canonical-source-file-005",
+        "canonical-source-file-006",
+        "canonical-source-file-007",
+        "canonical-source-file-008",
+        "canonical-source-file-009",
+        "canonical-source-file-010",
+        "canonical-source-file-011",
+        "canonical-source-file-012",
+        "canonical-source-file-013",
+        "canonical-source-file-014",
+        "canonical-source-file-015",
+        "canonical-source-file-016",
+        "canonical-source-file-017",
+        "canonical-source-file-018",
+        "canonical-source-file-019",
+        "canonical-source-file-020",
+        "canonical-source-file-021",
+        "canonical-source-file-022",
+        "canonical-source-file-023",
+        "canonical-source-file-024",
+        "canonical-source-file-025",
+        "canonical-source-file-026",
+        "canonical-source-file-027",
+        "canonical-source-file-028",
+        "canonical-source-file-029",
+        "canonical-source-file-030",
+        "canonical-source-file-031",
+        "canonical-source-file-032",
+        "canonical-source-file-033",
+        "canonical-source-file-034",
+        "canonical-source-file-035",
+        "canonical-source-file-036",
+        "canonical-source-file-037",
+        "canonical-source-file-038",
+        "canonical-source-file-039",
+        "canonical-source-file-040",
+        "canonical-source-file-041",
+        "canonical-source-file-042",
+        "canonical-source-file-043",
+        "canonical-source-file-044",
+        "canonical-source-file-045",
+        "canonical-source-file-046",
+        "canonical-source-file-047",
+        "canonical-source-file-048",
+        "canonical-source-file-049",
+        "canonical-source-file-050",
+        "canonical-source-file-051",
+        "canonical-source-file-052",
+        "canonical-source-file-053",
+        "canonical-source-file-054",
+        "canonical-source-file-055",
+        "canonical-source-file-056",
+        "canonical-source-file-057",
+        "canonical-source-file-058",
+        "canonical-source-file-059",
+        "canonical-source-file-060",
+        "canonical-source-file-061",
+        "canonical-source-file-062"
+      ],
+      "status": "blocked-pending-proof",
+      "claim": "Original archive file-level reconciliation is unavailable.",
+      "evidence_ids": [
+        "github-comment-5284217273-delivery-envelope"
+      ],
+      "limitations": [
+        "Archive bytes and deterministic per-file manifest are unavailable."
+      ],
+      "comparison_contract": null,
+      "next_action": "Recover per-file original evidence before comparing."
+    },
+    {
+      "id": "comparison-live-migrations-to-canonical",
+      "subject_entry_ids": [
+        "live-supabase-migration-ledger",
+        "canonical-source-file-047",
+        "canonical-source-file-048",
+        "canonical-source-file-049",
+        "canonical-source-file-050",
+        "canonical-source-file-051",
+        "canonical-source-file-052",
+        "canonical-source-file-053",
+        "canonical-source-file-054",
+        "canonical-source-file-055",
+        "canonical-source-file-056",
+        "canonical-source-file-057",
+        "canonical-source-file-058",
+        "canonical-source-file-059",
+        "canonical-source-file-060",
+        "canonical-source-file-061"
+      ],
+      "status": "different",
+      "claim": "The live ledger records 68 identities while the canonical baseline contains 15 SQL files and lacks identity 20260813114649.",
+      "evidence_ids": [
+        "provider-snapshot-supabase-20260814",
+        "git-baseline-file-047",
+        "git-baseline-file-048",
+        "git-baseline-file-049",
+        "git-baseline-file-050",
+        "git-baseline-file-051",
+        "git-baseline-file-052",
+        "git-baseline-file-053",
+        "git-baseline-file-054",
+        "git-baseline-file-055",
+        "git-baseline-file-056",
+        "git-baseline-file-057",
+        "git-baseline-file-058",
+        "git-baseline-file-059",
+        "git-baseline-file-060",
+        "git-baseline-file-061"
+      ],
+      "limitations": [
+        "This does not establish universal historical SQL body parity or authorize replay."
+      ],
+      "comparison_contract": {
+        "method": "identity-and-path-tail comparison",
+        "left_digest_sha256": "67236aeb69b7544474779baf59eeb33470f7529ab7536c5fa0153a164f9f56ac",
+        "right_digest_sha256": "342036ffa57c8148efe7144136afa91892011f8c235023d7a89510aaa6026311"
+      },
+      "next_action": "Recover the 68th SQL source/hash without replay."
+    },
+    {
+      "id": "comparison-bridge-live-to-canonical",
+      "subject_entry_ids": [
+        "live-edge-pandora-projectos-bridge-v13",
+        "canonical-source-file-045"
+      ],
+      "status": "blocked-pending-proof",
+      "claim": "Exact raw source parity is not established in this evidence set.",
+      "evidence_ids": [
+        "provider-snapshot-supabase-20260814",
+        "git-baseline-file-045"
+      ],
+      "limitations": [
+        "Both raw artifacts and a content-addressed comparison digest are absent."
+      ],
+      "comparison_contract": null,
+      "next_action": "Preserve both raw hashes/artifacts and deterministic diff output."
+    },
+    {
+      "id": "comparison-learning-live-to-canonical",
+      "subject_entry_ids": [
+        "live-edge-pandora-projectos-learning-v1",
+        "canonical-source-file-046"
+      ],
+      "status": "blocked-pending-proof",
+      "claim": "Exact raw source parity and durable learning postcondition are not established in this evidence set.",
+      "evidence_ids": [
+        "provider-snapshot-supabase-20260814",
+        "git-baseline-file-046"
+      ],
+      "limitations": [
+        "Provider deployment metadata is insufficient for exact parity."
+      ],
+      "comparison_contract": null,
+      "next_action": "Preserve source artifacts/diff and reverify the durable postcondition."
+    },
+    {
+      "id": "comparison-gateway-live-to-canonical",
+      "subject_entry_ids": [
+        "live-edge-pandora-machine-gateway-v3",
+        "canonical-source-file-043"
+      ],
+      "status": "blocked-pending-proof",
+      "claim": "Gateway raw/executable parity and row-level namespace acceptance are unresolved.",
+      "evidence_ids": [
+        "provider-snapshot-supabase-20260814",
+        "git-baseline-file-043"
+      ],
+      "limitations": [
+        "No content-addressed normalized diff; same-owner AU negative test absent."
+      ],
+      "comparison_contract": null,
+      "next_action": "Land isolated explicit namespace enforcement and preserve exact comparison evidence."
+    }
+  ],
+  "gaps": [
+    {
+      "id": "gap-flutterflow-provider-adapter",
+      "name": "FlutterFlow provider action adapter",
+      "status": "missing-from-canonical",
+      "related_entry_ids": [
+        "canonical-source-file-015"
+      ],
+      "evidence_ids": [
+        "provider-snapshot-supabase-20260814",
+        "git-baseline-file-015"
+      ],
+      "facts": {
+        "foundations_present": true,
+        "registered_actions": 6,
+        "enabled_actions": 0,
+        "provider_adapter_present": false
+      },
+      "limitations": [
+        "Database/Vault/snapshot/OIDC foundations do not implement or enable provider actions."
+      ],
+      "next_action": "Implement the smallest read-only adapter action only after exact provider contract, least privilege, and negative tests are defined."
+    }
+  ],
+  "blockers": [
+    {
+      "id": "archive-per-file-evidence-unavailable",
+      "severity": "blocking",
+      "statement": "Original archive bytes and deterministic per-file manifest are unavailable; original file mapping, 113-test enumeration/execution, parity, and completion percentage remain blocked."
+    },
+    {
+      "id": "gateway-namespace-row-filter-unproven",
+      "severity": "high",
+      "statement": "The deployed service-role memory_search path lacks explicit same-resource row-scope proof and a same-owner AU negative test; no incident is claimed."
+    },
+    {
+      "id": "live-migration-68-source-gap",
+      "severity": "high",
+      "statement": "Live migration identity 68 is absent from the canonical baseline and production replay is not authorized."
+    },
+    {
+      "id": "vercel-return-path-reliability",
+      "severity": "high",
+      "statement": "A bounded production window recorded seven search 200s and four 503s while correlated bridge calls returned 200; exact root cause is unproven."
+    },
+    {
+      "id": "functional-recovery-unavailable",
+      "severity": "high",
+      "statement": "The retained historical Vercel deployment lacks current health/search routes and is not a capability-preserving rollback."
+    },
+    {
+      "id": "independent-review-missing",
+      "severity": "blocking",
+      "statement": "Qualified independent review bound to the corrected exact candidate is absent."
+    },
+    {
+      "id": "registry-required-check-not-enforced",
+      "severity": "high",
+      "statement": "The candidate integrity workflow is not yet enforced as a required main-branch check by repository rules."
+    }
+  ],
+  "completion": {
+    "status": "withheld",
+    "percentage": null,
+    "reason": "Original archive bytes and deterministic per-file path/size/SHA manifest are unavailable."
+  }
+}
