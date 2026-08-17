@@ -230,7 +230,7 @@ async function json(response) {
     [validBody(undefined, { summary: "office 123 Rizal Street, Makati" }), "direct_identifier_address"],
     [validBody(undefined, { claim: "password=hunter2-super-secret" }), "secret_assignment"],
     [validBody(undefined, { claim: "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" }), "secret_assignment"],
-    [validBody(undefined, { claim: "AKIAIOSFODNN7EXAMPLE" }), "cloud_credential_signature"],
+    [validBody(undefined, { claim: "AKIA" + "IOSFODNN7EXAMPLE" }), "cloud_credential_signature"],
     [validBody(undefined, { claim: "-----BEGIN PRIVATE KEY-----" }), "private_key_material"],
     [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner%40example.com" } }), "direct_identifier_email"],
     [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner＠example.com" } }), "direct_identifier_email"],
