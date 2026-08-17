@@ -15,6 +15,13 @@
 // Everything here is pure and runtime-agnostic so it can be tested directly
 // against the same code the Edge Function runs.
 
+/** A Request- or Response-shaped source that can be metered while reading. */
+export type StreamSource = {
+  headers: { get(name: string): string | null };
+  body: ReadableStream<Uint8Array> | null;
+  text(): Promise<string>;
+};
+
 /** Outcome of reading a bounded body. */
 export type BoundedBody =
   | { ok: true; text: string; bytes: number }
@@ -48,7 +55,7 @@ export function declaredLengthExceeds(
  * consults the header for the decision.
  */
 export async function readBoundedBody(
-  request: { headers: { get(name: string): string | null }; body: ReadableStream<Uint8Array> | null; text(): Promise<string> },
+  request: StreamSource,
   maxBytes: number,
 ): Promise<BoundedBody> {
   if (declaredLengthExceeds(request.headers.get("content-length"), maxBytes)) {
@@ -116,14 +123,18 @@ export type BoundedResponse =
  * limit, so a misbehaving or compromised upstream cannot exhaust the proxy.
  */
 export async function readBoundedResponse(
-  response: { headers: { get(name: string): string | null }; body: ReadableStream<Uint8Array> | null; text(): Promise<string> },
+  response: StreamSource,
   maxBytes: number,
 ): Promise<BoundedResponse> {
   if (declaredLengthExceeds(response.headers.get("content-length"), maxBytes)) {
     return { ok: false, reason: "declared_too_large" };
   }
   return await readBoundedBody(
-    { headers: { get: () => null }, body: response.body, text: () => response.text() },
+    {
+      headers: { get: () => null },
+      body: response.body,
+      text: () => response.text(),
+    },
     maxBytes,
   );
 }
@@ -169,7 +180,10 @@ export function boundedInteger(
  * trimming, or over the limit. Over-length input is rejected, not truncated —
  * truncation silently changes the meaning of a query.
  */
-export function boundedString(value: unknown, maxLength: number): string | null {
+export function boundedString(
+  value: unknown,
+  maxLength: number,
+): string | null {
   if (typeof value !== "string") return null;
   const trimmed = value.trim();
   if (!trimmed || trimmed.length > maxLength) return null;
