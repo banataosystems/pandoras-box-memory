@@ -20,7 +20,11 @@ function assertEquals(actual: unknown, expected: unknown, message = "") {
   );
 }
 
-function assertArrayEquals(actual: unknown[], expected: unknown[], message = "") {
+function assertArrayEquals(
+  actual: unknown[],
+  expected: unknown[],
+  message = "",
+) {
   assertEquals(JSON.stringify(actual), JSON.stringify(expected), message);
 }
 
@@ -28,7 +32,8 @@ const LIMIT = 100;
 
 function source(
   text: string,
-  options: { contentLength?: string; chunkSize?: number; stream?: boolean } = {},
+  options: { contentLength?: string; chunkSize?: number; stream?: boolean } =
+    {},
 ) {
   const { contentLength, chunkSize = 8, stream = true } = options;
   const bytes = new TextEncoder().encode(text);
