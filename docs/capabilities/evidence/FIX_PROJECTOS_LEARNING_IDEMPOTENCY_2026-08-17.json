@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "fix-projectos-learning-idempotency-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "projectos-learning-idempotent-recovery-and-audit-durability",
+  "source": {
+    "pull_request": 32,
+    "branch": "fix/projectos-learning-idempotency-audit",
+    "candidate_head": "594347320e3652dc9fd188ea1846e4642b2ec3ab",
+    "candidate_tree": "744b00dc0a08a2108b9b4f0d1592af60406069db",
+    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "pandora-projectos-learning Edge Function source and its behavioral test suite. No schema change, no deployment, no production data mutation.",
+  "defect_closed": {
+    "boundary": "an idempotent retry reused the persisted candidate while rebuilding review and digest metadata from the NEW request",
+    "consequence": "candidate A persisted alongside review metadata describing request B, so the review queue entry did not describe the item under review",
+    "principle_applied": "persisted-snapshot reconciliation, as already used by the review-gated evidence-candidate intake"
+  },
+  "behavior_contract": {
+    "recovery_source_of_truth": "persisted candidate row, never the retry content",
+    "unreadable_persisted_state": "fail closed",
+    "fingerprint_basis": "canonical validated content, not raw request bytes",
+    "identical_replay": "idempotent",
+    "changed_content_replay": "409 conflict, persisted candidate never overwritten",
+    "reconciliation_precedes_conflict_decision": true,
+    "orphaned_candidate_possible": false,
+    "canonical_promotion_from_intake": false
+  },
+  "audit_durability": {
+    "classification": "audit_required_fail_closed",
+    "supabase_error_checked": true,
+    "success_without_durable_audit": false,
+    "audit_lookup_failure": "fail closed",
+    "retry_heals_audit": true,
+    "raw_error_message_logged": false,
+    "contract_document": "docs/architecture/AUDIT_DURABILITY_CONTRACT.md"
+  },
+  "test_evidence": {
+    "suite": "scripts/test_projectos_learning_behavior.mjs",
+    "tests_passed": 18,
+    "tests_total": 18,
+    "bound_to_production_source": true,
+    "regression_test_verified_by_reintroducing_defect": true,
+    "result_when_defect_reintroduced": "17/18 — the changed-content recovery test fails",
+    "limitation": "a fake Supabase client is used; PostgREST and Postgres constraint behavior, including the 23505 path, is not exercised against a real database"
+  },
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false,
+    "deployed_provider_version": "pandora-projectos-learning v1, which does not contain these changes"
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "merge into canonical main with the exact-merge-result gates green",
+    "source-provenanced preview deployment verification",
+    "separate production deployment authorization and rollback rehearsal"
+  ]
+}
