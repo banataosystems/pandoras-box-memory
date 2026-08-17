@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "hardening-gateway-api-boundaries-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "bounded-request-response-boundaries-and-governed-audit",
+  "source": {
+    "pull_request": 33,
+    "branch": "hardening/gateway-api-boundaries",
+    "candidate_head": "e7666300c41c07de28e2c273a610cd28fb162e30",
+    "candidate_tree": "91d634c71bb39fa768e12385df81fe959e2d7ff7",
+    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "request/response boundary limits, numeric validation, gateway audit durability, and API contract consistency across the machine gateway, the ProjectOS bridge, and the Next.js boundary. No schema change, no deployment, no production data mutation.",
+  "defects_closed": [
+    {
+      "boundary": "size limits trusted only the declared Content-Length",
+      "detail": "Number(header || \"0\") yields 0 for a missing header, so chunked, unlabelled, and understated requests reached JSON parsing with no limit"
+    },
+    {
+      "boundary": "public /api/mcp proxy was unbounded in both directions",
+      "detail": "request read with text() and upstream reply with arrayBuffer(), neither bounded, with no timeout"
+    },
+    {
+      "boundary": "machine search limit propagated NaN",
+      "detail": "Math.max(1, Math.min(MAX_LIMIT, Number(args.limit || 10))) is NaN for non-numeric input and reached the downstream query"
+    },
+    {
+      "boundary": "gateway audit inserts discarded the returned Supabase error",
+      "detail": "a failed audit write was indistinguishable from a successful one"
+    }
+  ],
+  "boundary_contract": {
+    "declared_length_is_fast_reject_only": true,
+    "actual_bytes_metered_while_reading": true,
+    "oversized_body_rejected_before_json_parse": true,
+    "oversized_body_never_fully_buffered": true,
+    "upstream_response_bounded_before_buffering": true,
+    "upstream_body_reflected_on_error": false,
+    "abort_timeout_ms": 10000,
+    "body_read_only_after_authentication_material_present": true
+  },
+  "validation_contract": {
+    "numeric_inputs_rejected_not_clamped": true,
+    "nan_infinity_non_integer_rejected": true,
+    "over_length_strings_rejected_not_truncated": true,
+    "unknown_top_level_fields_rejected_on_memory_search": true
+  },
+  "audit_durability": {
+    "allow_decision": "fail closed when audit is not durable",
+    "deny_decision": "never blocked on audit success, so an audit outage cannot weaken authorization",
+    "policy_module": "supabase/functions/_shared/audit-policy.ts",
+    "raw_error_message_logged": false
+  },
+  "contract_consistency": {
+    "canonical_privacy_policy_identifier": "metadata_only_v2_fail_closed",
+    "previous_inconsistency": "stored candidate metadata said metadata_only_v2_fail_closed while the API response said metadata_only_v1",
+    "bare_literal_rejected_by_source_contract_check": true,
+    "dependency_pin": "bridge floating jsr:@supabase/supabase-js@2 pinned to npm:@supabase/supabase-js@2.110.9"
+  },
+  "test_evidence": {
+    "node_tests": 15,
+    "deno_tests": 20,
+    "mirrored_cases_across_runtimes": true,
+    "cases": [
+      "no content length",
+      "valid body",
+      "exactly at limit",
+      "one byte over limit",
+      "understated content length",
+      "chunked unknown length",
+      "multibyte byte counting",
+      "stream failure",
+      "oversized upstream",
+      "malformed JSON",
+      "full NaN matrix",
+      "audit fail-closed and deny-proceeds"
+    ],
+    "limitation": "Deno suites were not run in the authoring environment (Deno unavailable); they are proven by CI only. No load or adversarial testing was performed against a running service."
+  },
+  "behavior_changes_requiring_review": [
+    "Memory search now rejects unknown top-level fields instead of silently dropping them",
+    "out-of-range limit is rejected rather than clamped",
+    "evidence intake response now reports metadata_only_v2_fail_closed"
+  ],
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false,
+    "deployed_provider_versions": "pandora-machine-gateway v3 and pandora-projectos-bridge v13, neither of which contains these changes"
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "merge into canonical main with the exact-merge-result gates green",
+    "source-provenanced preview deployment verification",
+    "separate production deployment authorization and rollback rehearsal"
+  ]
+}

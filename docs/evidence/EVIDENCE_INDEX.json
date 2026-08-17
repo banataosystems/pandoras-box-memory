@@ -494,6 +494,25 @@
       "deployment_status": "source_only",
       "production_verified": false,
       "rollback_ref": null
+    },
+    {
+      "evidence_id": "hardening-gateway-api-boundaries-2026-08-17",
+      "path": "docs/capabilities/evidence/HARDENING_GATEWAY_API_BOUNDARIES_2026-08-17.json",
+      "observed_at": "2026-08-17T11:00:00Z",
+      "source_commit": "e7666300c41c07de28e2c273a610cd28fb162e30",
+      "source_tree": "91d634c71bb39fa768e12385df81fe959e2d7ff7",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box-memory#33",
+      "proof_stage": "source_tested",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "d7c376b958bc6fbd3c0adba55443736153ded0a50e6bff4ff08bae8257da0009",
+      "review_status": "awaiting_independent_review",
+      "deployment_status": "source_only",
+      "production_verified": false,
+      "rollback_ref": null
     }
   ]
 }
