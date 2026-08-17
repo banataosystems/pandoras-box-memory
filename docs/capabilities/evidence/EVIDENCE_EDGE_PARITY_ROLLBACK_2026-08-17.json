@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "evidence-edge-parity-rollback-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "edge-function-parity-and-capability-preserving-rollback",
+  "source": {
+    "pull_request": 34,
+    "branch": "evidence/edge-parity-and-rollback",
+    "candidate_head": "281e6767384c943d5ec45c4615a738ccb84266c9",
+    "candidate_tree": "3ac862f01b08e5041a94e3c518a00eea1a22a029",
+    "canonical_base": "d0e689556cc01428500b796cade87032ea5c0ad8"
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "Edge Function parity evidence and a capability-preserving rollback procedure. Documentation and evidence only; no runtime, application, database, or provider state is modified.",
+  "edge_parity": {
+    "method": "read-only list_edge_functions and get_edge_function; no function deployed, updated, or invoked",
+    "functions": 3,
+    "exact_match": 1,
+    "not_yet_compared": 2,
+    "executable_divergence": 0,
+    "provider_bundle_hash_compared_against_source_hash": false,
+    "parity_claimed_from_name_or_version_match": false,
+    "key_finding": "pandora-projectos-learning v1 live source still contains the pre-fix defect signatures, confirming the PR #32 idempotency and audit-durability fixes are not deployed"
+  },
+  "rollback": {
+    "existing_target_sufficient": false,
+    "reason": "the preserved Vercel rollback deployment predates the current ProjectOS health and search capabilities, so restoring it would silently drop capabilities",
+    "release_candidate": "main@d0e689556cc01428500b796cade87032ea5c0ad8",
+    "builds_reproducibly_from_lockfile": true,
+    "rehearsal_performed": false,
+    "preview_deployment_performed": false,
+    "routes_probed_against_running_instance": false,
+    "production_alias_repointed": false,
+    "rollback_proven": false,
+    "structural_gaps": [
+      "Edge Functions version independently at Supabase and do not roll back with Vercel",
+      "no applied migration has rollback metadata at the provider, so there is no down-migration path for any of the 68"
+    ]
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "fetch and byte-compare live source for pandora-machine-gateway and pandora-projectos-bridge",
+    "preview deployment of the release candidate plus route probes to close the web-tier rehearsal gate",
+    "separate authorization for any production promotion; rollback remains unproven until an actual safe rehearsal completes"
+  ],
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false
+  }
+}
