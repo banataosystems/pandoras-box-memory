@@ -494,6 +494,25 @@
       "deployment_status": "source_only",
       "production_verified": false,
       "rollback_ref": null
+    },
+    {
+      "evidence_id": "2026-08-18-consumer-contract-compatibility",
+      "path": "docs/capabilities/evidence/CONSUMER_CONTRACT_COMPATIBILITY_2026-08-18.json",
+      "observed_at": "2026-08-18T10:45:00Z",
+      "source_commit": "e4a60f0651042813e32a1b751f95f9fe9cd133c1",
+      "source_tree": "2cc05f27cae68cec0325b39eacbf9e0b26e1bafa",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box@9517267",
+      "proof_stage": "source_tested",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "69557b006661beb1daf48f65772a25bf97ec1ae81125a0d30d4adbf7c1391e88",
+      "review_status": "awaiting_independent_review",
+      "deployment_status": "source_only",
+      "production_verified": false,
+      "rollback_ref": null
     }
   ]
 }
