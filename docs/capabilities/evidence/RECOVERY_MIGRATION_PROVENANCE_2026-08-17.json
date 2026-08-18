@@ -7,9 +7,19 @@
   "source": {
     "pull_request": 31,
     "branch": "recovery/migration-provenance-20260817",
-    "candidate_head": "e174036b50f1caf8a85f189c96fe73c0a9938c2b",
-    "candidate_tree": "0bb344c5db745f039bf67b13657f100c84346691",
-    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
+    "candidate_head": "1a58b6cd79fe3446c59d99bd91d3e4716d66632c",
+    "candidate_tree": "2d34f09307d1f87ba55ac047edaa2ee595d7d0a2",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "superseded_candidates": [
+      {
+        "candidate_head": "e174036b50f1caf8a85f189c96fe73c0a9938c2b",
+        "candidate_tree": "0bb344c5db745f039bf67b13657f100c84346691",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto repaired governance base and active-source binding defect fixed",
+        "recovery_ref": "recovery/review-20260818/pr-31-46b8d51f",
+        "recovery_head": "46b8d51f67d605773e6ba4c91f89cb2a736d898b"
+      }
+    ]
   },
   "lifecycle": {
     "documented": true,
@@ -25,7 +35,13 @@
     "consequence": "two migrations inserting different data, or defining different routine bodies, could normalize to the same string and compare as equal",
     "resolution": "the helper was deleted, not repaired",
     "justification": "it was never wired into the parity gate, which has always used exact SHA-256 comparison, so no parity result was ever produced by it; a dead module with a subtle false-equality bug is a trap for the next reader who imports it assuming it is sound",
-    "comparison_basis_now": "exact bytes, modulo trailing whitespace only, which fails loudly toward human classification rather than silently declaring different migrations identical"
+    "comparison_basis_now": "exact bytes, modulo trailing whitespace only, which fails loudly toward human classification rather than silently declaring different migrations identical",
+    "active_source_binding_defect": {
+      "finding": "check_migration_parity.mjs discovered the active migration source but never bound it to the manifest entry, so a version present in supabase/migrations could be classified 'missing', or have its manifest source_path redirected to another existing file, and the gate still passed",
+      "resolution": "every version present in the active migration directory must now have a manifest entry that is not 'missing', whose source_path equals the exact active path and whose source_sha256 equals the exact active bytes; an active version with no manifest entry is also rejected",
+      "regressions_added": 7,
+      "defect_reintroduction_demonstrated": true
+    }
   },
   "provider_observation": {
     "method": "read-only SELECT against supabase_migrations.schema_migrations",
