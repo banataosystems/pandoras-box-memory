@@ -150,6 +150,59 @@ export function validate({ ledger, manifest, sourceByVersion, readSource }) {
       );
     }
 
+    // ------------------------------------------------------------------
+    // ACTIVE-SOURCE BINDING.
+    //
+    // `sourceByVersion` holds the migrations that physically exist in
+    // SOURCE_DIR and would actually run. Discovering them is not enough — the
+    // manifest entry must be bound to THAT file. Without this binding a version
+    // can sit in supabase/migrations while its manifest entry declares
+    // source_availability="missing" (source_path and source_sha256 null), or
+    // points at some other existing file: recovery evidence, docs, or a
+    // different version. The anti-drift hash check below would then validate
+    // the decoy while the migration that really runs is never hashed at all,
+    // which defeats the guarantee this gate claims to make. So it fails closed.
+    // ------------------------------------------------------------------
+    const activeFile = sourceByVersion.get(version);
+    if (activeFile !== undefined) {
+      const activePath = `${SOURCE_DIR}/${activeFile}`;
+
+      if (entry.source_availability === "missing") {
+        errors.push(
+          `manifest: '${version}' is classified 'missing' but an active migration ` +
+            `exists at '${activePath}' — a migration that would run cannot be ` +
+            `declared absent`,
+        );
+        continue;
+      }
+
+      if (entry.source_path !== activePath) {
+        errors.push(
+          `manifest: '${version}' names source_path '${entry.source_path}' but the ` +
+            `active migration is '${activePath}' — proof must bind to the file that ` +
+            `actually runs, not to recovery evidence, docs, or another version`,
+        );
+        continue;
+      }
+
+      const activeText = readSource(activePath);
+      if (activeText === null) {
+        errors.push(
+          `manifest: '${version}' active migration '${activePath}' could not be read`,
+        );
+        continue;
+      }
+
+      const activeSha = sha256(activeText);
+      if (entry.source_sha256 !== activeSha) {
+        errors.push(
+          `manifest: '${version}' records source_sha256 ${entry.source_sha256} but ` +
+            `the active migration '${activePath}' hashes to ${activeSha}`,
+        );
+        continue;
+      }
+    }
+
     const sourcePath = entry.source_path;
 
     if (entry.source_availability === "missing") {
@@ -209,6 +262,16 @@ export function validate({ ledger, manifest, sourceByVersion, readSource }) {
       errors.push(
         `manifest: live migration '${version}' is unaccounted for — every applied ` +
           `migration must be classified, including as 'missing'`,
+      );
+    }
+  }
+
+  // An active migration with no manifest entry has no binding at all.
+  for (const version of sourceByVersion.keys()) {
+    if (!manifestVersions.has(version)) {
+      errors.push(
+        `source: '${version}' exists in ${SOURCE_DIR} but has no manifest entry — ` +
+          `an active migration cannot be left unclassified`,
       );
     }
   }
@@ -343,6 +406,103 @@ function selfTest() {
     }
   }
 
+  // ------------------------------------------------------------------
+  // ACTIVE-SOURCE BINDING regressions.
+  //
+  // Each case puts a real migration in SOURCE_DIR (a non-empty sourceByVersion)
+  // and asserts the manifest entry must bind to THAT exact file. Before the
+  // binding existed, cases A, B and C all passed: the gate never compared the
+  // manifest against the migration that would actually run.
+  // ------------------------------------------------------------------
+  const ACTIVE = "supabase/migrations/20260101000000_alpha.sql";
+  const RECOVERED = "supabase/recovery/live-migrations/20260101000000_alpha.sql";
+  const DECOY = "supabase/migrations/20260202000000_beta.sql";
+  const active = new Map([["20260101000000", "20260101000000_alpha.sql"]]);
+
+  // Every path that exists in this fixture world.
+  const activeReader = (path) => {
+    if (path === ACTIVE) return "select 1";
+    if (path === RECOVERED) return "select 1";
+    if (path === DECOY) return "select 1";
+    return null;
+  };
+
+  const bindingCases = [
+    [
+      "A: active migration exists but manifest declares it missing",
+      {
+        migrations: [{
+          ...base,
+          source_availability: "missing",
+          source_path: null,
+          source_sha256: null,
+        }],
+      },
+      true,
+    ],
+    [
+      "B: manifest source_path redirects to a different existing file",
+      { migrations: [{ ...base, source_path: DECOY }] },
+      true,
+    ],
+    [
+      "C: manifest points at recovery evidence for an active version",
+      { migrations: [{ ...base, source_path: RECOVERED }] },
+      true,
+    ],
+    [
+      "D: active migration hash differs from the manifest hash",
+      { migrations: [{ ...base, source_sha256: sha256("select 999") }] },
+      true,
+    ],
+    [
+      "E: valid active authentic migration",
+      { migrations: [{ ...base }] },
+      false,
+    ],
+    [
+      "F: valid active sanitized migration with a documented divergence",
+      {
+        migrations: [{
+          ...base,
+          source_availability: "sanitized",
+          source_sha256: sha256("select 1 -- owner uuid redacted"),
+          divergence_reason: "owner principal UUID redacted from public source",
+        }],
+      },
+      false,
+    ],
+    [
+      "G: active migration with no manifest entry at all",
+      { migrations: [] },
+      true,
+    ],
+  ];
+
+  for (const [label, manifest, shouldReject] of bindingCases) {
+    // Case F deliberately diverges from production, so its file content must
+    // differ from the provider statement content too.
+    const sanitized = label.startsWith("F");
+    const errors = validate({
+      ledger,
+      manifest,
+      sourceByVersion: active,
+      readSource: (path) =>
+        sanitized && path === ACTIVE
+          ? "select 1 -- owner uuid redacted"
+          : activeReader(path),
+    });
+    const rejected = errors.length > 0;
+    if (rejected !== shouldReject) {
+      console.error(
+        `SELF-TEST FAIL: '${label}' expected ` +
+          `${shouldReject ? "rejection" : "acceptance"}, got ` +
+          `${rejected ? `rejection (${errors[0]})` : "acceptance"}`,
+      );
+      failures += 1;
+    }
+  }
+
   // A source migration production never applied must be caught.
   const phantom = validate({
     ledger,
@@ -356,7 +516,10 @@ function selfTest() {
   }
 
   if (failures > 0) exit(1);
-  console.log(`Migration parity self-test passed (${cases.length + 1} cases).`);
+  console.log(
+    `Migration parity self-test passed (${cases.length + bindingCases.length + 1} cases, ` +
+      `${bindingCases.length} of them active-source binding regressions).`,
+  );
 }
 
 function main() {
