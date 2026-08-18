@@ -5,6 +5,7 @@ on:
       - 'docs/migrations/**'
       - 'supabase/recovery/**'
       - 'scripts/check_supabase_*'
+      - 'scripts/recover_live_migrations.mjs'
       - '.github/workflows/supabase-recovery-evidence.yml'
   workflow_dispatch:
 permissions:
@@ -21,4 +22,5 @@ jobs:
       - run: node scripts/check_migration_parity.mjs --self-test
       - run: node scripts/check_supabase_readback_status.mjs --self-test
       - run: node scripts/check_supabase_live_recovery.mjs --self-test
+      - run: node scripts/recover_live_migrations.mjs --self-test
       - run: bash scripts/check_no_literal_secrets.sh
