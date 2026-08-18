@@ -7,10 +7,17 @@
   "source": {
     "pull_request": 32,
     "branch": "fix/projectos-learning-idempotency-audit",
-    "candidate_head": "485363185de58daad648f8dccd00091aef8edae8",
-    "candidate_tree": "549c568251d190b609465db399da5dd287cdf480",
+    "candidate_head": "45f7d502aa479ecb2fb426bf1ee62b3a2f3ed7c5",
+    "candidate_tree": "eb5fa560c962403b88cf83e15864a7b7ca81963d",
     "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
     "superseded_candidates": [
+      {
+        "candidate_head": "485363185de58daad648f8dccd00091aef8edae8",
+        "candidate_tree": "549c568251d190b609465db399da5dd287cdf480",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-2 review: concurrent Postgres idempotency proof added",
+        "recovery_ref": "recovery/review-20260818/pr-32-84196353"
+      },
       {
         "candidate_head": "6bc2aadd4dee2699aaf60573c939c14bd513aa99",
         "candidate_tree": "64664b0cc43bdb7c8d67e21a6b96ae35a0482c8e",
@@ -35,7 +42,45 @@
     "consequence": "after an earlier audit-write failure, a changed-content retry reconciled review and digest and then returned 409 without ever writing the audit row, stranding persisted candidate/review/digest state permanently without mandatory audit evidence",
     "fix": "audit reconciliation now runs before the conflict decision, on the same principle already applied to the review item and digest: the audit row is evidence about the persisted candidate, not about the request in flight",
     "regression_tests_added": 3,
-    "tests_verified_to_fail_under_old_ordering": true
+    "tests_verified_to_fail_under_old_ordering": true,
+    "database_idempotency_concurrency": {
+      "finding": "idempotency correctness depended on database uniqueness constraints that the fake-client suite could not exercise; concurrent Postgres behaviour was unproven",
+      "resolution": "scripts/test_learning_idempotency_postgres.mjs races five concurrent backends through the handler's read-then-insert shape per key, with and without each UNIQUE constraint, and is run in CI against a throwaway postgres:16 service",
+      "keys_proven": [
+        {
+          "table": "memory_capture_candidates",
+          "key": [
+            "user_id",
+            "namespace",
+            "source",
+            "source_ref"
+          ]
+        },
+        {
+          "table": "memory_review_queue_items",
+          "key": [
+            "user_id",
+            "namespace",
+            "candidate_type",
+            "source_ref"
+          ]
+        },
+        {
+          "table": "memory_session_digests",
+          "key": [
+            "user_id",
+            "namespace",
+            "source",
+            "source_ref"
+          ]
+        }
+      ],
+      "with_constraint": "exactly one row; 4 of 5 racers rejected with SQLSTATE 23505 and heal by re-reading",
+      "without_constraint": "five duplicate rows; nothing raises 23505; .maybeSingle() then fails closed on a request that should have replayed",
+      "audit_logs_requires_uniqueness": false,
+      "production_constraints_confirmed": false,
+      "production_mutation": false
+    }
   },
   "behavior_contract": {
     "recovery_source_of_truth": "persisted candidate row, never the retry content",
@@ -77,6 +122,6 @@
     "merge into canonical main with the exact-merge-result gates green",
     "source-provenanced preview deployment verification",
     "separate production deployment authorization and rollback rehearsal",
-    "database-level verification that memory_capture_candidates, memory_review_queue_items, memory_session_digests and the learning audit_logs rows actually enforce uniqueness on source_ref \u2014 the defining migrations are classified 'missing' in the parity manifest, so the idempotency premise is unverified in source and the behavior suite proves handler ordering only"
+    "authoritative read-only schema introspection confirming the production database actually carries the three UNIQUE constraints now proven to be load-bearing \u2014 their defining migrations are classified 'missing' and Supabase list_tables/list_migrations returned 'You do not have permission'"
   ]
 }
