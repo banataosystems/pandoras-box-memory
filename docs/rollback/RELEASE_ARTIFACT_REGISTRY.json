@@ -9,7 +9,9 @@
     "must_have_capability_manifest": "The routes and capabilities the artifact is known to serve, so a rollback cannot silently drop functionality.",
     "must_have_verification": "Either production_verified (it served production and was verified there) or rehearsal_verified (deployed to non-production and probed). Anything else is a candidate, not a target.",
     "selection_rule": "At incident start, select the most recent artifact with qualified=true whose capability manifest covers the required routes, and pin its exact id. Re-read the artifact from the provider before promoting it. If no qualified target exists, rollback is UNAVAILABLE and forward recovery is the safe path.",
-    "identifier_validation": "Artifact identifiers are validated against a per-provider ALLOWLIST of immutable id shapes (vercel: dpl_ plus a long base62 token). An earlier version blocklisted origin/*, refs/*, main and HEAD, which let v1.2.3, release/foo and feature/x qualify. A provider with no registered id shape cannot contribute a target."
+    "identifier_validation": "Artifact identifiers are validated against a per-provider ALLOWLIST of immutable id shapes (vercel: dpl_ plus a long base62 token). An earlier version blocklisted origin/*, refs/*, main and HEAD, which let v1.2.3, release/foo and feature/x qualify. A provider with no registered id shape cannot contribute a target.",
+    "resolution_is_independent": "Selecting a target re-asserts must_be_immutable, must_have_exact_source, must_have_capability_manifest and must_have_verification against the named artifact directly. An entry that merely sets qualified=true does not resolve: the flag is asserted by the entry about itself, and an earlier revision let resolution accept an unverified, capability-incomplete, unbound artifact on the strength of it.",
+    "must_state_source_binding": "How the source commit was bound to the artifact must be stated, so an asserted binding is never read as a verified one. The currently qualified artifact is 'asserted_by_prior_evidence_not_rebound_in_this_pass'."
   },
   "required_capability_routes": [
     "/api/projectos/health",
