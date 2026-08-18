@@ -56,6 +56,15 @@ const STAGES = [
     requiresPostgres: true,
   },
   {
+    name: "idempotency-schema",
+    description:
+      "Production uniqueness readback checker and its rejection self-tests",
+    command: [
+      "node",
+      ["scripts/check_production_idempotency_constraints.mjs", "--self-test"],
+    ],
+  },
+  {
     name: "protection",
     description: "Required branch-protection contexts can actually report",
     command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],

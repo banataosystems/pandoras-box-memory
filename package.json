@@ -18,7 +18,8 @@
     "test:memory": "node scripts/check_memory_evidence_intake.mjs",
     "test:registry": "node scripts/validate_capability_registry.mjs --self-test",
     "verify": "node scripts/verify.mjs",
-    "test:idempotency-db": "node scripts/test_learning_idempotency_postgres.mjs"
+    "test:idempotency-db": "node scripts/test_learning_idempotency_postgres.mjs",
+    "test:idempotency-schema": "node scripts/check_production_idempotency_constraints.mjs --self-test"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.3",

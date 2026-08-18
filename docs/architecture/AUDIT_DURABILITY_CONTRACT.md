@@ -147,12 +147,29 @@ surface stored content in logs. That was removed.
   The learning `audit_logs` read uses `.limit(1).maybeSingle()` and its
   contract is "at least one durable row", so it does not require uniqueness.
 
+  **How the remaining half closes.** The requirement is now machine-checkable
+  from the other end. `docs/verification/introspection/PRODUCTION_UNIQUENESS_INTROSPECTION.sql`
+  captures the live index and column-nullability state through an authenticated
+  read-only path, and `scripts/check_production_idempotency_constraints.mjs`
+  validates that capture offline against the three exact key sets. It returns
+  two independent verdicts — constraints satisfied, and capture authoritative —
+  and closes the gate only when both hold. A fixture satisfies the first
+  trivially and can never satisfy the second, so a green self-test does not
+  close anything.
+
+  It also refuses to over-read a result: a partial unique index, a superset or
+  subset key, a non-unique index, an uncaptured table, an omitted `is_unique`,
+  or a nullable key column under default `NULLS DISTINCT` semantics each fail
+  closed rather than being treated as equivalent to full idempotency protection.
+
   **What remains unproven** is that the production database actually carries
   these three constraints. Their defining migrations are classified `missing`,
   and read-only provider introspection was unavailable to this worker
   (`list_tables` and `list_migrations` both returned "You do not have
-  permission"). The requirement is now exact; confirming production still needs
-  authoritative schema introspection.
+  permission"). At the time of writing, `list_projects` succeeds but returns an
+  empty array, so the connection is authenticated with **zero projects in
+  scope** — an authorization-scope gap rather than an outage. The requirement is
+  exact and the verifier exists; what is missing is a capture.
 
 - **The original wording of this gap, retained for provenance:** the uniqueness
   was described as not verifiable from this repository at all. The retry semantics assume Postgres enforces uniqueness on the

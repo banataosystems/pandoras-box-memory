@@ -1,0 +1,66 @@
+{
+  "_comment": [
+    "TEMPLATE ONLY — this is not a production readback and cannot close the PR #32 gate.",
+    "capture_method is deliberately 'synthetic_fixture', which the checker rejects as",
+    "non-authoritative even though the rows below satisfy every constraint.",
+    "",
+    "To produce a real capture: run both queries in",
+    "docs/verification/introspection/PRODUCTION_UNIQUENESS_INTROSPECTION.sql against",
+    "project ivmvufhcsezyhczzondn through an authenticated read-only path, replace",
+    "rows and column_nullability with the actual results, and set provenance to the",
+    "real capture metadata including the sha256 of the exact query text that was run."
+  ],
+  "provenance": {
+    "provider": "supabase",
+    "project_ref": "synthetic",
+    "database_schema": "public",
+    "capture_method": "synthetic_fixture",
+    "authenticated": false,
+    "read_only": true,
+    "captured_at": "2026-08-18T00:00:00Z",
+    "captured_by": "template"
+  },
+  "rows": [
+    {
+      "table_name": "memory_capture_candidates",
+      "index_name": "memory_capture_candidates_idem_key",
+      "constraint_name": "memory_capture_candidates_idem_key",
+      "constraint_type": "u",
+      "is_unique": true,
+      "unique_columns": ["user_id", "namespace", "source", "source_ref"],
+      "partial_predicate": null,
+      "nulls_not_distinct": false
+    },
+    {
+      "table_name": "memory_review_queue_items",
+      "index_name": "memory_review_queue_items_idem_key",
+      "constraint_name": "memory_review_queue_items_idem_key",
+      "constraint_type": "u",
+      "is_unique": true,
+      "unique_columns": ["user_id", "namespace", "candidate_type", "source_ref"],
+      "partial_predicate": null,
+      "nulls_not_distinct": false
+    },
+    {
+      "table_name": "memory_session_digests",
+      "index_name": "memory_session_digests_idem_idx",
+      "constraint_name": null,
+      "constraint_type": null,
+      "is_unique": true,
+      "unique_columns": ["user_id", "namespace", "source", "source_ref"],
+      "partial_predicate": null,
+      "nulls_not_distinct": false
+    }
+  ],
+  "column_nullability": {
+    "memory_capture_candidates": {
+      "user_id": false, "namespace": false, "source": false, "source_ref": false
+    },
+    "memory_review_queue_items": {
+      "user_id": false, "namespace": false, "candidate_type": false, "source_ref": false
+    },
+    "memory_session_digests": {
+      "user_id": false, "namespace": false, "source": false, "source_ref": false
+    }
+  }
+}
