@@ -33,7 +33,7 @@ const EXPECTED = Object.freeze({
   manifestSha256:
     "93bdbd3847c2f51bf53000529d9265ad384b7c65aaff58eb8fdb8b8e7c61f546",
   roadmapSha256:
-    "35d6e6ca3e5fc0d367b9eca4c5aa25f518af0b771c77dfd48460516d9b591b07",
+    "67dc3a55bee796bc31a8a555e02282b689534d0a10ec4730fec1d036c6e2d691",
   registrySummarySha256:
     "c892bb17e2ab261c8980c9421de524fa79cd6523c977948cc97a54147ab6d678",
   supabaseSnapshotSha256:
