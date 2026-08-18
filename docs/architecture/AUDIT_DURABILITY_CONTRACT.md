@@ -126,3 +126,26 @@ surface stored content in logs. That was removed.
   in the gateway boundary lane; this document does not by itself prove it.
 - No production audit row was written, read, or mutated to produce this
   document.
+- **The uniqueness this idempotency rests on is not verifiable from this
+  repository.** The retry semantics assume Postgres enforces uniqueness on the
+  `source_ref` keys behind `memory_capture_candidates`,
+  `memory_review_queue_items`, `memory_session_digests` and the learning
+  `audit_logs` rows. The migrations that create those tables are applied in
+  production but their source is **not committed here** — the live ledger lists
+  them and the parity manifest classifies every one as `missing`:
+
+  | version | name | source |
+  | --- | --- | --- |
+  | 20260620000500 | memory_candidate_transaction | missing |
+  | 20260620000800 | memory_review_queue_storage_boundary | missing |
+  | 20260620006200 | memory_review_queue_rls_tables | missing |
+  | 20260806083632 | pandora_approval_denial_audit_correctness | missing |
+
+  The behavior suite drives a fake client, so it proves the **handler's**
+  ordering and fail-closed decisions. It does **not** prove that the database
+  rejects a duplicate insert, because no committed DDL states that it does.
+  Reading the constraints requires provider metadata access this worker does not
+  hold (`list_migrations` returned "You do not have permission"). Treat
+  "idempotent and keyed on `source_ref`" as an **unverified premise** until
+  either the defining DDL is recovered into source or the constraints are read
+  back from the provider. Nothing here was changed to paper over that gap.
