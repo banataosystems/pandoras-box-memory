@@ -20,6 +20,17 @@ const registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf8"));
 const roadmap = readFileSync(ROADMAP.path, "utf8");
 const tree = readBaselineTree();
 
+// `git commit-tree` refuses to run without an author identity, and CI runners
+// have none configured. These commits are throwaway fixtures, so supply a
+// fixed identity rather than depending on the environment.
+const GIT_IDENTITY = {
+  ...process.env,
+  GIT_AUTHOR_NAME: "pandora-test",
+  GIT_AUTHOR_EMAIL: "pandora-test@example.invalid",
+  GIT_COMMITTER_NAME: "pandora-test",
+  GIT_COMMITTER_EMAIL: "pandora-test@example.invalid",
+};
+
 function errorsAfter(change, roadmapText = roadmap) {
   const candidate = structuredClone(registry);
   change(candidate);
@@ -250,7 +261,8 @@ test("a later main advancement does not invalidate the recorded evidence", () =>
   const dir = mkdtempSync(join(process.env.TMPDIR ?? "/tmp", "pandora-main-advance-"));
   try {
     const repo = resolve(".");
-    const run = (args, cwd = dir) => spawnSync("git", args, { cwd, encoding: "utf8" });
+    const run = (args, cwd = dir) =>
+      spawnSync("git", args, { cwd, encoding: "utf8", env: GIT_IDENTITY });
 
     assert.equal(run(["clone", "--shared", "--no-checkout", repo, "clone"], dir).status, 0);
     const clone = join(dir, "clone");
@@ -302,7 +314,7 @@ test("rejects an observed main that is not an ancestor of the candidate", () => 
   const orphan = spawnSync(
     "git",
     ["commit-tree", "HEAD^{tree}", "-m", "orphan"],
-    { cwd: resolve("."), encoding: "utf8" },
+    { cwd: resolve("."), encoding: "utf8", env: GIT_IDENTITY },
   );
   assert.equal(orphan.status, 0, orphan.stderr);
   const sha = orphan.stdout.trim();
