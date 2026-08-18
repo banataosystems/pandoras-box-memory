@@ -108,13 +108,61 @@ qualify a target.
 **No artifact qualifies, so rollback is UNAVAILABLE** and forward recovery is the
 safe path. Saying that plainly is the correct outcome; inventing a target is not.
 
+### How qualification is proved: structured observations only
+
+Qualification used to ask three independent questions of the cited evidence's
+raw text — does it contain the artifact id, does it contain each required route,
+does it contain the source commit. Nothing tied those three answers to each
+other. A single document that legitimately describes two deployments:
+
+    deployment A  dpl_aaa…  commit aaaa…  routes /x
+    deployment B  dpl_bbb…  commit bbbb…  routes /y /z
+
+answers "yes" to all three for the wrong pairing, so **A qualified on B's commit
+and B's routes**. Every check passed and the conclusion was false. Text
+proximity is not a relation.
+
+Evidence must now carry an explicit `observations` array, and exactly one
+observation is selected by exact `artifact_id` **and** `provider` equality:
+
+```json
+{
+  "observations": [
+    {
+      "provider": "vercel",
+      "artifact_id": "dpl_…",
+      "environment": "production",
+      "deployment_status": "production_deployed",
+      "proof_stage": "production_verified",
+      "source_commit": "<40-hex>",
+      "observed_routes": ["/api/mcp", "…"],
+      "observed_at": "2026-08-17T00:00:00Z"
+    }
+  ]
+}
+```
+
+Then, on that one record: `source_commit` must be **exactly equal**, every
+required route must be a **member of the `observed_routes` set**, and the
+observation's own environment/deployment/stage must match the claimed
+verification class — so a production-classified document cannot lend its stage
+to a preview observation inside it. Two observations for the same artifact are
+ambiguous and refused rather than guessed.
+
+Existing unstructured evidence stays valid **historical** evidence. It simply
+cannot qualify a rollback target, and it has not been retroactively reinterpreted
+as structured proof.
+
 ### What would restore availability
 
-1. An authenticated Vercel readback naming the required routes on a specific
-   deployment id, indexed as **current** evidence.
-2. Evidence connecting that exact deployment id to an exact source commit.
+1. An authenticated Vercel readback emitting a **structured observation** for a
+   specific immutable deployment id — naming the routes actually probed, the
+   environment, the status and `observed_at` — indexed as **current** evidence.
+2. That same observation must carry the exact `source_commit` the provider can
+   prove the deployment was built from. A commit appearing elsewhere in the
+   document no longer counts.
 3. Or a rehearsal: deploy to preview from a known-good commit, probe the required
-   routes, and index that observation.
+   routes, and index that observation in the same structured form.
 
 ## Rollback procedure (NOT YET REHEARSED)
 
@@ -182,6 +230,11 @@ If a rollback is performed, recovering forward requires:
   instance.
 - **OAuth-required surfaces were not tested.** Verifying the consent and token
   flows requires live credentials, which were not used.
+- **No structured provider observation was gathered in this pass.** Authenticated
+  read-only Vercel access was not available to the worker that tightened this
+  gate (the Vercel connector is unauthorized in that environment), so no new
+  deployment observation could be recorded. Nothing was fabricated to fill the
+  gap, and the count of qualified targets therefore stays at zero.
 - **Therefore rollback capability remains UNPROVEN.** The correct status is:
   procedure authored, candidate identified, rehearsal outstanding.
 

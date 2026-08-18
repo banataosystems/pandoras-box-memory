@@ -26,16 +26,33 @@
 //      could simply forge all four instead of only `qualified`, and a forged
 //      entry with zero backing evidence still resolved.
 //
+// The seventh was about HOW EVIDENCE IS READ:
+//
+//   7. Qualification resolved evidence and then asked three independent
+//      questions of its raw text: does it contain the artifact id, does it
+//      contain each required route, does it contain the source commit. Nothing
+//      tied the three answers together. One document describing two
+//      deployments answers "yes" to all three for the WRONG pairing, so
+//      deployment A qualified on deployment B's commit and B's routes. Every
+//      check passed and the conclusion was false. Replaced by a structured
+//      `observations` contract: exactly one observation is selected by exact
+//      (artifact_id, provider) equality, and every fact is then read from that
+//      one record by structured comparison. See selectObservation().
+//
 // So qualification is DERIVED here, never read:
 //
 //   * Capability completeness is computed by comparing a concrete
 //     `capability_manifest` against `required_capability_routes`, and every
-//     required route must literally appear in the cited evidence.
+//     required route must be a member of the selected observation's exact
+//     `observed_routes` set.
 //   * Verification resolves a concrete evidence entry that must be CURRENT,
-//     belong to the same provider, name this exact artifact id, and carry the
-//     proof stage the claimed verification class requires.
-//   * Source binding resolves evidence connecting this exact artifact id to
-//     this exact commit. `source_commit_binding` prose is retained as
+//     belong to the same provider, and carry a single observation for this
+//     exact artifact id. Both the document's classification AND that
+//     observation must carry the proof stage the claimed verification class
+//     requires, so a production-classified document cannot lend its stage to a
+//     preview observation inside it.
+//   * Source binding resolves the observation for this exact artifact id and
+//     requires `observation.source_commit === source_commit` exactly. `source_commit_binding` prose is retained as
 //     provenance, but it is not proof of anything.
 //
 // `qualified` survives only as a generated readability field: CI asserts
@@ -117,6 +134,82 @@ export function loadEvidenceContextFromDisk(requiredRoutes) {
 }
 
 /**
+ * A STRUCTURED OBSERVATION is the only thing that can qualify a target.
+ *
+ * The seventh rejected model was substring co-occurrence. Qualification used
+ * three independent `evidence.text.includes(...)` calls — one for the artifact
+ * id, one for each required route, one for the source commit. Nothing tied the
+ * three hits to each other. A single evidence document that legitimately
+ * describes two deployments:
+ *
+ *     deployment A (dpl_aaa), commit aaaa…, routes /x
+ *     deployment B (dpl_bbb), commit bbbb…, routes /y /z
+ *
+ * satisfies `includes("dpl_aaa")`, `includes("bbbb…")` and `includes("/y")`
+ * simultaneously, so deployment A qualified on deployment B's commit and
+ * deployment B's routes. Every individual check passed and the conclusion was
+ * false. Prose proximity is not a relation.
+ *
+ * So evidence must now carry an explicit `observations` array, and exactly one
+ * observation is selected by exact (artifact_id, provider) equality. Every
+ * subsequent fact is read from THAT record by structured comparison. Nothing is
+ * inferred from surrounding text, and a document that merely mentions an id
+ * proves nothing about it.
+ *
+ * Returns { observation } on success, or { error } describing why not.
+ * Unstructured historical evidence returns an error rather than being
+ * reinterpreted: prose stays prose.
+ */
+export function selectObservation(found, artifactId, provider) {
+  if (typeof found?.text !== "string") {
+    return { error: "its bytes could not be read" };
+  }
+
+  let parsed;
+  try {
+    parsed = JSON.parse(found.text);
+  } catch {
+    return {
+      error:
+        "it is not structured evidence (no parseable JSON body). Historical " +
+        "prose remains valid historical evidence, but it cannot qualify a " +
+        "rollback target — co-occurrence of an id, a commit and a route in " +
+        "free text does not bind them to each other",
+    };
+  }
+
+  const observations = parsed?.observations;
+  if (!Array.isArray(observations)) {
+    return {
+      error:
+        "it declares no 'observations' array, so there is no record that binds " +
+        "an artifact to a commit and a route set",
+    };
+  }
+
+  const matches = observations.filter(
+    (observation) =>
+      observation?.artifact_id === artifactId &&
+      observation?.provider === provider,
+  );
+  if (matches.length === 0) {
+    return {
+      error:
+        `it carries no observation whose artifact_id is exactly '${artifactId}' ` +
+        `and whose provider is exactly '${provider}'`,
+    };
+  }
+  if (matches.length > 1) {
+    return {
+      error:
+        `it carries ${matches.length} observations for '${artifactId}', so the ` +
+        `binding is ambiguous and is refused rather than guessed`,
+    };
+  }
+  return { observation: matches[0] };
+}
+
+/**
  * Derive whether an artifact may serve as a rollback target.
  *
  * Every assertion here resolves a fact against evidence the artifact does not
@@ -183,14 +276,16 @@ export function targetQualificationErrors(artifact, label, context) {
       );
       return null;
     }
-    if (typeof found.text !== "string" || !found.text.includes(id)) {
+    // Structured binding, not co-occurrence: exactly one observation in the
+    // cited evidence must name this artifact id AND this provider.
+    const selected = selectObservation(found, id, artifact.provider);
+    if (selected.error) {
       errors.push(
-        `${prefix}: evidence '${cited}' never mentions ${id}, so it does not ` +
-          `bind to this immutable artifact`,
+        `${prefix}: evidence '${cited}' cannot bind to ${id} because ${selected.error}`,
       );
       return null;
     }
-    return found;
+    return { ...found, observation: selected.observation };
   };
 
   // --- verification -------------------------------------------------------
@@ -205,6 +300,10 @@ export function targetQualificationErrors(artifact, label, context) {
     const proof = resolve("verification_evidence", "the claimed verification");
     if (proof) {
       const entry = proof.entry;
+      // The index entry classifies the DOCUMENT; the observation states what was
+      // seen for THIS artifact. Both must agree, so a production-classified
+      // document cannot lend its stage to a preview observation inside it.
+      const seen = proof.observation;
       if (artifact.verification === "production_verified") {
         if (entry.proof_stage !== "production_verified" ||
             entry.production_verified !== true ||
@@ -216,11 +315,34 @@ export function targetQualificationErrors(artifact, label, context) {
               `'${entry.environment}', deployment '${entry.deployment_status}')`,
           );
         }
+        if (seen.environment !== "production" ||
+            seen.deployment_status !== "production_deployed" ||
+            seen.proof_stage !== "production_verified") {
+          errors.push(
+            `${prefix}: the observation for ${id} in '${entry.evidence_id}' is ` +
+              `environment '${seen.environment}', deployment ` +
+              `'${seen.deployment_status}', stage '${seen.proof_stage}' — not a ` +
+              `production-verified observation`,
+          );
+        }
       } else if (entry.environment !== "preview" ||
                  entry.deployment_status !== "preview_deployed") {
         errors.push(
           `${prefix}: rehearsal_verified requires evidence from a non-production ` +
             `deployment; '${entry.evidence_id}' is environment '${entry.environment}'`,
+        );
+      } else if (seen.environment !== "preview" ||
+                 seen.deployment_status !== "preview_deployed") {
+        errors.push(
+          `${prefix}: the observation for ${id} in '${entry.evidence_id}' is ` +
+            `environment '${seen.environment}', deployment ` +
+            `'${seen.deployment_status}' — not a preview rehearsal observation`,
+        );
+      }
+      if (typeof seen.observed_at !== "string" || !seen.observed_at.trim()) {
+        errors.push(
+          `${prefix}: the observation for ${id} in '${entry.evidence_id}' records ` +
+            `no observed_at, so it does not state when it was seen`,
         );
       }
     }
@@ -245,12 +367,27 @@ export function targetQualificationErrors(artifact, label, context) {
     }
     const proof = resolve("capability_manifest_evidence", "the capability manifest");
     if (proof) {
-      const unproven = context.requiredRoutes.filter((route) => !proof.text.includes(route));
-      if (unproven.length > 0) {
+      const observed = proof.observation.observed_routes;
+      if (!Array.isArray(observed) ||
+          observed.some((route) => typeof route !== "string" || !route.trim())) {
         errors.push(
-          `${prefix}: capability_manifest_evidence '${proof.entry.evidence_id}' ` +
-            `does not observe route(s) ${unproven.join(", ")} on this artifact`,
+          `${prefix}: the observation for ${id} in ` +
+            `'${proof.entry.evidence_id}' declares no observed_routes array, so ` +
+            `no route was actually observed on this artifact`,
         );
+      } else {
+        // Exact set membership. A route mentioned elsewhere in the document,
+        // or bound to a different deployment, is not a route observed here.
+        const observedSet = new Set(observed);
+        const unproven = context.requiredRoutes.filter(
+          (route) => !observedSet.has(route),
+        );
+        if (unproven.length > 0) {
+          errors.push(
+            `${prefix}: capability_manifest_evidence '${proof.entry.evidence_id}' ` +
+              `does not observe route(s) ${unproven.join(", ")} on this artifact`,
+          );
+        }
       }
     }
   }
@@ -261,10 +398,13 @@ export function targetQualificationErrors(artifact, label, context) {
     errors.push(`${prefix}: a rollback target requires an exact 40-hex source_commit`);
   } else {
     const proof = resolve("source_commit_evidence", "that this artifact was built from this commit");
-    if (proof && !proof.text.includes(commit)) {
+    if (proof && proof.observation.source_commit !== commit) {
       errors.push(
-        `${prefix}: source_commit_evidence '${proof.entry.evidence_id}' does not ` +
-          `connect ${id} to ${commit}; it mentions the artifact but not the commit`,
+        `${prefix}: source_commit_evidence '${proof.entry.evidence_id}' binds ` +
+          `${id} to source_commit ` +
+          `'${proof.observation.source_commit ?? "<none>"}', not ${commit}. A ` +
+          `commit appearing elsewhere in that document belongs to a different ` +
+          `observation.`,
       );
     }
   }
@@ -435,6 +575,9 @@ function selfTest() {
   const ROUTES = ["/api/projectos/health", "/api/mcp"];
   const ID = "dpl_AAAAAAAAAAAAAAAAAAAAAAAA";
   const COMMIT = "a".repeat(40);
+  // A second, unrelated deployment described in the SAME evidence document.
+  const OTHER_ID = "dpl_BBBBBBBBBBBBBBBBBBBBBBBB";
+  const OTHER_COMMIT = "b".repeat(40);
 
   const proofEntry = (over = {}) => ({
     evidence_id: "live-proof",
@@ -447,9 +590,22 @@ function selfTest() {
     superseded_by: null,
     ...over,
   });
-  const proofText =
-    `production deployment ${ID} serves /api/projectos/health and /api/mcp; ` +
-    `the runtime was re-read from merge commit ${COMMIT} and deployed`;
+  // A STRUCTURED observation. Every fact about ID lives in one record, so no
+  // fact can be borrowed from a neighbouring deployment described in the same
+  // document.
+  const observation = (over = {}) => ({
+    provider: "vercel",
+    artifact_id: ID,
+    environment: "production",
+    deployment_status: "production_deployed",
+    proof_stage: "production_verified",
+    source_commit: COMMIT,
+    observed_routes: [...ROUTES],
+    observed_at: "2026-08-17T00:00:00Z",
+    ...over,
+  });
+  const proofDoc = (observations) => JSON.stringify({ observations });
+  const proofText = proofDoc([observation()]);
 
   const ctx = (over = {}, text = proofText) =>
     buildEvidenceContext(ROUTES, [
@@ -512,8 +668,100 @@ function selfTest() {
     ["verification is unverified", t((a) => { a.verification = "unverified"; }), context, true],
     ["production_verified claimed on non-production evidence", target, ctx({ environment: "preview", deployment_status: "preview_deployed" }), true],
     ["rehearsal_verified on production evidence", t((a) => { a.verification = "rehearsal_verified"; }), context, true],
-    ["rehearsal_verified on preview evidence", t((a) => { a.verification = "rehearsal_verified"; }), ctx({ environment: "preview", deployment_status: "preview_deployed" }), false],
+    // CASE 8: a genuine preview rehearsal. Both the index entry AND the
+    // observation must say preview — a production observation inside a
+    // preview-classified document does not become a rehearsal.
+    ["rehearsal_verified on preview evidence", t((a) => { a.verification = "rehearsal_verified"; }), ctx({ environment: "preview", deployment_status: "preview_deployed" }, proofDoc([observation({ environment: "preview", deployment_status: "preview_deployed", proof_stage: "deployed" })])), false],
+    ["rehearsal claimed on a preview document holding a production observation", t((a) => { a.verification = "rehearsal_verified"; }), ctx({ environment: "preview", deployment_status: "preview_deployed" }), true],
     ["legacy self-asserted capability boolean present", t((a) => { a.capability_manifest_covers_required_routes = true; }), context, true],
+
+    // ------------------------------------------------------------------
+    // ADVERSARIAL CASES for the substring-co-occurrence defect.
+    //
+    // CASE 1 is the defect itself. One evidence document legitimately
+    // describes deployment A and deployment B. Under the old three
+    // independent includes() checks, A qualified using B's commit and B's
+    // routes, because every string it looked for was somewhere in the text.
+    // ------------------------------------------------------------------
+    [
+      "CASE 1: co-occurring deployment B's commit and routes cannot qualify A",
+      target,
+      ctx({}, proofDoc([
+        observation({ source_commit: OTHER_COMMIT, observed_routes: [] }),
+        observation({
+          artifact_id: OTHER_ID,
+          source_commit: COMMIT,
+          observed_routes: [...ROUTES],
+        }),
+      ])),
+      true,
+    ],
+    [
+      "CASE 2: exact artifact, wrong source_commit",
+      target,
+      ctx({}, proofDoc([observation({ source_commit: OTHER_COMMIT })])),
+      true,
+    ],
+    [
+      "CASE 3: exact artifact and commit, one required route absent",
+      target,
+      ctx({}, proofDoc([observation({ observed_routes: [ROUTES[0]] })])),
+      true,
+    ],
+    [
+      "CASE 4: superseded evidence entry",
+      target,
+      ctx({ current: false, superseded_by: "newer-proof" }),
+      true,
+    ],
+    [
+      "CASE 5: evidence hash mismatch",
+      target,
+      ctx({ hashMismatch: true }),
+      true,
+    ],
+    [
+      "CASE 6: wrong provider on the observation",
+      target,
+      ctx({}, proofDoc([observation({ provider: "supabase" })])),
+      true,
+    ],
+    [
+      "CASE 6b: wrong provider on the evidence index entry",
+      target,
+      ctx({ provider: "supabase" }),
+      true,
+    ],
+    [
+      "CASE 7: valid structured production observation qualifies",
+      target,
+      context,
+      false,
+    ],
+    [
+      "prose evidence cannot qualify a target",
+      target,
+      ctx({}, `production deployment ${ID} serves ${ROUTES.join(" and ")} from commit ${COMMIT}`),
+      true,
+    ],
+    [
+      "two observations for the same artifact are ambiguous",
+      target,
+      ctx({}, proofDoc([observation(), observation()])),
+      true,
+    ],
+    [
+      "an observation with no observed_routes array proves no route",
+      target,
+      ctx({}, proofDoc([observation({ observed_routes: undefined })])),
+      true,
+    ],
+    [
+      "an observation with no observed_at does not say when it was seen",
+      target,
+      ctx({}, proofDoc([observation({ observed_at: undefined })])),
+      true,
+    ],
   ];
 
   const registry = {
