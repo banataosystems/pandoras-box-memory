@@ -1,0 +1,53 @@
+name: Memory Supabase parity evidence
+
+on:
+  pull_request:
+    paths:
+      - "docs/provider-observations/PANDORA_SUPABASE_PROVIDER_OBSERVATION_2026-08-19.json*"
+      - "docs/recovery/PANDORA_SUPABASE_RECOVERY_*_2026-08-19.*"
+      - "scripts/check_memory_supabase_parity.mjs"
+      - ".github/workflows/memory-supabase-parity-evidence.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/provider-observations/PANDORA_SUPABASE_PROVIDER_OBSERVATION_2026-08-19.json*"
+      - "docs/recovery/PANDORA_SUPABASE_RECOVERY_*_2026-08-19.*"
+      - "scripts/check_memory_supabase_parity.mjs"
+      - ".github/workflows/memory-supabase-parity-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: memory-supabase-parity-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-memory-supabase-parity:
+    name: Verify Memory Supabase parity evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact event source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Bind checkout to exact source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="${{ github.event.pull_request.head.sha || github.sha }}"
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected"
+          echo "source_sha=$actual" >> "$GITHUB_STEP_SUMMARY"
+          echo "tree_sha=$(git rev-parse HEAD^{tree})" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify content-addressed parity and recovery evidence
+        run: node scripts/check_memory_supabase_parity.mjs --self-test
+      - name: Scan runtime and verifier source for literal secrets
+        run: bash scripts/check_no_literal_secrets.sh
