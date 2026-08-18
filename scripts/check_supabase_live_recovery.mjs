@@ -7,7 +7,9 @@ const M='supabase/recovery/ROLLBACK_FORWARD_RECOVERY_MATRIX_2026-08-19.json';
 const H='supabase/recovery/provider-observations/2026-08-19_supabase_readback_status.json';
 const L='docs/migrations/LIVE_MIGRATION_LEDGER_2026-08-17.json';
 const sha=v=>createHash('sha256').update(v,'utf8').digest('hex');
-const read=p=>JSON.parse(readFileSync(p,'utf8'));
+const raw=p=>readFileSync(p,'utf8');
+const read=p=>JSON.parse(raw(p));
+const RAW_SHA={inventory:'8b8f0670a9dbd6a0a1ced7a9649d515820721b953b8f034689b1be0efdd877a8',matrix:'6f9cd2f8378b56159bdf1e88838eb5b16507005eae92ae4e19de9e7894889dcd',historical:'1434965451ecf6fe1d74563a35aadff1210c25e6d11430b7ad3b956bd6d27bb4'};
 const clone=v=>JSON.parse(JSON.stringify(v));
 const rehash=d=>(d.evidence_payload_sha256=sha(JSON.stringify(d.evidence_payload)),d);
 const eq=(v,a)=>v&&typeof v==='object'&&!Array.isArray(v)&&Object.keys(v).length===a.length&&a.every(k=>Object.hasOwn(v,k));
@@ -18,8 +20,11 @@ const histPayload=['captured_at','repository','source_context','memory_authority
 const histRead=['provider','project_ref','environment','status','current_provider_state_refreshed','current_live_migration_count','current_edge_function_inventory_verified','current_schema_security_inventory_verified','last_verified_ledger','attempts','conclusion','next_read_gate'];
 const matrixPayload=['captured_at','repository','source_context','inventory_evidence_path','inventory_payload_sha256','rows','summary','safety'];
 const hex=(v,n)=>typeof v==='string'&&new RegExp(`^[0-9a-f]{${n}}$`).test(v);
-function validate(inv,matrix,hist,ledger){
+function validate(inv,matrix,hist,ledger,rawDocs){
  const e=[]; const add=(c,m)=>{if(!c)e.push(m)};
+ add(sha(rawDocs.inventory)===RAW_SHA.inventory,'inventory: whole-file hash mismatch');
+ add(sha(rawDocs.matrix)===RAW_SHA.matrix,'matrix: whole-file hash mismatch');
+ add(sha(rawDocs.historical)===RAW_SHA.historical,'historical: whole-file hash mismatch');
  for(const [d,n,p] of [[inv,'inventory',invPayload],[hist,'historical',histPayload],[matrix,'matrix',matrixPayload]]){
   add(eq(d,root),`${n}: closed root schema`); add(d.schema_version==='1.0.0',`${n}: schema version`);
   add(eq(d.evidence_payload,p),`${n}: closed payload schema`);
@@ -70,22 +75,24 @@ function validate(inv,matrix,hist,ledger){
  add(!/-----BEGIN [A-Z ]*PRIVATE KEY-----|\bghp_[A-Za-z0-9]{20,}\b|\bgithub_pat_[A-Za-z0-9_]{20,}\b|\bsk_live_[A-Za-z0-9]{12,}\b|\bAKIA[0-9A-Z]{16}\b|\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\./.test(serialized),'evidence: secret-like literal');
  return e;
 }
-function selfTest(i,m,h,l){
- const cases=[['valid',clone(i),clone(m),clone(h),false]];
- let x=clone(h);x.production_verified=true;cases.push(['unknown historical root',clone(i),clone(m),x,true]);
- x=clone(h);x.evidence_payload.supabase_readback.production_verified=true;rehash(x);cases.push(['unknown historical nested',clone(i),clone(m),x,true]);
- x=clone(i);x.production_verified=true;cases.push(['unknown inventory root',x,clone(m),clone(h),true]);
- x=clone(i);x.evidence_payload.migration_ledger.migration_count=69;rehash(x);cases.push(['migration drift',x,clone(m),clone(h),true]);
- x=clone(i);x.evidence_payload.database_catalog.security_definer_effective_execute.anon_execute=1;rehash(x);cases.push(['low role privileged execute',x,clone(m),clone(h),true]);
- let y=clone(m);y.evidence_payload.rows[0].rollback_qualified=true;rehash(y);cases.push(['false rollback',clone(i),y,clone(h),true]);
- x=clone(i);x.evidence_payload.safety.production_database_mutated=true;rehash(x);cases.push(['hidden production mutation',x,clone(m),clone(h),true]);
- x=clone(i);x.evidence_payload.edge_functions.source_parity_status='approved';rehash(x);cases.push(['Edge lane overclaim',x,clone(m),clone(h),true]);
- y=clone(m);y.evidence_payload.inventory_payload_sha256='0'.repeat(64);rehash(y);cases.push(['detached matrix',clone(i),y,clone(h),true]);
- let bad=0;for(const [n,a,b,c,reject] of cases){const got=validate(a,b,c,l).length>0;if(got!==reject){console.error(`SELF-TEST FAIL: ${n}`);bad++;}}
+function selfTest(i,m,h,l,baseRaw){
+ const cases=[['valid',clone(i),clone(m),clone(h),baseRaw,false]];
+ let x=clone(h);x.production_verified=true;cases.push(['unknown historical root',clone(i),clone(m),x,{...baseRaw,historical:JSON.stringify(x)},true]);
+ x=clone(h);x.evidence_payload.supabase_readback.production_verified=true;rehash(x);cases.push(['unknown historical nested',clone(i),clone(m),x,{...baseRaw,historical:JSON.stringify(x)},true]);
+ x=clone(i);x.production_verified=true;cases.push(['unknown inventory root',x,clone(m),clone(h),{...baseRaw,inventory:JSON.stringify(x)},true]);
+ x=clone(i);x.evidence_payload.database_catalog.rls_and_policies.production_verified=true;rehash(x);cases.push(['unknown deep inventory claim',x,clone(m),clone(h),{...baseRaw,inventory:JSON.stringify(x)},true]);
+ x=clone(i);x.evidence_payload.migration_ledger.migration_count=69;rehash(x);cases.push(['migration drift',x,clone(m),clone(h),{...baseRaw,inventory:JSON.stringify(x)},true]);
+ x=clone(i);x.evidence_payload.database_catalog.security_definer_effective_execute.anon_execute=1;rehash(x);cases.push(['low role privileged execute',x,clone(m),clone(h),{...baseRaw,inventory:JSON.stringify(x)},true]);
+ let y=clone(m);y.evidence_payload.rows[0].rollback_qualified=true;rehash(y);cases.push(['false rollback',clone(i),y,clone(h),{...baseRaw,matrix:JSON.stringify(y)},true]);
+ x=clone(i);x.evidence_payload.safety.production_database_mutated=true;rehash(x);cases.push(['hidden production mutation',x,clone(m),clone(h),{...baseRaw,inventory:JSON.stringify(x)},true]);
+ x=clone(i);x.evidence_payload.edge_functions.source_parity_status='approved';rehash(x);cases.push(['Edge lane overclaim',x,clone(m),clone(h),{...baseRaw,inventory:JSON.stringify(x)},true]);
+ y=clone(m);y.evidence_payload.inventory_payload_sha256='0'.repeat(64);rehash(y);cases.push(['detached matrix',clone(i),y,clone(h),{...baseRaw,matrix:JSON.stringify(y)},true]);
+ let bad=0;for(const [n,a,b,c,r,reject] of cases){const got=validate(a,b,c,l,r).length>0;if(got!==reject){console.error(`SELF-TEST FAIL: ${n}`);bad++;}}
  if(bad)exit(1);console.log(`Supabase live recovery self-test passed (${cases.length} cases).`);
 }
-const inv=read(I),matrix=read(M),hist=read(H),ledger=read(L);
-if(argv.includes('--self-test'))selfTest(inv,matrix,hist,ledger);
-const errors=validate(inv,matrix,hist,ledger);
+const rawDocs={inventory:raw(I),matrix:raw(M),historical:raw(H)};
+const inv=JSON.parse(rawDocs.inventory),matrix=JSON.parse(rawDocs.matrix),hist=JSON.parse(rawDocs.historical),ledger=read(L);
+if(argv.includes('--self-test'))selfTest(inv,matrix,hist,ledger,rawDocs);
+const errors=validate(inv,matrix,hist,ledger,rawDocs);
 if(errors.length){console.error('Supabase live recovery gate FAILED:');for(const x of errors)console.error(`  - ${x}`);exit(1);}
 console.log('Supabase live recovery gate passed: 68 migrations; 14 exact, 1 sanitized, 53 source-missing; production inventory hashed; rollback unqualified; no production mutation.');
