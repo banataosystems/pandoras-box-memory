@@ -7,8 +7,8 @@
   "source": {
     "pull_request": 34,
     "branch": "evidence/edge-parity-and-rollback",
-    "candidate_head": "4dbd1369c1379a636bac9663aa8fd2cc23c36030",
-    "candidate_tree": "09a49173d28f64554b8f412aa7796fe245e03cd9",
+    "candidate_head": "7904ca855541f5cab3a615e794a0358d8b8e4634",
+    "candidate_tree": "04f197e62a9b52d4450b29cb701e32559185170f",
     "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
     "binding_note": "candidate_head names the parent of the commit carrying this artifact. Enforced by scripts/check_capability_evidence_binding.mjs, which lands on the gateway-boundaries lane."
   },
@@ -34,7 +34,7 @@
       "origin/main",
       "any branch or tag"
     ],
-    "guard": "scripts/check_rollback_targets.mjs, 10 self-tests, wired into npm run verify",
+    "guard": "scripts/check_rollback_targets.mjs, 32 self-tests, wired into npm run verify",
     "unclosed_limitations": [
       "the qualified artifact capability manifest was not re-probed (Vercel unauthenticated in this session)",
       "its source commit is asserted by prior evidence and was not independently rebound to the artifact"
@@ -52,8 +52,8 @@
       "unregistered provider",
       "missing provider"
     ],
-    "self_tests": 25,
-    "cross_check": "scripts/check_rollback_targets.mjs validates this artifact against the registry: release_candidate_artifact_id must name a QUALIFIED registry entry, and the superseded prose field is rejected outright.",
+    "self_tests": 32,
+    "cross_check": "scripts/check_rollback_targets.mjs validates this artifact against the registry: release_candidate_artifact_id must name a QUALIFIED registry entry, the superseded prose field is rejected outright, and the resolution path independently re-asserts every target property rather than trusting the registry's own qualified flag.",
     "superseded_statements": [
       {
         "field": "review_remediation.recurrence_prevention",
@@ -67,7 +67,20 @@
       }
     ],
     "fourth_review_finding": "the durable evidence still asserted the origin/main model that the validator had already rejected, so code and evidence disagreed and a future operator reading the artifact could have been misled",
-    "fourth_review_fix": "the rollback block now names an artifact id rather than prose, every rejected model is recorded with the review that rejected it, and a registry cross-check makes the disagreement mechanically impossible"
+    "fourth_review_fix": "the rollback block now names an artifact id rather than prose, every rejected model is recorded with the review that rejected it, and a registry cross-check makes the disagreement mechanically impossible",
+    "fifth_review_finding": "registry resolution required only that the named id EXIST and that the registry entry assert qualified=true. The properties behind that flag (production/rehearsal verification, capability completeness, exact source binding) were asserted only in validateRegistry(), a separate function. Called on its own, validateEvidenceAgainstRegistry() accepted an artifact that was unverified, capability-incomplete and had no source commit, purely because it claimed qualified=true.",
+    "fifth_review_fix": "targetQualificationErrors() now holds the target properties in one place and is called from BOTH validateRegistry() and the resolution path, so resolution never depends on a self-asserted flag or on another checker having run first. A rollback target must additionally state how its source_commit was bound, so an asserted binding can never be mistaken for a verified one.",
+    "fifth_review_defect_class": "the same class as the rejected self-declared source.branch and the shape-only candidate_tree check: reading a flag the checked object controls, instead of asserting the underlying fact.",
+    "fifth_review_negative_tests": [
+      "resolution alone: named artifact is unverified",
+      "resolution alone: named artifact drops capabilities",
+      "resolution alone: named artifact has no exact source",
+      "resolution alone: named artifact has unstated source binding",
+      "resolution alone: named artifact has no limitations array",
+      "resolution alone: every target property fails at once",
+      "registry: qualified without stated source binding"
+    ],
+    "fifth_review_reproduced_before_fixing": "yes — the rigged artifact was accepted with zero errors before the change and is rejected with five named reasons after it."
   },
   "edge_parity": {
     "method": "read-only list_edge_functions and get_edge_function; no function deployed, updated, or invoked",
@@ -109,7 +122,8 @@
     "structural_gaps": [
       "Edge Functions version independently at Supabase and do not roll back with Vercel",
       "no applied migration has rollback metadata at the provider, so there is no down-migration path for any of the 68"
-    ]
+    ],
+    "release_candidate_enforcement": "Resolution re-asserts verification class, capability completeness, exact 40-hex source_commit, stated source_commit_binding, and an explicit limitations array against the named artifact itself. The registry's qualified flag is checked as well, but is not sufficient on its own."
   },
   "remaining_gates": [
     "independent review of this exact candidate head",

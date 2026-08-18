@@ -51,6 +51,64 @@ const QUALIFYING_VERIFICATIONS = new Set([
 ]);
 
 /**
+ * The properties an artifact must ACTUALLY carry to serve as a rollback target.
+ *
+ * A fifth review question asked whether registry resolution requires the
+ * referenced artifact to remain qualified, capability-complete, appropriately
+ * verified, and exact-source-bound — or merely checks that the id exists. It
+ * merely checked existence plus `qualified === true`, and `qualified` is a
+ * boolean the artifact asserts about itself. The deeper properties lived only
+ * in validateRegistry(), so the two checks had to be run together for the
+ * guarantee to hold; called on its own, resolution accepted an unverified,
+ * capability-incomplete, unbound artifact that simply claimed qualified=true.
+ *
+ * That is the same defect class as trusting a self-declared `source.branch`:
+ * a check that reads a flag the checked object controls, instead of asserting
+ * the underlying fact. These assertions are therefore made HERE and called
+ * from both paths, so resolution never depends on a flag or on another
+ * function having run first.
+ */
+export function targetQualificationErrors(artifact, label) {
+  const errors = [];
+  const id = artifact?.artifact_id ?? "<missing artifact_id>";
+  const prefix = label ?? id;
+
+  if (!QUALIFYING_VERIFICATIONS.has(artifact?.verification)) {
+    errors.push(
+      `${prefix}: a rollback target requires production_verified or ` +
+        `rehearsal_verified, not '${artifact?.verification}'`,
+    );
+  }
+  if (artifact?.capability_manifest_covers_required_routes !== true) {
+    errors.push(
+      `${prefix}: a rollback target requires a capability manifest covering the ` +
+        `required routes — a target that drops capabilities is a partial ` +
+        `outage, not a rollback`,
+    );
+  }
+  if (
+    typeof artifact?.source_commit !== "string" ||
+    !/^[0-9a-f]{40}$/.test(artifact.source_commit)
+  ) {
+    errors.push(`${prefix}: a rollback target requires an exact 40-hex source_commit`);
+  }
+  if (
+    typeof artifact?.source_commit_binding !== "string" ||
+    !artifact.source_commit_binding.trim()
+  ) {
+    errors.push(
+      `${prefix}: a rollback target must state how its source_commit was bound, ` +
+        `so an asserted binding is never mistaken for a verified one`,
+    );
+  }
+  if (!Array.isArray(artifact?.limitations)) {
+    errors.push(`${prefix}: a rollback target requires an explicit limitations array`);
+  }
+
+  return errors;
+}
+
+/**
  * Cross-check the durable evidence against the registry.
  *
  * A fourth review finding was that the validator had been corrected while the
@@ -83,10 +141,21 @@ export function validateEvidenceAgainstRegistry(evidence, registry) {
       `rollback evidence names release candidate '${named}', which is not in the ` +
         `release-artifact registry`,
     );
-  } else if (artifact.qualified !== true) {
+  } else {
+    if (artifact.qualified !== true) {
+      errors.push(
+        `rollback evidence names release candidate '${named}', which the registry ` +
+          `records as NOT qualified`,
+      );
+    }
+    // Independent of the qualified flag: re-assert the properties themselves,
+    // so resolution cannot be satisfied by an artifact that merely claims to
+    // qualify, and does not depend on validateRegistry() having run first.
     errors.push(
-      `rollback evidence names release candidate '${named}', which the registry ` +
-        `records as NOT qualified`,
+      ...targetQualificationErrors(
+        artifact,
+        `rollback evidence names release candidate '${named}'`,
+      ),
     );
   }
 
@@ -152,26 +221,11 @@ export function validateRegistry(registry) {
     }
 
     if (artifact?.qualified === true) {
-      // Everything a target must carry, or it is not a target.
-      if (!QUALIFYING_VERIFICATIONS.has(artifact.verification)) {
-        errors.push(
-          `${id}: qualified=true requires production_verified or rehearsal_verified, ` +
-            `not '${artifact.verification}'`,
-        );
-      }
-      if (artifact.capability_manifest_covers_required_routes !== true) {
-        errors.push(
-          `${id}: qualified=true requires a capability manifest covering the ` +
-            `required routes — a target that drops capabilities is a partial ` +
-            `outage, not a rollback`,
-        );
-      }
-      if (typeof artifact.source_commit !== "string" || !/^[0-9a-f]{40}$/.test(artifact.source_commit)) {
-        errors.push(`${id}: qualified=true requires an exact 40-hex source_commit`);
-      }
-      if (!Array.isArray(artifact.limitations)) {
-        errors.push(`${id}: qualified=true requires an explicit limitations array`);
-      }
+      // Same assertions the resolution path makes. One definition, two callers,
+      // so the two can never drift into disagreeing about what a target is.
+      errors.push(
+        ...targetQualificationErrors(artifact, `${id}: qualified=true`),
+      );
     }
 
     if (
@@ -214,6 +268,7 @@ function selfTest() {
       verification: "production_verified",
       capability_manifest_covers_required_routes: true,
       source_commit: "a".repeat(40),
+      source_commit_binding: "rebound_from_provider_readback",
       limitations: [],
       qualified: true,
     }],
@@ -243,6 +298,7 @@ function selfTest() {
     ["qualified but drops capabilities", clone((r) => { r.artifacts[0].capability_manifest_covers_required_routes = false; }), true],
     ["qualified without exact source", clone((r) => { r.artifacts[0].source_commit = null; }), true],
     ["qualified without limitations", clone((r) => { delete r.artifacts[0].limitations; }), true],
+    ["qualified without stated source binding", clone((r) => { delete r.artifacts[0].source_commit_binding; }), true],
     ["count mismatch", clone((r) => { r.current_status.qualified_targets = 5; }), true],
     ["availability claimed with no qualified target", clone((r) => {
       r.artifacts[0].qualified = false;
@@ -252,6 +308,12 @@ function selfTest() {
     ["duplicate artifact id", clone((r) => { r.artifacts.push({ ...r.artifacts[0] }); r.current_status.qualified_targets = 2; }), true],
   ];
 
+  // Evidence that names the registry's artifact — held constant so the
+  // resolution cases vary only the artifact's real properties.
+  const named = {
+    rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4" },
+  };
+
   const evidenceCases = [
     ["evidence naming the qualified artifact", { rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4" } }, base, false],
     ["evidence describing the target in prose", { rollback: { release_candidate: "current canonical main, resolved at rollback time" } }, base, true],
@@ -259,6 +321,22 @@ function selfTest() {
     ["evidence naming a disqualified artifact", { rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4" } }, clone((r) => { r.artifacts[0].qualified = false; r.current_status.qualified_targets = 0; r.current_status.rollback_available_for_a_future_deployment = false; }), true],
     ["evidence keeping the superseded prose field alongside the id", { rollback: { release_candidate_artifact_id: "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4", release_candidate: "origin/main" } }, base, true],
     ["evidence with no rollback block", {}, base, true],
+    // The named artifact claims qualified=true but fails a real target
+    // property. These call the resolution path ALONE — validateRegistry() is
+    // not run — so they prove resolution does not lean on the flag or on the
+    // other checker having run first.
+    ["resolution alone: named artifact is unverified", named, clone((r) => { r.artifacts[0].verification = "unverified"; }), true],
+    ["resolution alone: named artifact drops capabilities", named, clone((r) => { r.artifacts[0].capability_manifest_covers_required_routes = false; }), true],
+    ["resolution alone: named artifact has no exact source", named, clone((r) => { r.artifacts[0].source_commit = null; }), true],
+    ["resolution alone: named artifact has unstated source binding", named, clone((r) => { delete r.artifacts[0].source_commit_binding; }), true],
+    ["resolution alone: named artifact has no limitations array", named, clone((r) => { delete r.artifacts[0].limitations; }), true],
+    ["resolution alone: every target property fails at once", named, clone((r) => {
+      r.artifacts[0].verification = "unverified";
+      r.artifacts[0].capability_manifest_covers_required_routes = false;
+      r.artifacts[0].source_commit = null;
+      delete r.artifacts[0].source_commit_binding;
+      delete r.artifacts[0].limitations;
+    }), true],
   ];
 
   let failures = 0;
