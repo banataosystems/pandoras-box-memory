@@ -243,25 +243,6 @@
       "rollback_ref": null
     },
     {
-      "evidence_id": "mcp-github-actions-write-2026-08-17",
-      "path": "docs/capabilities/evidence/MCP_GITHUB_ACTIONS_WRITE_2026-08-17.md",
-      "observed_at": "2026-08-17T11:04:03Z",
-      "source_commit": "0b52110d30262e768bd5889736a93d23dcf72361",
-      "source_tree": "d9b1ec98f80867162a050bbd780f723da5286900",
-      "environment": "production",
-      "provider": "github",
-      "provider_resource_id": "banataosystems/pandoras-box-memory#35",
-      "proof_stage": "production_verified",
-      "current": true,
-      "supersedes": [],
-      "superseded_by": null,
-      "evidence_sha256": "eb567b548f1d6f8b932baf1d2cd62748e80bb38db5c35722179918b3c4039ebe",
-      "review_status": "independently_reviewed",
-      "deployment_status": "production_deployed",
-      "production_verified": true,
-      "rollback_ref": null
-    },
-    {
       "evidence_id": "pandora-canonical-source-manifest-db409325",
       "path": "docs/capabilities/PANDORA_CANONICAL_SOURCE_MANIFEST_DB409325.json",
       "observed_at": "2026-08-17T09:29:09Z",

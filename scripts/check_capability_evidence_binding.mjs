@@ -64,11 +64,27 @@ const SHA1_RE = /^[0-9a-f]{40}$/;
  * Historical commit facts. They describe a past event, so they must exist but
  * must NOT track the current head — rewriting them would falsify history.
  */
-const HISTORICAL_COMMIT_FIELDS = [
+// Commits that ARE reachable in a full checkout. Once a pull request lands,
+// both of these are on the default branch, so a value that does not resolve is
+// either fabricated or names a different repository. Hard failure.
+const REACHABLE_COMMIT_FIELDS = [
   "merge_commit",
   "merge_parent",
-  "final_pull_request_head",
 ];
+
+// A merged pull request's BRANCH head is a different case. GitHub retains it
+// under refs/pull/<n>/head, but once the branch is deleted it is reachable from
+// no branch at all — so `actions/checkout`, even at fetch-depth: 0, does not
+// have the object. Requiring it to resolve does not make the gate stricter, it
+// makes the gate unpassable: docs/capabilities/evidence/
+// MEMORY_EVIDENCE_INTAKE_SOURCE_2026-08-17.json is already on main recording
+// final_pull_request_head ab70b345… from PR #27, whose branch is gone.
+//
+// So the shape is enforced unconditionally, and the object is still verified
+// whenever it IS present. A fabricated value is therefore caught in every
+// checkout that could possibly have caught it, and an absent one is reported as
+// unresolvable-here rather than silently accepted or falsely called fake.
+const PROVENANCE_COMMIT_FIELDS = ["final_pull_request_head"];
 
 function git(args) {
   try {
@@ -127,9 +143,24 @@ const REQUIRED_BINDING_FIELDS = [
 export function validateArtifact(
   artifact,
   name,
-  { isInHistory, exists, treeOf, headOf, parentsOf, head, headParents, mergeBase, branch, owned },
+  {
+    isInHistory,
+    exists,
+    treeOf,
+    headOf,
+    parentsOf,
+    head,
+    headParents,
+    mergeBase,
+    branch,
+    owned,
+    notes,
+  },
 ) {
   const errors = [];
+  // Facts worth printing that are not failures. Defaults to a throwaway array
+  // so callers that do not care (the self-test) need not supply one.
+  const unresolved = notes ?? [];
   const source = artifact?.source;
 
   // An owned artifact with no source block at all is the simplest evasion.
@@ -245,10 +276,23 @@ export function validateArtifact(
     }
   }
 
-  for (const field of HISTORICAL_COMMIT_FIELDS) {
+  for (const field of REACHABLE_COMMIT_FIELDS) {
     const value = shaOf(field);
     if (value && !exists(value)) {
       errors.push(`${name}: ${field} ${value.slice(0, 12)}… is not a real commit`);
+    }
+  }
+
+  for (const field of PROVENANCE_COMMIT_FIELDS) {
+    // shaOf already records a shape violation, which stays a hard failure.
+    const value = shaOf(field);
+    if (!value) continue;
+    if (!exists(value)) {
+      unresolved.push(
+        `${name}: ${field} ${value.slice(0, 12)}… is not present in this ` +
+          `checkout (a merged pull-request branch head is reachable from no ` +
+          `branch); shape verified, object not verifiable here`,
+      );
     }
   }
 
@@ -303,6 +347,15 @@ function selfTest() {
     ["inherited artifact with no source block", inherited, {}, false],
     ["historical merge facts that still exist", inherited, { source: { merge_commit: "6".repeat(40), merge_parent: BASE } }, false],
     ["historical merge fact naming a non-commit", inherited, { source: { merge_commit: GONE } }, true],
+    ["merge_parent naming a non-commit", inherited, { source: { merge_parent: GONE } }, true],
+
+    // A merged pull request's branch head is reachable from no branch once the
+    // branch is deleted, so no checkout can resolve it. Shape stays enforced;
+    // absence is a printed note, not a failure, or the gate could never pass on
+    // an artifact that records the head it was reviewed at.
+    ["final_pull_request_head absent from the checkout", inherited, { source: { final_pull_request_head: GONE } }, false],
+    ["final_pull_request_head that does resolve", inherited, { source: { final_pull_request_head: BASE } }, false],
+    ["final_pull_request_head with a malformed sha", inherited, { source: { final_pull_request_head: "nope" } }, true],
 
     // Ownership comes from the lane diff. An UNCHANGED artifact from another
     // lane is legitimately not bound here.
@@ -434,6 +487,7 @@ function main() {
 
   const errors = [];
   let checked = 0;
+  const notes = [];
   for (const file of readdirSync(EVIDENCE_DIR).filter((n) => n.endsWith(".json"))) {
     const path = `${EVIDENCE_DIR}/${file}`;
     let artifact;
@@ -445,7 +499,11 @@ function main() {
     }
     checked += 1;
     errors.push(
-      ...validateArtifact(artifact, path, { ...ctx, owned: changed.has(path) }),
+      ...validateArtifact(artifact, path, {
+        ...ctx,
+        owned: changed.has(path),
+        notes,
+      }),
     );
   }
 
@@ -455,10 +513,16 @@ function main() {
     exit(1);
   }
 
+  for (const note of notes) console.log(`  note: ${note}`);
+
   console.log(
     `Capability evidence binding gate passed: ${checked} artifacts ` +
       `(${changed.size} changed on lane '${branch ?? "unresolved"}'), every ` +
-      `recorded commit and tree bound.`,
+      `recorded commit and tree bound${
+        notes.length > 0
+          ? `; ${notes.length} provenance sha(s) shape-verified but not present here`
+          : ""
+      }.`,
   );
 }
 
