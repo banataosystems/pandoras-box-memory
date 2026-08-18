@@ -46,6 +46,16 @@ const STAGES = [
     optional: true,
   },
   {
+    name: "idempotency-db",
+    description:
+      "Concurrent duplicate rejection against a real PostgreSQL, per idempotency key",
+    command: ["node", ["scripts/test_learning_idempotency_postgres.mjs"]],
+    // Requires a reachable ephemeral server. Reported as SKIPPED with the
+    // reason when none is configured — a concurrency proof that did not run
+    // must never read as one that passed.
+    requiresPostgres: true,
+  },
+  {
     name: "protection",
     description: "Required branch-protection contexts can actually report",
     command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],
@@ -138,6 +148,15 @@ function main() {
   const results = [];
   for (const stage of selected) {
     stdout.write(`\n=== verify:${stage.name} — ${stage.description}\n`);
+    if (stage.requiresPostgres && !process.env.PANDORA_PGHOST) {
+      results.push({
+        stage,
+        state: "SKIPPED",
+        note: "PANDORA_PGHOST not set — no ephemeral PostgreSQL to race against",
+      });
+      continue;
+    }
+
     const outcome = run(stage);
 
     // An optional stage is one whose checker has not landed on this branch yet.

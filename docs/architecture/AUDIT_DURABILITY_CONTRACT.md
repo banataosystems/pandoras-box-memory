@@ -126,8 +126,36 @@ surface stored content in logs. That was removed.
   in the gateway boundary lane; this document does not by itself prove it.
 - No production audit row was written, read, or mutated to produce this
   document.
-- **The uniqueness this idempotency rests on is not verifiable from this
-  repository.** The retry semantics assume Postgres enforces uniqueness on the
+- **The uniqueness this idempotency rests on is now proven as a REQUIREMENT,
+  but not yet confirmed in production.** `scripts/test_learning_idempotency_postgres.mjs`
+  races five concurrent PostgreSQL backends through the handler's exact
+  read-then-insert shape, for each key, twice:
+
+  | table | idempotency key | with constraint | without constraint |
+  | --- | --- | --- | --- |
+  | `memory_capture_candidates` | `(user_id, namespace, source, source_ref)` | 1 row, 4 × SQLSTATE 23505 | **5 duplicate rows** |
+  | `memory_review_queue_items` | `(user_id, namespace, candidate_type, source_ref)` | 1 row, 4 × SQLSTATE 23505 | **5 duplicate rows** |
+  | `memory_session_digests` | `(user_id, namespace, source, source_ref)` | 1 row, 4 × SQLSTATE 23505 | **5 duplicate rows** |
+
+  So the handler's tolerate-23505-and-re-read path is the correct concurrent
+  pattern, and it is correct *only* because a UNIQUE constraint raises 23505.
+  Remove the constraint and nothing raises, both racers insert, and the
+  duplicate surfaces later as a PostgREST `.maybeSingle()` failure — the
+  handler then fails closed with `candidate_lookup_failed` on a request that
+  should have replayed cleanly. That failure mode is reproduced, not asserted.
+
+  The learning `audit_logs` read uses `.limit(1).maybeSingle()` and its
+  contract is "at least one durable row", so it does not require uniqueness.
+
+  **What remains unproven** is that the production database actually carries
+  these three constraints. Their defining migrations are classified `missing`,
+  and read-only provider introspection was unavailable to this worker
+  (`list_tables` and `list_migrations` both returned "You do not have
+  permission"). The requirement is now exact; confirming production still needs
+  authoritative schema introspection.
+
+- **The original wording of this gap, retained for provenance:** the uniqueness
+  was described as not verifiable from this repository at all. The retry semantics assume Postgres enforces uniqueness on the
   `source_ref` keys behind `memory_capture_candidates`,
   `memory_review_queue_items`, `memory_session_digests` and the learning
   `audit_logs` rows. The migrations that create those tables are applied in
