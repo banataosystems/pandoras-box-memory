@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "consumer-contract-compatibility-2026-08-18",
+  "observed_at": "2026-08-18T10:45:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "pandora-projectos-memory-capability-contract",
+  "source": {
+    "pull_request": 36,
+    "branch": "integration/pandora-memory-puzzle-contract",
+    "candidate_head": "e4a60f0651042813e32a1b751f95f9fe9cd133c1",
+    "candidate_tree": "2cc05f27cae68cec0325b39eacbf9e0b26e1bafa",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "binding_note": "candidate_head names the parent of the commit carrying this artifact; an artifact cannot contain its own hash.",
+    "depends_on_pull_request": 33
+  },
+  "contract_under_test": {
+    "path": "public/.well-known/pandora-projectos-memory-contract-v1.json",
+    "contract_id": "pandora-projectos-memory-puzzle",
+    "contract_version": "1.0.0",
+    "schema_version": "1.0.0",
+    "blob_sha1": "72dd53bb238ec1700c3afc2c55c7998ee55c63ce",
+    "sha256": "c61fb32b884a68b48286b60cf1babd2168e93c35b5c010e4bd064da2078a9c7e"
+  },
+  "consumer": {
+    "repository": "banataosystems/pandoras-box",
+    "commit": "9517267ac7fa0374e439416c769d8193491d9963",
+    "head_subject": "Incident rollback: defer Memory contract enforcement until dependency is live (#48)",
+    "modified_by_this_verification": false,
+    "enforcement_artifact": "supabase/migrations/20260817130000_projectos_memory_full_capacity_context_gate.sql"
+  },
+  "suites_run": [
+    {
+      "suite": "test/projectos-memory-full-capacity-migration.test.js",
+      "passed": 5,
+      "failed": 0
+    },
+    {
+      "suite": "full consumer suite after npm run build (node --test test/*.test.js)",
+      "passed": 121,
+      "failed": 0
+    }
+  ],
+  "contract_vs_consumer_gate": {
+    "context_sections_published": 16,
+    "context_sections_enforced": 16,
+    "exact_set_match": true,
+    "order_identical": true,
+    "contract_id_agrees": true,
+    "contract_version_agrees": true,
+    "schema_version_agrees": true,
+    "canon_abstraction": "both sides require exactly [\"approved\"]",
+    "missing_required_section_behaviour": "consumer raises projectos_memory_full_capacity_sections_invalid and refuses the plan (fail closed)",
+    "required_capabilities_published_required": [
+      "memory.health",
+      "memory.full_context_search"
+    ],
+    "evidence_submission_automatic_promotion": false
+  },
+  "divergence_analysis": {
+    "daily_context_pack_absent_from_live_response": {
+      "consumer_behaviour": "fail closed under the v2 contract path; the plan is refused, not degraded silently",
+      "root_cause": "deployment lag — the bridge source emits daily_context_pack at supabase/functions/pandora-projectos-bridge/index.ts:495",
+      "contract_changed_to_match_deployment": false
+    },
+    "internal_canon_labels_in_live_response": {
+      "consumer_behaviour": "fails the requestedCanonStatuses == [\"approved\"] assertion",
+      "root_cause": "deployment lag — the PR #33 normalizer rewrites internal labels to the approved alias and its APPROVED_STATUS_SET accepts exactly hard_canon/soft_canon from the bridge",
+      "contract_changed_to_match_deployment": false
+    },
+    "residual_consumer_incompatibility": "none found",
+    "pre_deployment_safety": "the consumer still accepts schemaVersion 1.0.0 envelopes unchanged, so nothing breaks before Memory is deployed"
+  },
+  "negative_controls": [
+    "removing daily_context_pack from the contract is rejected by scripts/check_projectos_consumer_contract.mjs",
+    "publishing internal hard_canon/soft_canon instead of the approved alias is rejected",
+    "bumping contract_version away from the consumer's pin is rejected"
+  ],
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "remaining_gates": [
+    "independent review of this exact head",
+    "Memory deployment so the live response actually carries all 16 sections and the approved alias",
+    "provider-verified readback after that deployment",
+    "no Pandoras-box release is authorized by this verification"
+  ]
+}
