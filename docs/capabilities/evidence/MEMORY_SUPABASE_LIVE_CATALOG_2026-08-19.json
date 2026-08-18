@@ -1,0 +1,63 @@
+{
+  "capability": "production-read-only-supabase-catalog-fingerprinting",
+  "evidence_id": "memory-supabase-live-catalog-2026-08-19",
+  "lifecycle": {
+    "deployed": false,
+    "documented": true,
+    "implemented_on_dedicated_branch": true,
+    "merged": false,
+    "production_verified_read_only": true,
+    "tested": false
+  },
+  "observed_at": "2026-08-18T22:56:15Z",
+  "provider_proof": {
+    "application_trigger_count": 14,
+    "current_catalog_production_verified": true,
+    "edge_metadata_record_count": 3,
+    "function_count": 25,
+    "grouped_grant_count": 280,
+    "historical_migration_reconstruction": "partial",
+    "migration_count": 68,
+    "policy_count": 117,
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "relation_count": 89,
+    "rollback_qualified": false,
+    "security_advisor_count": 27,
+    "security_definer_count": 11
+  },
+  "repository": "banataosystems/pandoras-box-memory",
+  "safety": {
+    "edge_function_deployment": false,
+    "merge_performed": false,
+    "migration_replay": false,
+    "new_cost_incurred": false,
+    "production_data_mutation": false,
+    "production_database_mutation": false,
+    "production_release": false,
+    "raw_cron_command_persisted": false,
+    "secret_values_persisted": false,
+    "supabase_branch_created": false,
+    "worker_1_paths_modified": false
+  },
+  "schema_version": "1.0.0",
+  "source": {
+    "base_commit": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "boundaries_path": "docs/provider-observations/memory-supabase-20260819/SECURITY_BOUNDARIES.json",
+    "boundaries_sha256": "2e2179788b2282c5a6a057eb18852b40118cc5d56a0d0a0ad7b0e3e72e7aceb6",
+    "branch_parent_before_catalog_supplement": "c3d76c9da3c880b9737c7fa246e5d2333f41d3ba",
+    "manifest_path": "docs/provider-observations/memory-supabase-20260819/LIVE_CATALOG_MANIFEST.json",
+    "manifest_sha256": "d05f66eba1d35657d3028c24fa3980517b0e9b96d44668b3f237e19c83709f80",
+    "pull_request": 42,
+    "report_path": "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md",
+    "report_sha256": "fd075134465d74c48c49c8a56d12ae0e5baa976d69b9655c6d66e0653f5fccc8",
+    "verifier_path": "scripts/check_memory_supabase_catalog.mjs",
+    "verifier_sha256": "9fd311cd7f6ac003f4aab504b3999849d64320e7605a25cce3b3cf78ac1d47f6",
+    "workflow_path": ".github/workflows/memory-supabase-catalog-evidence.yml",
+    "workflow_sha256": "2dcc7edb90d1f273a1b53203c5797fc59aee9426a8a5281ea9de7a8d200e62f6"
+  },
+  "verification": {
+    "hosted_exact_head_ci_required": true,
+    "independent_review_required": true,
+    "local_verifier_result": "pass"
+  }
+}
