@@ -1,0 +1,95 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-supabase-source-parity-2026-08-19",
+  "observed_at": "2026-08-18T22:10:15Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "content-addressed-supabase-source-parity-and-forward-recovery-evidence",
+  "source": {
+    "pull_request": 42,
+    "base_commit": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "base_tree": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "evidence_parent_commit": "fadb256c041f77de5e1bb145cb9c90cc8cbf5b9c",
+    "evidence_parent_tree": "9785ec2f89a3a536a428154c0d32246820098e86",
+    "provider_observation_path": "docs/provider-observations/PANDORA_SUPABASE_PROVIDER_OBSERVATION_2026-08-19.json",
+    "provider_observation_blob": "b1f9f99dbbb3cbbd2e9a8a22a10405220ddb5a2a",
+    "provider_observation_sha256": "19438d19c4b9345836358670d10ed80eda4b6aeea2dc87f149af22e07d58ad8a",
+    "recovery_matrix_path": "docs/recovery/PANDORA_SUPABASE_RECOVERY_MATRIX_2026-08-19.json",
+    "recovery_matrix_blob": "b108b6a86f71faa4f392374b5d8dcbf3c28d08e5",
+    "recovery_matrix_sha256": "70dad482a420184f998b7e42960a1985063fccd6451aa87dc75ebc84005204b4",
+    "verifier_path": "scripts/check_memory_supabase_parity.mjs",
+    "verifier_blob": "0571437ce79d8592405c97a94c7ca62babf56594",
+    "verifier_sha256": "e49f25b533d119d79d7e6d8847a795c5dc2c467cffd409e041ff03e73cddf8a8",
+    "workflow_path": ".github/workflows/memory-supabase-parity-evidence.yml",
+    "workflow_blob": "0246f6bbfe7e01068d0420423d85babe0f71c0df"
+  },
+  "provider_proof": {
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "project_status": "ACTIVE_HEALTHY",
+    "migration_identity_count": 68,
+    "migration_identity_payload_sha256": "0d6110e17a01304eebb57cca57369f7b9b6961eb7a23b2c40871c8d90f5da0f3",
+    "migration_identity_etag_match": true,
+    "source_classifications": {
+      "exact_or_authentic": 14,
+      "sanitized": 1,
+      "source_missing": 53
+    },
+    "required_edge_metadata_records": 3,
+    "complete_edge_inventory": false,
+    "complete_catalog_inventory": false,
+    "reconstructability": "partial",
+    "rollback_qualified_subsystems": 0,
+    "forward_recovery_required_subsystems": 10
+  },
+  "verification": {
+    "local_node_22_self_tests": 12,
+    "local_result": "pass",
+    "initial_exact_head_runs": {
+      "memory_supabase_parity_evidence": {
+        "run_id": 32191440350,
+        "conclusion": "success"
+      },
+      "pandora_source_security_gate": {
+        "run_id": 32191440303,
+        "conclusion": "success"
+      },
+      "capability_registry_gate": {
+        "run_id": 32191440514,
+        "conclusion": "failure",
+        "failure_boundary": "tracked workflow/script source requires a capability evidence co-change",
+        "repair": "this evidence-only file; no runtime or provider mutation"
+      }
+    },
+    "new_exact_head_ci_required": true,
+    "independent_review_required": true
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented_on_dedicated_branch": true,
+    "source_tested_local": true,
+    "source_tested_hosted_initial_head": true,
+    "source_tested_hosted_final_head": false,
+    "merged": false,
+    "deployed": false,
+    "production_verified_partial": true,
+    "production_verified_full_parity": false
+  },
+  "safety": {
+    "production_database_mutation": false,
+    "production_data_mutation": false,
+    "migration_replay": false,
+    "edge_function_deployment": false,
+    "supabase_branch_created": false,
+    "new_cost_incurred": false,
+    "secret_values_persisted": false,
+    "worker_1_paths_modified": false,
+    "production_release": false
+  },
+  "remaining_gates": [
+    "hosted exact-head parity, security, and capability-registry checks on the final commit",
+    "fresh independent qualified review bound to the final commit",
+    "complete live Edge Function inventory and exact source bundle diff",
+    "fresh schema, RLS policy, grant, SECURITY DEFINER, trigger, event-trigger, and scheduled-job inventory",
+    "recovery or explicit forward-recovery closure for 53 missing migration sources",
+    "Pandora Memory persistence and readback of this verified source state"
+  ]
+}
