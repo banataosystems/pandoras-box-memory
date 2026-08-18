@@ -51,6 +51,13 @@ const STAGES = [
     command: ["node", ["scripts/check_capability_evidence_binding.mjs", "--self-test"]],
   },
   {
+    name: "consumer-contract",
+    description:
+      "Published contract vs the Pandoras-box execution gate that enforces it",
+    command: ["node", ["scripts/check_projectos_consumer_contract.mjs"]],
+    optional: true,
+  },
+  {
     name: "protection",
     description: "Required branch-protection contexts can actually report",
     command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],

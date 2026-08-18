@@ -17,7 +17,8 @@
     "test:gateway": "node scripts/run_gateway_tests.mjs",
     "test:memory": "node scripts/check_memory_evidence_intake.mjs",
     "test:registry": "node scripts/validate_capability_registry.mjs --self-test",
-    "verify": "node scripts/verify.mjs"
+    "verify": "node scripts/verify.mjs",
+    "test:consumer-contract": "node scripts/check_projectos_consumer_contract.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.3",
