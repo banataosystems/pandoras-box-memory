@@ -7,11 +7,12 @@
   "source": {
     "pull_request": 33,
     "branch": "hardening/gateway-api-boundaries",
-    "candidate_head": "8704a96f16d006c9c8cf2add494800894b76fcef",
-    "candidate_tree": "4e9ab69e1d060c8c4d3bfb489ad91bba99bce646",
+    "candidate_head": "2f0606fb2944705da7e78d21d98a1fbc80ab583d",
+    "candidate_tree": "c9f05adee5766bfb551c6d3c3dedabdd996b0575",
     "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
     "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
     "describes_commits": [
+      "2f0606fb2944705da7e78d21d98a1fbc80ab583d",
       "8704a96f16d006c9c8cf2add494800894b76fcef",
       "f17f9576194a9879fddbc840ab4db5fd16bea141",
       "54b225b430c77bb5ed51372451d19fc4663c1fbf",
@@ -32,6 +33,13 @@
       "827780f2a5466edcf6a0c2319f84c468ffed7079"
     ],
     "superseded_candidates": [
+      {
+        "candidate_head": "8704a96f16d006c9c8cf2add494800894b76fcef",
+        "candidate_tree": "4e9ab69e1d060c8c4d3bfb489ad91bba99bce646",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-4 review: deleting a merged lane invalidated the immutable historical evidence that lane produced",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55"
+      },
       {
         "candidate_head": "f17f9576194a9879fddbc840ab4db5fd16bea141",
         "candidate_tree": "c8f29c8478a8fbd047d83cba5625ddee392f7147",
@@ -103,6 +111,11 @@
       "boundary": "capability-evidence binding let a changed artifact select its own candidate lane",
       "detail": "source.branch is artifact-controlled, and resolving it against git only stopped fabricated lanes and stale values. Because a recovery/review-* branch is retained at every superseded head, an artifact edited on this lane could name one, bind to it with a head, tree and base that were all internally consistent, and pass while the candidate it shipped with went unverified.",
       "fix": "redirecting to another lane is no longer an assertion the artifact makes but a fact git confirms: the artifact's blob at HEAD must be identical to that lane's copy, which proves this lane inherited it rather than wrote it. Cross-lane integration is unaffected; editing the file forfeits the redirect. Not a branch-name blocklist."
+    },
+    {
+      "boundary": "deleting a merged lane retroactively invalidated the historical evidence it produced",
+      "detail": "an artifact naming its lane was hard-failed the moment that branch was deleted, because identity was taken from the ref alone. After a lane merged and its branch was cleaned up, the pandora-verify run on the exact main commit would have failed on evidence that was correct and untouched \u2014 governance breaking itself through routine housekeeping.",
+      "fix": "when the declared lane no longer resolves and the artifact is untouched here, identity is re-proven from the commit graph, which outlives the ref: candidate_head must be a real commit AND an ancestor of HEAD, and candidate_tree must be its actual tree, which pins every blob under it. Byte-equality at candidate_head is deliberately not required, because an artifact names its parent and the commit carrying it is the one that rewrote it. A changed artifact gets none of this: ownership is checked first, so a vanished branch can never launder current evidence out of its head/tree/base/lane binding."
     }
   ],
   "boundary_contract": {
@@ -134,7 +147,7 @@
     "dependency_pin": "bridge floating jsr:@supabase/supabase-js@2 pinned to npm:@supabase/supabase-js@2.110.9"
   },
   "test_evidence": {
-    "node_tests": 60,
+    "node_tests": 67,
     "deno_tests": 20,
     "mirrored_cases_across_runtimes": true,
     "cases": [
@@ -154,7 +167,11 @@
       "changed artifact redirecting to a superseded candidate branch",
       "changed artifact redirecting to another live branch",
       "changed artifact with empty or missing lane metadata",
-      "artifact inherited byte-for-byte from an integrated lane"
+      "artifact inherited byte-for-byte from an integrated lane",
+      "deleted lane + untouched artifact whose commit is still provable",
+      "deleted lane + changed artifact (escape must stay shut)",
+      "deleted lane + candidate_head outside this history",
+      "deleted lane + historical canonical_base older than today's merge-base"
     ],
     "limitation": "Deno suites were not run in the authoring environment (Deno unavailable); they are proven by CI only. No load or adversarial testing was performed against a running service."
   },
@@ -185,7 +202,7 @@
       "durable evidence binding was stale: candidate_head, candidate_tree, and canonical_base predated the second-author commits and the governance reconciliation. Refreshing only the pull-request body did not repair it.",
       "the approved-canon contract leaked internal hard_canon/soft_canon labels because the response normalizer spread canonical_records through unchanged."
     ],
-    "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when candidate_tree is not the tree of candidate_head, when canonical_base is not the merge-base with the default branch, when a recorded historical commit does not exist, and when an artifact declares a lane other than the one under test without being byte-identical to that lane's copy. 60 self-test cases, including the reproduced lane-redirection exploit asserted to fail for the redirect reason specifically rather than incidentally.",
+    "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when candidate_tree is not the tree of candidate_head, when canonical_base is not the merge-base with the default branch, when a recorded historical commit does not exist, when an artifact declares a lane other than the one under test without being byte-identical to that lane's copy, and when an artifact changed here names a lane that no longer resolves. A deleted lane keeps its history only for untouched artifacts whose candidate_head is a real ancestor of HEAD. 67 self-test cases, including the reproduced lane-redirection exploit and the deleted-lane escape, both asserted to fail for their own reason rather than incidentally.",
     "canon_label_fix": "canonical_records are rebuilt rather than spread; canon-label fields are rewritten to the stable approved alias at any depth, keyed on field name so free text discussing canon status is never corrupted.",
     "third_review_findings_closed": [
       "a changed evidence artifact could escape current-candidate binding by declaring another existing branch \u2014 demonstrated against the retained recovery ref recovery/review-20260818/pr-33-f0f76d55 at the superseded head f0f76d555be8b4404fc7feac54bfe2d07c5af8c7, which the pre-fix validator ACCEPTED with owned=true."
@@ -200,8 +217,7 @@
     ],
     "self_tests": 35,
     "fourth_review_findings_closed": [
-      "shaOf treated an absent binding field as acceptable, so candidate_head, candidate_tree or canonical_base could be DELETED rather than kept correct",
-      "ownership was decided by the artifact own source.branch, so a changed artifact could exempt itself by claiming another lane; a self-test had wrongly encoded that bypass as expected behaviour"
+      "deleting a merged branch invalidated the immutable evidence that lane produced. Proven against the real repository: with 'hardening/gateway-api-boundaries' simulated as deleted, the round-3 validator REJECTED this untouched artifact on main; the round-4 validator accepts it while still rejecting the same artifact when changed."
     ],
     "binding_model": "source.branch is now RESOLVED against git rather than trusted or ignored. An artifact naming a lane must bind to that lane real head or its parent, and the named lane must exist. Binding fields are mandatory for any artifact that names a lane or was changed in this lane diff.",
     "why_not_diff_ownership_alone": "deriving ownership only from the lane diff wrongly required an artifact merged in from another lane to bind to THIS head. Resolving the declared lane against git handles integration correctly while still closing the bypass.",

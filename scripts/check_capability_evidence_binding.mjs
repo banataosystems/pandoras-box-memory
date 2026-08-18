@@ -247,16 +247,31 @@ export function validateArtifact(
 
   const redirects = declaresLane && (branch === null || source.branch !== branch);
 
+  // Set when the declared lane is gone and identity has to come from the commit
+  // graph instead of from a ref. See the deleted-lane block further down.
+  let historicalProvenance = false;
+
   if (redirects) {
     const resolved = headOf(source.branch);
-    if (resolved === null) {
-      errors.push(
-        `${name}: declares source.branch '${source.branch}', which does not ` +
-          `resolve to a branch. A lane name cannot be invented to escape binding.`,
-      );
-      return errors;
-    }
 
+    if (resolved === null) {
+      // The lane does not resolve. That is either a lane that was DELETED after
+      // it merged — normal housekeeping, and it must not retroactively falsify
+      // immutable history — or a name this lane invented. Ownership separates
+      // them, because only one of those two can have been chosen here.
+      if (owned) {
+        errors.push(
+          `${name}: declares source.branch '${source.branch}', which does not ` +
+            `resolve, and this artifact was changed on this lane. A missing lane ` +
+            `is not an escape from binding: evidence authored or edited here must ` +
+            `name the lane under test and bind to the current candidate.`,
+        );
+        return errors;
+      }
+      // Untouched here, so the branch name is no longer needed to establish what
+      // this artifact describes. Prove it from history instead, below.
+      historicalProvenance = true;
+    } else {
     const here = blobAt("HEAD", name);
     const there = blobAt(resolved, name);
     if (here === null || there === null || here !== there) {
@@ -273,6 +288,7 @@ export function validateArtifact(
     targetHead = resolved;
     targetParents = parentsOf(resolved);
     targetLabel = source.branch;
+    }
   } else if (owned && branch === null) {
     errors.push(
       `${name}: changed on this lane, but the lane under test could not be ` +
@@ -307,6 +323,68 @@ export function validateArtifact(
 
   const candidateHead = shaOf("candidate_head");
   const candidateTree = shaOf("candidate_tree");
+
+  if (historicalProvenance) {
+    // The lane that produced this artifact has been deleted. A branch is only a
+    // moving label; the commit graph outlives it, so identity is re-established
+    // from history rather than from the vanished ref:
+    //
+    //   - candidate_head must still be a real commit, and
+    //   - it must be an ANCESTOR of HEAD — genuinely part of this repository's
+    //     canonical history rather than an invented or foreign value, which is
+    //     what a deleted-but-merged lane always satisfies and a fabrication
+    //     cannot, and
+    //   - candidate_tree must be that commit's real tree, checked by the
+    //     ordinary binding below. Pinning the tree pins every blob under it, so
+    //     the artifact's own content at that commit is fixed too.
+    //
+    // Note what is deliberately NOT required: that the file be byte-identical
+    // here and at candidate_head. By this repository's own convention an
+    // artifact names its PARENT (it cannot contain its own hash), and the commit
+    // that carries it is precisely the one that rewrote it — so equality there
+    // is false for every correctly-formed artifact and would reject all honest
+    // history while admitting nothing.
+    //
+    // This path is strictly narrower than the resolved-lane one: `owned` was
+    // rejected above, so a deleted branch can never launder current or edited
+    // evidence out of its binding to this candidate.
+    if (!candidateHead) {
+      errors.push(
+        `${name}: declares source.branch '${source.branch}', which no longer ` +
+          `resolves, and names no usable candidate_head. A deleted lane is ` +
+          `trustworthy only while the commit it named is still provable.`,
+      );
+      return errors;
+    }
+    if (!exists(candidateHead)) {
+      errors.push(
+        `${name}: declares the deleted lane '${source.branch}' and names ` +
+          `candidate_head ${candidateHead.slice(0, 12)}…, which is not a commit in ` +
+          `this repository. Deleting a branch does not excuse unverifiable ` +
+          `provenance.`,
+      );
+      return errors;
+    }
+    if (!isInHistory(candidateHead)) {
+      errors.push(
+        `${name}: declares the deleted lane '${source.branch}' and names ` +
+          `candidate_head ${candidateHead.slice(0, 12)}…, which is not in the ` +
+          `history of HEAD. A vanished branch is forgiven only for work this ` +
+          `history actually contains, never for a commit reachable from ` +
+          `somewhere else.`,
+      );
+      return errors;
+    }
+
+    targetHead = candidateHead;
+    targetParents = parentsOf(candidateHead);
+    targetLabel = `${source.branch} (deleted lane, proven from history)`;
+    unresolved.push(
+      `${name}: lane '${source.branch}' no longer exists; provenance re-proven ` +
+        `from git history — candidate_head ${candidateHead.slice(0, 12)}… is a real ` +
+        `commit in the history of HEAD, and candidate_tree binds its tree`,
+    );
+  }
 
   if (ownsThisLane && candidateHead) {
     if (candidateHead !== targetHead && !targetParents.includes(candidateHead)) {
@@ -343,7 +421,7 @@ export function validateArtifact(
         `${name}: canonical_base ${canonicalBase.slice(0, 12)}… is not in the ` +
           `history of HEAD`,
       );
-    } else if (mergeBase && canonicalBase !== mergeBase) {
+    } else if (!historicalProvenance && mergeBase && canonicalBase !== mergeBase) {
       errors.push(
         `${name}: canonical_base ${canonicalBase.slice(0, 12)}… is not the ` +
           `merge-base with the default branch (${mergeBase.slice(0, 12)}…)`,
@@ -428,8 +506,14 @@ function selfTest() {
   // A superseded candidate, still reachable because its recovery ref is retained.
   const SUPERSEDED = "9".repeat(40);
   const SUPERSEDED_TREE = "c".repeat(40);
-  const ancestors = new Set([HEAD, PARENT, BASE, OLD]);
-  const real = new Set([...ancestors, "6".repeat(40)]);
+  // A commit from a lane that has since been deleted: the ref is gone, the
+  // object is not.
+  const HIST = "d".repeat(40);
+  const HIST_TREE = "e".repeat(40);
+  // A commit reachable from somewhere else entirely: real, but not ours.
+  const FOREIGN = "6".repeat(40);
+  const ancestors = new Set([HEAD, PARENT, BASE, OLD, HIST]);
+  const real = new Set([...ancestors, FOREIGN]);
   const trees = {
     [HEAD]: HEAD_TREE,
     [PARENT]: OTHER_TREE,
@@ -437,6 +521,8 @@ function selfTest() {
     [OTHER_HEAD]: HEAD_TREE,
     [OTHER_PARENT]: HEAD_TREE,
     [SUPERSEDED]: SUPERSEDED_TREE,
+    [HIST]: HIST_TREE,
+    [FOREIGN]: HIST_TREE,
   };
 
   // Content identity per path, per revision. Equal ids mean equal bytes, which
@@ -452,6 +538,11 @@ function selfTest() {
       [OTHER_PARENT]: "blob-e-there",
       [SUPERSEDED]: "blob-e-superseded",
     },
+    // Merged long ago on a lane that has since been deleted, and untouched here.
+    // Deliberately DIFFERENT at HEAD and at HIST: an artifact names its parent,
+    // and the commit carrying it is the one that rewrote it, so this is what a
+    // correctly-formed historical artifact actually looks like.
+    "historical.json": { HEAD: "blob-h-now", [HIST]: "blob-h-then" },
     // Default fixture for cases that never redirect.
     sample: {
       HEAD: "blob-s",
@@ -495,7 +586,7 @@ function selfTest() {
     ["malformed tree id", ctx, { source: { branch: "lane", candidate_head: HEAD, candidate_tree: "nope", canonical_base: BASE } }, true],
     ["owned artifact with no source block", ctx, {}, true],
     ["inherited artifact with no source block", inherited, {}, false],
-    ["historical merge facts that still exist", inherited, { source: { merge_commit: "6".repeat(40), merge_parent: BASE } }, false],
+    ["historical merge facts that still exist", inherited, { source: { merge_commit: FOREIGN, merge_parent: BASE } }, false],
     ["historical merge fact naming a non-commit", inherited, { source: { merge_commit: GONE } }, true],
     ["merge_parent naming a non-commit", inherited, { source: { merge_parent: GONE } }, true],
 
@@ -616,6 +707,36 @@ function selfTest() {
     // anything this lane wrote.
     ["13: deleted historical branch exception still valid for untouched merged history", inherited, { lifecycle: { merged: true }, source: { final_pull_request_head: GONE } }, false],
     ["13b: deleted-branch exception unusable by a changed artifact", ctx, { lifecycle: { merged: true }, source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE, final_pull_request_head: GONE } }, true, "edited.json"],
+
+    // ------------------------------------------------------------------
+    // Deleted lanes.
+    //
+    // Deleting a merged branch is routine housekeeping and must not
+    // retroactively invalidate the immutable evidence that lane produced — the
+    // commit graph outlives the ref, so provenance is re-proven from it. The
+    // same disappearance must never become a way for CURRENT or CHANGED
+    // evidence to slip its binding to this candidate's head/tree/base/lane.
+    // Ownership is what separates the two, and it is not artifact-controlled.
+    // ------------------------------------------------------------------
+
+    // 14. The case that would otherwise break `pandora-verify` on main after a
+    // lane merges and its branch is deleted.
+    ["14: deleted lane + untouched artifact whose commit is still provable", inherited, { source: { branch: "deleted/merged-lane", candidate_head: HIST, candidate_tree: HIST_TREE, canonical_base: BASE } }, false, "historical.json"],
+
+    // 15. The escape stays shut: a deleted lane proves nothing for evidence
+    // this lane wrote or edited.
+    ["15: deleted lane + changed artifact", ctx, { source: { branch: "deleted/merged-lane", candidate_head: HIST, candidate_tree: HIST_TREE, canonical_base: BASE } }, true, "historical.json"],
+
+    // 16-19. Historical provenance still has to be provable.
+    ["16: deleted lane + candidate_head that is not a real commit", inherited, { source: { branch: "deleted/merged-lane", candidate_head: GONE, candidate_tree: HIST_TREE, canonical_base: BASE } }, true, "historical.json"],
+    ["17: deleted lane + candidate_tree that is not the tree of candidate_head", inherited, { source: { branch: "deleted/merged-lane", candidate_head: HIST, candidate_tree: OTHER_TREE, canonical_base: BASE } }, true, "historical.json"],
+    ["18: deleted lane + candidate_head real but outside this history", inherited, { source: { branch: "deleted/merged-lane", candidate_head: FOREIGN, candidate_tree: HIST_TREE, canonical_base: BASE } }, true, "historical.json"],
+    ["19: deleted lane + no candidate_head to prove anything with", inherited, { source: { branch: "deleted/merged-lane", candidate_tree: HIST_TREE, canonical_base: BASE } }, true, "historical.json"],
+
+    // 20. History records the base as it WAS. Forcing an old artifact onto
+    // today's merge-base would falsify it, which is the thing this file exists
+    // to prevent — so the merge-base equality is not applied to proven history.
+    ["20: deleted lane + historical canonical_base older than today's merge-base", inherited, { source: { branch: "deleted/merged-lane", candidate_head: HIST, candidate_tree: HIST_TREE, canonical_base: OLD } }, false, "historical.json"],
   ];
 
   let failures = 0;
@@ -676,6 +797,57 @@ function selfTest() {
     console.error(
       "SELF-TEST FAIL: an artifact inherited byte-for-byte from another lane " +
         "must still bind against that lane",
+    );
+    failures += 1;
+  }
+
+  // A deleted lane must never become the escape the resolved-lane path closed.
+  // Asserted on the reason, not just the outcome: if this ever starts failing
+  // because of an incidental binding mismatch instead of the ownership rule, the
+  // case has stopped covering what it was written for.
+  const deletedLaneEscape = validateArtifact(
+    {
+      source: {
+        branch: "deleted/merged-lane",
+        candidate_head: HIST,
+        candidate_tree: HIST_TREE,
+        canonical_base: BASE,
+      },
+    },
+    "historical.json",
+    ctx,
+  );
+  if (
+    deletedLaneEscape.length !== 1 ||
+    !deletedLaneEscape[0].includes("changed on this lane")
+  ) {
+    console.error(
+      "SELF-TEST FAIL: a changed artifact naming a deleted lane must be " +
+        `rejected for ownership specifically, got: ${JSON.stringify(deletedLaneEscape)}`,
+    );
+    failures += 1;
+  }
+
+  // ...while the same artifact, untouched, keeps its history. This is the pair
+  // the acceptance rule turns on: deletion must not invalidate immutable
+  // evidence, but must not launder current evidence either.
+  if (
+    validateArtifact(
+      {
+        source: {
+          branch: "deleted/merged-lane",
+          candidate_head: HIST,
+          candidate_tree: HIST_TREE,
+          canonical_base: BASE,
+        },
+      },
+      "historical.json",
+      inherited,
+    ).length !== 0
+  ) {
+    console.error(
+      "SELF-TEST FAIL: untouched historical evidence from a deleted lane must " +
+        "remain valid when its commit and tree are still provable",
     );
     failures += 1;
   }
