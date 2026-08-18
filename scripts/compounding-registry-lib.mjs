@@ -168,8 +168,13 @@ export function readTreeBlobs(commit) {
  * and `candidate_base` is an ancestor of the candidate. Neither claims to be
  * the present state of the default branch.
  */
-export function buildObservedCanonicalMainBlock() {
-  const observed = resolveDefaultBranchCommit();
+export function buildObservedCanonicalMainBlock(observedMainSha) {
+  // The observation is an INPUT, not something re-derived on every run. Taking
+  // it as a parameter is what keeps regeneration deterministic: the drift check
+  // replays the recorded observation, so a document written yesterday still
+  // reproduces byte-for-byte today, after main has moved on. Only the write
+  // path observes the live default branch.
+  const observed = observedMainSha ?? resolveDefaultBranchCommit();
   const baseline = new Map(
     readBaselineTree().map((entry) => [entry.path, entry.blobSha]),
   );
@@ -414,7 +419,7 @@ function nextActionFor(path, classification) {
   return "Map exact tests and live evidence before advancing this file beyond its currently proven source state.";
 }
 
-export function buildRegistry(treeEntries) {
+export function buildRegistry(treeEntries, observedMainSha) {
   const files = treeEntries.map(({ path, blobSha, sizeBytes }) => {
     const family = capabilityFamily(path);
     const classification = classificationFor(path);
@@ -509,7 +514,8 @@ export function buildRegistry(treeEntries) {
       is_current_canonical_main: false,
       files,
     },
-    canonical_main_observed_at_generation: buildObservedCanonicalMainBlock(),
+    canonical_main_observed_at_generation:
+      buildObservedCanonicalMainBlock(observedMainSha),
     live_runtime_snapshot: {
       observed_at: "2026-08-14T01:36:00+08:00",
       durable_documentary_source: {
@@ -771,7 +777,13 @@ export function validateRegistry(registry, treeEntries, roadmapText) {
   add(registry?.proof_gates?.production_release_authorized === false, "registry must not authorize production release");
   add(registry?.live_runtime_snapshot?.production_mutation_in_registry_cycle === false, "registry cycle must not claim production mutation");
 
-  const expectedRegistry = buildRegistry(treeEntries);
+  // Replay the registry's OWN recorded observation. Re-observing live main here
+  // would make the drift check fail for every already-correct document the
+  // moment the default branch advances.
+  const expectedRegistry = buildRegistry(
+    treeEntries,
+    registry?.canonical_main_observed_at_generation?.observed_main_sha,
+  );
   add(
     JSON.stringify(registry) === JSON.stringify(expectedRegistry),
     "deterministic registry content drift: regenerate from the pinned baseline and review any semantic change",
