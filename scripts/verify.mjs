@@ -45,6 +45,11 @@ const STAGES = [
     command: ["node", ["scripts/check_migration_parity.mjs", "--self-test"]],
   },
   {
+    name: "provider-observation",
+    description: "Supabase readback freshness and fail-closed current-state claims",
+    command: ["node", ["scripts/check_provider_observation.mjs", "--self-test"]],
+  },
+  {
     name: "protection",
     description: "Required branch-protection contexts can actually report",
     command: ["node", ["scripts/check_branch_protection_contexts.mjs", "--self-test"]],
