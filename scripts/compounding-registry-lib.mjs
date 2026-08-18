@@ -19,6 +19,11 @@ export const ROADMAP = Object.freeze({
   bodySha256: "6edfccb01d9b0a386906383b2c954471544f86ed15c5338005edb8f569048548",
 });
 
+// Fixed observation timestamp. The registry is deterministic — a wall-clock
+// value here would make every regeneration produce a different document and
+// defeat the drift check.
+export const OBSERVED_AT = "2026-08-18T00:00:00Z";
+
 export const REGISTRY_PATH =
   "docs/capabilities/PANDORA_COMPOUNDING_CAPABILITY_REGISTRY_V1.json";
 
@@ -148,48 +153,101 @@ export function readTreeBlobs(commit) {
   return map;
 }
 
-export function buildCurrentMainBlock() {
-  const commit = resolveDefaultBranchCommit();
+/**
+ * Record the canonical main this candidate was GENERATED AGAINST.
+ *
+ * The previous shape named this `current_canonical_main` and asserted the
+ * observed SHA. That claim is true only until this very registry merges: main
+ * necessarily advances, and a field called "current" is then false about the
+ * repository it describes. Embedding the SHA of the commit that contains this
+ * file is not an alternative — changing the embedded value changes the commit
+ * hash, so the self-reference cannot close.
+ *
+ * So this records an OBSERVATION with a base relationship instead. Both remain
+ * true forever: `observed_main_sha` was main when the candidate was generated,
+ * and `candidate_base` is an ancestor of the candidate. Neither claims to be
+ * the present state of the default branch.
+ */
+export function buildObservedCanonicalMainBlock() {
+  const observed = resolveDefaultBranchCommit();
   const baseline = new Map(
     readBaselineTree().map((entry) => [entry.path, entry.blobSha]),
   );
-  const current = commit ? readTreeBlobs(commit) : new Map();
+  const observedBlobs = observed ? readTreeBlobs(observed) : new Map();
 
   const changed = [];
   const removed = [];
   let unchanged = 0;
   for (const [path, sha] of baseline) {
-    if (!current.has(path)) removed.push(path);
-    else if (current.get(path) !== sha) changed.push(path);
+    if (!observedBlobs.has(path)) removed.push(path);
+    else if (observedBlobs.get(path) !== sha) changed.push(path);
     else unchanged += 1;
   }
   let added = 0;
-  for (const path of current.keys()) if (!baseline.has(path)) added += 1;
+  for (const path of observedBlobs.keys()) if (!baseline.has(path)) added += 1;
 
   return {
     repository: BASELINE.repository,
-    commit,
-    tree: commit ? resolveTree(commit) : null,
-    regular_file_count: current.size,
+    observed_main_sha: observed,
+    observed_main_tree: observed ? resolveTree(observed) : null,
+    observed_main_regular_file_count: observedBlobs.size,
+    observed_at: OBSERVED_AT,
+    candidate_base: observed,
+    semantics:
+      "Observation recorded when this registry candidate was generated. It " +
+      "states which canonical main the candidate was built on; it does NOT " +
+      "claim to remain the current default branch. Main advances after this " +
+      "candidate merges, and that does not make this record false.",
     relationship_to_pinned_baseline: {
       baseline_commit: BASELINE.commit,
       baseline_regular_file_count: BASELINE.regularFileCount,
-      baseline_files_unchanged_at_main: unchanged,
-      baseline_files_changed_at_main: changed.length,
-      baseline_files_removed_at_main: removed.length,
+      baseline_files_unchanged_at_observed_main: unchanged,
+      baseline_files_changed_at_observed_main: changed.length,
+      baseline_files_removed_at_observed_main: removed.length,
       files_added_since_baseline: added,
       changed_paths: changed.sort(),
       removed_paths: removed.sort(),
+      snapshot_scope:
+        "Computed between the pinned baseline and observed_main_sha at " +
+        "generation time. Snapshot-scoped, not a live figure.",
       method: "git blob SHA-1 comparison of every path in both trees",
     },
-    per_file_registry_coverage_of_current_main: "not-claimed",
+    per_file_registry_coverage_of_observed_main: "not-claimed",
     note:
       "The per-file registry is pinned to the historical baseline and is NOT " +
-      "regenerated against current main by this change, so the historical " +
-      "registry evidence is preserved rather than overwritten. Files added " +
-      "since the baseline are therefore unregistered, and no coverage or " +
-      "completion percentage is claimed for current main.",
+      "regenerated against observed main, so the historical registry evidence " +
+      "is preserved rather than overwritten. Files added since the baseline " +
+      "are therefore unregistered, and no coverage or completion percentage " +
+      "is claimed.",
   };
+}
+
+/** True when `ancestor` is an ancestor of (or equal to) `descendant`. */
+export function isAncestorOf(ancestor, descendant) {
+  if (!ancestor || !descendant) return false;
+  try {
+    execFileSync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
+      stdio: ["ignore", "ignore", "ignore"],
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function resolveHeadCommit() {
+  return git_rev_parse("HEAD");
+}
+
+function git_rev_parse(ref) {
+  try {
+    return execFileSync("git", ["rev-parse", "--verify", `${ref}^{commit}`], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
 }
 
 export function readBaselineTree() {
@@ -447,11 +505,11 @@ export function buildRegistry(treeEntries) {
       snapshot_scope:
         "per-file registry pinned to the historical baseline commit below. " +
         "This is NOT a file listing of current canonical main; see " +
-        "current_canonical_main for that relationship.",
+        "canonical_main_observed_at_generation for that relationship.",
       is_current_canonical_main: false,
       files,
     },
-    current_canonical_main: buildCurrentMainBlock(),
+    canonical_main_observed_at_generation: buildObservedCanonicalMainBlock(),
     live_runtime_snapshot: {
       observed_at: "2026-08-14T01:36:00+08:00",
       durable_documentary_source: {
@@ -578,32 +636,73 @@ export function validateRegistry(registry, treeEntries, roadmapText) {
     "pinned baseline must not present itself as current canonical main",
   );
 
-  // The current-main block must match real git state, or it rots the moment
-  // main advances — which is how the previous snapshot became untrue.
-  const main = registry?.current_canonical_main;
-  const headCommit = resolveDefaultBranchCommit();
-  if (headCommit) {
-    add(
-      main?.commit === headCommit,
-      `current_canonical_main.commit must be the current default-branch commit (${headCommit})`,
-    );
-    const headTree = resolveTree(headCommit);
-    add(
-      main?.tree === headTree,
-      `current_canonical_main.tree must be the tree of ${headCommit}`,
-    );
-    add(
-      main?.regular_file_count === countTreeFiles(headCommit),
-      "current_canonical_main.regular_file_count must match the real tree",
-    );
-  }
+  // The observation block is checked as an OBSERVATION plus a BASE
+  // RELATIONSHIP, never as a claim about the present default branch.
+  //
+  // Checking it against "whatever main is now" is what rotted the previous
+  // shape: it was true until this registry merged and false immediately after.
+  // These properties instead stay true forever — the observed commit really was
+  // a commit, its tree really is its tree, and it really is an ancestor of the
+  // candidate that recorded it.
+  const observed = registry?.canonical_main_observed_at_generation;
+  const observedSha = observed?.observed_main_sha;
+
   add(
-    main?.relationship_to_pinned_baseline?.baseline_commit === BASELINE.commit,
-    "current_canonical_main must name the pinned baseline it is compared against",
+    typeof observedSha === "string" && /^[0-9a-f]{40}$/u.test(observedSha),
+    "canonical_main_observed_at_generation.observed_main_sha must be a 40-hex commit id",
+  );
+
+  if (typeof observedSha === "string") {
+    add(
+      resolveTree(observedSha) !== null,
+      `observed_main_sha ${observedSha.slice(0, 12)}… must be a real commit`,
+    );
+    add(
+      observed?.observed_main_tree === resolveTree(observedSha),
+      "observed_main_tree must be the tree of observed_main_sha",
+    );
+    add(
+      observed?.observed_main_regular_file_count === countTreeFiles(observedSha),
+      "observed_main_regular_file_count must match the observed tree",
+    );
+
+    // The candidate/base relationship, proven from git. This is what makes the
+    // record verifiable after main advances: the base stays an ancestor of the
+    // candidate forever, whereas "current main" does not.
+    add(
+      observed?.candidate_base === observedSha,
+      "candidate_base must be the canonical main this candidate was generated against",
+    );
+    const head = resolveHeadCommit();
+    if (head) {
+      add(
+        isAncestorOf(observedSha, head),
+        `candidate_base ${observedSha.slice(0, 12)}… must be an ancestor of the ` +
+          `candidate (${head.slice(0, 12)}…) — a base this candidate was not built on is not its base`,
+      );
+    }
+  }
+
+  add(
+    typeof observed?.observed_at === "string" && observed.observed_at.trim() !== "",
+    "canonical_main_observed_at_generation must record observed_at",
   );
   add(
-    main?.per_file_registry_coverage_of_current_main === "not-claimed",
-    "per-file coverage of current main must not be claimed while the registry stays pinned",
+    typeof observed?.semantics === "string" &&
+      /does NOT|not.*claim/u.test(observed.semantics),
+    "the observation must state explicitly that it does not claim to remain current",
+  );
+  add(
+    observed?.relationship_to_pinned_baseline?.baseline_commit === BASELINE.commit,
+    "the observation must name the pinned baseline it is compared against",
+  );
+  add(
+    typeof observed?.relationship_to_pinned_baseline?.snapshot_scope === "string",
+    "the baseline relationship must declare its snapshot scope",
+  );
+  add(
+    observed?.per_file_registry_coverage_of_observed_main === "not-claimed",
+    "per-file coverage of observed main must not be claimed while the registry stays pinned",
   );
 
   const current = registry?.pinned_canonical_baseline;

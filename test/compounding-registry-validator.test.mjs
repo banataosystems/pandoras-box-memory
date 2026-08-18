@@ -222,3 +222,105 @@ test("secret scanner fails without printing a single-file secret", () => {
     rmSync(fixtureRoot, { recursive: true, force: true });
   }
 });
+
+// ---------------------------------------------------------------------------
+// Observational canonical-main semantics.
+//
+// The earlier shape recorded `current_canonical_main` and the validator checked
+// it against whatever main happened to be. That is self-staling: it is true
+// until this registry merges and false immediately afterwards, because merging
+// advances main. The record is now an OBSERVATION plus a BASE RELATIONSHIP, and
+// these tests pin both halves of that contract.
+// ---------------------------------------------------------------------------
+
+test("the observation does not claim to remain the current default branch", () => {
+  const observed = registry.canonical_main_observed_at_generation;
+  assert.equal(observed.candidate_base, observed.observed_main_sha);
+  assert.match(observed.semantics, /does NOT/);
+  // No field may be named as though it tracks the live default branch.
+  assert.equal(registry.current_canonical_main, undefined);
+  assert.equal(registry.pinned_canonical_baseline.is_current_canonical_main, false);
+});
+
+test("a later main advancement does not invalidate the recorded evidence", () => {
+  // Prove it against real git rather than by inspection: build a throwaway
+  // clone, advance its default branch beyond the observed commit, and run the
+  // real validator script there. The candidate is untouched, so a validator
+  // that still compared against "current main" would now fail.
+  const dir = mkdtempSync(join(process.env.TMPDIR ?? "/tmp", "pandora-main-advance-"));
+  try {
+    const repo = resolve(".");
+    const run = (args, cwd = dir) => spawnSync("git", args, { cwd, encoding: "utf8" });
+
+    assert.equal(run(["clone", "--shared", "--no-checkout", repo, "clone"], dir).status, 0);
+    const clone = join(dir, "clone");
+    const head = run(["rev-parse", "HEAD"], repo).stdout.trim();
+    assert.equal(run(["checkout", "--detach", head], clone).status, 0);
+
+    const observedMain = registry.canonical_main_observed_at_generation.observed_main_sha;
+
+    // Advance the default branch past the observed commit, exactly as merging
+    // any pull request would.
+    const advanced = run(
+      ["commit-tree", `${observedMain}^{tree}`, "-p", observedMain, "-m", "advance main"],
+      clone,
+    );
+    assert.equal(advanced.status, 0, advanced.stderr);
+    const newMain = advanced.stdout.trim();
+    assert.notEqual(newMain, observedMain);
+    assert.equal(run(["update-ref", "refs/remotes/origin/main", newMain], clone).status, 0);
+    assert.equal(run(["update-ref", "refs/heads/main", newMain], clone).status, 0);
+
+    const result = spawnSync(
+      process.execPath,
+      [join(repo, "scripts/validate_compounding_registry.mjs")],
+      { cwd: clone, encoding: "utf8" },
+    );
+    assert.equal(
+      result.status,
+      0,
+      `validator must still pass after main advanced:\n${result.stdout}\n${result.stderr}`,
+    );
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("rejects a candidate_base that is not the observed canonical main", () => {
+  rejects(
+    (candidate) => {
+      candidate.canonical_main_observed_at_generation.candidate_base =
+        candidate.pinned_canonical_baseline.commit;
+    },
+    /candidate_base must be the canonical main this candidate was generated against/,
+  );
+});
+
+test("rejects an observed main that is not an ancestor of the candidate", () => {
+  // An orphan commit is real but was never in this candidate's history, so it
+  // cannot be the base the candidate was built on.
+  const orphan = spawnSync(
+    "git",
+    ["commit-tree", "HEAD^{tree}", "-m", "orphan"],
+    { cwd: resolve("."), encoding: "utf8" },
+  );
+  assert.equal(orphan.status, 0, orphan.stderr);
+  const sha = orphan.stdout.trim();
+  rejects(
+    (candidate) => {
+      candidate.canonical_main_observed_at_generation.observed_main_sha = sha;
+      candidate.canonical_main_observed_at_generation.candidate_base = sha;
+    },
+    /must be an ancestor of the candidate|observed_main_tree|observed_main_regular_file_count/,
+  );
+});
+
+test("rejects an observation that omits its non-currency statement", () => {
+  rejects(
+    (candidate) => {
+      candidate.canonical_main_observed_at_generation.semantics =
+        "This is the current canonical main.";
+    },
+    /does not claim to remain current/,
+  );
+});
