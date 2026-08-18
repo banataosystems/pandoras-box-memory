@@ -35,6 +35,30 @@
 // fields are MANDATORY for any artifact that names a lane or was changed here,
 // so deleting a field is not a way to pass either.
 //
+// A SIXTH defect was then demonstrated in review, and it was the residue of
+// that same fix:
+//
+//   6. Resolving the declared lane made a FABRICATED lane useless, and made a
+//      STALE value useless, but it still let the artifact pick WHICH lane it
+//      would be graded against. Since the repository deliberately retains a
+//      `recovery/review-*` branch at every superseded head, a changed artifact
+//      could name one of those, bind to it perfectly — head, tree and base all
+//      internally consistent — and pass, while the candidate it was actually
+//      shipping with was never checked. Every field was honest about a question
+//      nobody had asked.
+//
+// So redirection is no longer something an artifact may assert. It is a fact
+// git has to confirm: an artifact may answer to a lane other than the one under
+// test ONLY if its bytes here are identical to that lane's copy, which proves
+// this lane inherited it rather than wrote it. Genuine cross-lane integration
+// still works — a stacked lane carries its base lane's evidence in unchanged —
+// but the moment this lane edits the file, the identity that licensed the
+// redirect is gone and the artifact must answer to this candidate.
+//
+// Deliberately NOT a blocklist of `recovery/` or of any branch name: filtering
+// names would leave the trust boundary exactly where it was, and the next
+// retained branch would reopen the hole.
+//
 // This also handles a lane that integrates another: an artifact merged in from
 // a different lane still binds correctly, because it is checked against the head
 // of the lane it belongs to rather than the head of the lane under test.
@@ -44,8 +68,9 @@
 //   candidate_head   must be HEAD itself, or a parent of HEAD. An artifact
 //                    cannot contain the hash of the commit that introduces it,
 //                    so naming its own parent is the closest honest binding.
-//                    Enforced only for the artifact belonging to THIS lane;
-//                    artifacts inherited from other lanes are bound on theirs.
+//                    Enforced for every artifact this lane wrote. An artifact
+//                    inherited from another lane is bound on that lane instead,
+//                    but only once git confirms it arrived here unchanged.
 //   candidate_tree   must be the actual tree of candidate_head. A 40-hex shape
 //                    check alone lets a stale or fabricated tree through.
 //   canonical_base   must be an ancestor of HEAD, and must equal the merge-base
@@ -154,6 +179,7 @@ export function validateArtifact(
     treeOf,
     headOf,
     parentsOf,
+    blobAt,
     head,
     headParents,
     mergeBase,
@@ -193,13 +219,35 @@ export function validateArtifact(
   // An artifact must bind if it names a lane, or if this lane changed it.
   const mustBind = declaresLane || owned;
 
-  // Resolve the head this artifact is accountable to. An artifact that names a
-  // lane answers to THAT lane's head; one that names none answers to this head.
+  // Resolve the head this artifact is accountable to.
+  //
+  // TRUST BOUNDARY. `source.branch` is artifact-controlled data, so on its own
+  // it may never redirect validation away from the candidate under test. Review
+  // demonstrated the escape it used to allow: an artifact edited on this lane
+  // declared a RETAINED RECOVERY BRANCH pointing at a superseded head, bound
+  // itself correctly to that branch, and passed — while the candidate it was
+  // actually shipping with went unchecked. Every binding field was present and
+  // internally consistent; the artifact had simply chosen a friendlier question
+  // to answer.
+  //
+  // Answering to another lane is therefore no longer a claim but a fact git has
+  // to confirm: the artifact's bytes here must be IDENTICAL to that lane's copy,
+  // which proves this lane inherited it rather than authored or edited it. That
+  // keeps real cross-lane integration working — a stacked lane carries its base
+  // lane's evidence in unchanged — while making the redirect worthless to
+  // anything this lane actually wrote, because writing to it breaks the
+  // identity that licensed the redirect in the first place.
+  //
+  // Note this is deliberately NOT a blocklist of `recovery/` or of any branch
+  // name. Name-based filtering would leave the design untouched and the next
+  // retained branch would reopen it.
   let targetHead = head;
   let targetParents = headParents;
   let targetLabel = branch ?? "this lane";
 
-  if (declaresLane) {
+  const redirects = declaresLane && (branch === null || source.branch !== branch);
+
+  if (redirects) {
     const resolved = headOf(source.branch);
     if (resolved === null) {
       errors.push(
@@ -208,6 +256,20 @@ export function validateArtifact(
       );
       return errors;
     }
+
+    const here = blobAt("HEAD", name);
+    const there = blobAt(resolved, name);
+    if (here === null || there === null || here !== there) {
+      errors.push(
+        `${name}: declares source.branch '${source.branch}', which is not the ` +
+          `lane under test ('${branch ?? "unresolved"}'), and its content here is ` +
+          `not identical to that lane's copy. Evidence may answer to another lane ` +
+          `only when this lane inherited it unchanged. An artifact does not get ` +
+          `to select the candidate it is validated against.`,
+      );
+      return errors;
+    }
+
     targetHead = resolved;
     targetParents = parentsOf(resolved);
     targetLabel = source.branch;
@@ -219,6 +281,14 @@ export function validateArtifact(
         `the binding checks.`,
     );
     return errors;
+  }
+
+  if (owned && !declaresLane) {
+    // Omitting the lane is not a way to sidestep the check above.
+    errors.push(
+      `${name}: changed on this lane but omits 'source.branch'. Evidence ` +
+        `authored or edited here must name the lane it belongs to.`,
+    );
   }
 
   if (mustBind) {
@@ -355,6 +425,9 @@ function selfTest() {
 
   const OTHER_HEAD = "7".repeat(40);
   const OTHER_PARENT = "8".repeat(40);
+  // A superseded candidate, still reachable because its recovery ref is retained.
+  const SUPERSEDED = "9".repeat(40);
+  const SUPERSEDED_TREE = "c".repeat(40);
   const ancestors = new Set([HEAD, PARENT, BASE, OLD]);
   const real = new Set([...ancestors, "6".repeat(40)]);
   const trees = {
@@ -363,13 +436,45 @@ function selfTest() {
     [OLD]: OTHER_TREE,
     [OTHER_HEAD]: HEAD_TREE,
     [OTHER_PARENT]: HEAD_TREE,
+    [SUPERSEDED]: SUPERSEDED_TREE,
+  };
+
+  // Content identity per path, per revision. Equal ids mean equal bytes, which
+  // is how the guard tells "inherited from that lane unchanged" apart from
+  // "written here and pointed at that lane".
+  const BLOBS = {
+    // Arrived from lane 'other' untouched.
+    "inherited.json": { HEAD: "blob-i", [OTHER_HEAD]: "blob-i", [OTHER_PARENT]: "blob-i" },
+    // Written or edited on THIS lane; every other lane holds a different copy.
+    "edited.json": {
+      HEAD: "blob-e-here",
+      [OTHER_HEAD]: "blob-e-there",
+      [OTHER_PARENT]: "blob-e-there",
+      [SUPERSEDED]: "blob-e-superseded",
+    },
+    // Default fixture for cases that never redirect.
+    sample: {
+      HEAD: "blob-s",
+      [HEAD]: "blob-s",
+      [OTHER_HEAD]: "blob-s",
+      [OTHER_PARENT]: "blob-s",
+    },
   };
   const ctx = {
     isInHistory: (sha) => ancestors.has(sha),
     exists: (sha) => real.has(sha),
     treeOf: (sha) => trees[sha] ?? null,
-    headOf: (lane) => (lane === "lane" ? HEAD : lane === "other" ? OTHER_HEAD : null),
+    headOf: (lane) =>
+      lane === "lane"
+        ? HEAD
+        : lane === "other"
+        ? OTHER_HEAD
+        : lane === "recovery/review-20260818/pr-x-abcdef12" ||
+            lane === "superseded/candidate-lane"
+        ? SUPERSEDED
+        : null,
     parentsOf: (sha) => (sha === HEAD ? [PARENT] : sha === OTHER_HEAD ? [OTHER_PARENT] : []),
+    blobAt: (rev, path) => BLOBS[path]?.[rev] ?? null,
     head: HEAD,
     headParents: [PARENT],
     mergeBase: BASE,
@@ -467,17 +572,112 @@ function selfTest() {
     // resolve against, so it must fail closed rather than be skipped.
     ["detached HEAD fails closed for a changed artifact naming no lane", detached, { source: { candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, true],
     ["detached HEAD is fine for an artifact not changed here", { ...detached, owned: false }, { source: { merge_commit: BASE } }, false],
+
+    // ------------------------------------------------------------------
+    // Lane-redirection matrix.
+    //
+    // Review demonstrated that a changed artifact could answer to a RETAINED
+    // RECOVERY BRANCH on a superseded head and pass with every field
+    // internally consistent. `source.branch` is artifact-controlled, so it
+    // chose the question it would be graded on. Redirecting now requires the
+    // artifact's bytes here to match that lane's copy, which an artifact this
+    // lane wrote cannot arrange. Case 11 is the exploit itself.
+    // ------------------------------------------------------------------
+
+    // 1. Changed artifact naming the lane actually under test.
+    ["1: changed artifact + correct current lane", ctx, { source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, false, "edited.json"],
+
+    // 2-4. Redirects to a real, resolvable branch that is not this lane.
+    ["2: changed artifact + another existing live branch", ctx, { source: { branch: "other", candidate_head: OTHER_HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, true, "edited.json"],
+    ["3: changed artifact + retained recovery branch", ctx, { source: { branch: "recovery/review-20260818/pr-x-abcdef12", candidate_head: SUPERSEDED, candidate_tree: SUPERSEDED_TREE, canonical_base: BASE } }, true, "edited.json"],
+    ["4: changed artifact + superseded candidate branch", ctx, { source: { branch: "superseded/candidate-lane", candidate_head: SUPERSEDED, candidate_tree: SUPERSEDED_TREE, canonical_base: BASE } }, true, "edited.json"],
+
+    // 5-7. A lane that cannot be resolved, or is not named at all.
+    ["5: changed artifact + invented branch", ctx, { source: { branch: "no-such-lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, true, "edited.json"],
+    ["6: changed artifact + empty branch", ctx, { source: { branch: "", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, true, "edited.json"],
+    ["7: changed artifact + missing branch", ctx, { source: { candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, true, "edited.json"],
+
+    // 8-10. Exact-head/tree/base binding is not weakened by any of the above.
+    ["8: changed artifact + wrong candidate head", ctx, { source: { branch: "lane", candidate_head: OLD, candidate_tree: OTHER_TREE, canonical_base: BASE } }, true, "edited.json"],
+    ["9: changed artifact + wrong candidate tree", ctx, { source: { branch: "lane", candidate_head: HEAD, candidate_tree: OTHER_TREE, canonical_base: BASE } }, true, "edited.json"],
+    ["10: changed artifact + wrong canonical base", ctx, { source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: OLD } }, true, "edited.json"],
+
+    // 11. THE EXPLOIT. Before the fix this was ACCEPTED: a changed artifact
+    // redirected onto a retained recovery branch and bound to it flawlessly,
+    // leaving the real candidate unverified.
+    ["11: changed artifact self-selecting another lane with otherwise-correct binding", ctx, { source: { branch: "recovery/review-20260818/pr-x-abcdef12", candidate_head: SUPERSEDED, candidate_tree: SUPERSEDED_TREE, canonical_base: BASE } }, true, "edited.json"],
+
+    // 12. Genuine cross-lane integration still works: inherited byte-for-byte
+    // from lane 'other', so it answers to that lane rather than to this head.
+    ["12: unchanged historical artifact inherited from another lane", inherited, { source: { branch: "other", candidate_head: OTHER_HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE } }, false, "inherited.json"],
+    ["12b: artifact inherited unchanged even though this lane also changed files", { ...ctx, owned: false }, { source: { branch: "other", candidate_head: OTHER_PARENT, candidate_tree: HEAD_TREE, canonical_base: BASE } }, false, "inherited.json"],
+
+    // 13. The deleted-branch exception stays narrow and stays out of reach of
+    // anything this lane wrote.
+    ["13: deleted historical branch exception still valid for untouched merged history", inherited, { lifecycle: { merged: true }, source: { final_pull_request_head: GONE } }, false],
+    ["13b: deleted-branch exception unusable by a changed artifact", ctx, { lifecycle: { merged: true }, source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE, final_pull_request_head: GONE } }, true, "edited.json"],
   ];
 
   let failures = 0;
-  for (const [label, context, artifact, shouldReject] of cases) {
-    const rejected = validateArtifact(artifact, "sample", context).length > 0;
+  for (const [label, context, artifact, shouldReject, path] of cases) {
+    const rejected = validateArtifact(artifact, path ?? "sample", context).length > 0;
     if (rejected !== shouldReject) {
       console.error(
         `SELF-TEST FAIL: '${label}' expected ${shouldReject ? "rejection" : "acceptance"}`,
       );
       failures += 1;
     }
+  }
+
+  // A rejection is only meaningful if it fires for the reason claimed. Case 11's
+  // head, tree and base bindings are all internally correct against the lane it
+  // names, so the ONLY thing that may reject it is the redirect itself. Without
+  // this assertion the case could silently start passing for an unrelated reason
+  // and stop covering the exploit.
+  const exploitErrors = validateArtifact(
+    {
+      source: {
+        branch: "recovery/review-20260818/pr-x-abcdef12",
+        candidate_head: SUPERSEDED,
+        candidate_tree: SUPERSEDED_TREE,
+        canonical_base: BASE,
+      },
+    },
+    "edited.json",
+    ctx,
+  );
+  if (
+    exploitErrors.length !== 1 ||
+    !exploitErrors[0].includes("not identical to that lane's copy")
+  ) {
+    console.error(
+      "SELF-TEST FAIL: the lane-redirect exploit must be rejected by the " +
+        `redirect guard specifically, got: ${JSON.stringify(exploitErrors)}`,
+    );
+    failures += 1;
+  }
+
+  // The same artifact, inherited unchanged instead of written here, must still
+  // be accepted — the fix must not break cross-lane integration.
+  if (
+    validateArtifact(
+      {
+        source: {
+          branch: "other",
+          candidate_head: OTHER_HEAD,
+          candidate_tree: HEAD_TREE,
+          canonical_base: BASE,
+        },
+      },
+      "inherited.json",
+      ctx,
+    ).length !== 0
+  ) {
+    console.error(
+      "SELF-TEST FAIL: an artifact inherited byte-for-byte from another lane " +
+        "must still bind against that lane",
+    );
+    failures += 1;
   }
 
   // Lane resolution must prefer CI-provided names over a detached symbolic ref.
@@ -555,6 +755,10 @@ function main() {
         git(["rev-parse", "--verify", `${lane}^{commit}`]),
     parentsOf: (sha) =>
       (git(["rev-list", "--parents", "-n", "1", sha]) ?? "").split(/\s+/).slice(1),
+    // Content identity of one path at one revision. Comparing blob ids compares
+    // bytes, so this answers "did this lane change the file relative to that
+    // lane?" without reading either copy.
+    blobAt: (rev, path) => git(["rev-parse", `${rev}:${path}`]),
     head,
     headParents,
     mergeBase,

@@ -7,11 +7,12 @@
   "source": {
     "pull_request": 33,
     "branch": "hardening/gateway-api-boundaries",
-    "candidate_head": "f17f9576194a9879fddbc840ab4db5fd16bea141",
-    "candidate_tree": "c8f29c8478a8fbd047d83cba5625ddee392f7147",
+    "candidate_head": "8704a96f16d006c9c8cf2add494800894b76fcef",
+    "candidate_tree": "4e9ab69e1d060c8c4d3bfb489ad91bba99bce646",
     "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
     "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
     "describes_commits": [
+      "8704a96f16d006c9c8cf2add494800894b76fcef",
       "f17f9576194a9879fddbc840ab4db5fd16bea141",
       "54b225b430c77bb5ed51372451d19fc4663c1fbf",
       "e733203223f27ad92bd580f7af436e5f587edda1",
@@ -31,6 +32,13 @@
       "827780f2a5466edcf6a0c2319f84c468ffed7079"
     ],
     "superseded_candidates": [
+      {
+        "candidate_head": "f17f9576194a9879fddbc840ab4db5fd16bea141",
+        "candidate_tree": "c8f29c8478a8fbd047d83cba5625ddee392f7147",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-3 review: the evidence-binding guard still let a changed artifact choose which lane it was validated against",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55"
+      },
       {
         "candidate_head": "e733203223f27ad92bd580f7af436e5f587edda1",
         "candidate_tree": "765eb53f64241064441606b2c5dd85eb5373acd0",
@@ -90,6 +98,11 @@
     {
       "boundary": "gateway audit inserts discarded the returned Supabase error",
       "detail": "a failed audit write was indistinguishable from a successful one"
+    },
+    {
+      "boundary": "capability-evidence binding let a changed artifact select its own candidate lane",
+      "detail": "source.branch is artifact-controlled, and resolving it against git only stopped fabricated lanes and stale values. Because a recovery/review-* branch is retained at every superseded head, an artifact edited on this lane could name one, bind to it with a head, tree and base that were all internally consistent, and pass while the candidate it shipped with went unverified.",
+      "fix": "redirecting to another lane is no longer an assertion the artifact makes but a fact git confirms: the artifact's blob at HEAD must be identical to that lane's copy, which proves this lane inherited it rather than wrote it. Cross-lane integration is unaffected; editing the file forfeits the redirect. Not a branch-name blocklist."
     }
   ],
   "boundary_contract": {
@@ -121,7 +134,7 @@
     "dependency_pin": "bridge floating jsr:@supabase/supabase-js@2 pinned to npm:@supabase/supabase-js@2.110.9"
   },
   "test_evidence": {
-    "node_tests": 15,
+    "node_tests": 60,
     "deno_tests": 20,
     "mirrored_cases_across_runtimes": true,
     "cases": [
@@ -136,7 +149,12 @@
       "oversized upstream",
       "malformed JSON",
       "full NaN matrix",
-      "audit fail-closed and deny-proceeds"
+      "audit fail-closed and deny-proceeds",
+      "changed artifact redirecting to a retained recovery branch",
+      "changed artifact redirecting to a superseded candidate branch",
+      "changed artifact redirecting to another live branch",
+      "changed artifact with empty or missing lane metadata",
+      "artifact inherited byte-for-byte from an integrated lane"
     ],
     "limitation": "Deno suites were not run in the authoring environment (Deno unavailable); they are proven by CI only. No load or adversarial testing was performed against a running service."
   },
@@ -167,11 +185,10 @@
       "durable evidence binding was stale: candidate_head, candidate_tree, and canonical_base predated the second-author commits and the governance reconciliation. Refreshing only the pull-request body did not repair it.",
       "the approved-canon contract leaked internal hard_canon/soft_canon labels because the response normalizer spread canonical_records through unchanged."
     ],
-    "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when canonical_base is not the merge-base with the default branch, or when a recorded historical commit does not exist. 13 self-tests.",
+    "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when candidate_tree is not the tree of candidate_head, when canonical_base is not the merge-base with the default branch, when a recorded historical commit does not exist, and when an artifact declares a lane other than the one under test without being byte-identical to that lane's copy. 60 self-test cases, including the reproduced lane-redirection exploit asserted to fail for the redirect reason specifically rather than incidentally.",
     "canon_label_fix": "canonical_records are rebuilt rather than spread; canon-label fields are rewritten to the stable approved alias at any depth, keyed on field name so free text discussing canon status is never corrupted.",
     "third_review_findings_closed": [
-      "the binding guard resolved the lane with git rev-parse --abbrev-ref HEAD, which returns the literal HEAD under CI detached checkout, so every lane-scoped check was silently skipped and CI could stay green over a rotted binding",
-      "candidate_tree was only shape-checked as 40 hex characters and was never verified to equal the tree of candidate_head"
+      "a changed evidence artifact could escape current-candidate binding by declaring another existing branch \u2014 demonstrated against the retained recovery ref recovery/review-20260818/pr-33-f0f76d55 at the superseded head f0f76d555be8b4404fc7feac54bfe2d07c5af8c7, which the pre-fix validator ACCEPTED with owned=true."
     ],
     "lane_resolution": "resolveLane prefers an explicit --lane argument, then GITHUB_HEAD_REF (pull_request), then GITHUB_REF_NAME when GITHUB_REF_TYPE is branch (push), and only then a symbolic ref, rejecting the literal HEAD. When the lane cannot be resolved and an artifact declares one, the gate FAILS CLOSED instead of skipping.",
     "tree_binding": "candidate_tree is compared against git rev-parse <candidate_head>^{tree}",
