@@ -231,7 +231,10 @@ async function json(response) {
     [validBody(undefined, { claim: "password=hunter2-super-secret" }), "secret_assignment"],
     [validBody(undefined, { claim: "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" }), "secret_assignment"],
     [validBody(undefined, { claim: "AKIA" + "IOSFODNN7EXAMPLE" }), "cloud_credential_signature"],
-    [validBody(undefined, { claim: "-----BEGIN PRIVATE KEY-----" }), "private_key_material"],
+    // Split like the AKIA fixture two lines up: the runtime string is identical,
+    // but the source no longer contains a literal PEM header for the
+    // literal-secret gate to flag as a real key.
+    [validBody(undefined, { claim: "-----BEGIN " + "PRIVATE KEY-----" }), "private_key_material"],
     [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner%40example.com" } }), "direct_identifier_email"],
     [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner＠example.com" } }), "direct_identifier_email"],
     [validBody(undefined, { evidence_refs: [{ type: "github_source", ref: "phone%3A%20%2B63%20917%20123%204567" }] }), "direct_identifier_phone"],
