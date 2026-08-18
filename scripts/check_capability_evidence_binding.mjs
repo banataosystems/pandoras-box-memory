@@ -84,6 +84,11 @@ const REACHABLE_COMMIT_FIELDS = [
 // whenever it IS present. A fabricated value is therefore caught in every
 // checkout that could possibly have caught it, and an absent one is reported as
 // unresolvable-here rather than silently accepted or falsely called fake.
+// The historical exception below is NARROW BY CONSTRUCTION. Tolerating an
+// absent object is only defensible for evidence that is already part of
+// canonical history and is untouched by the lane under test. Anything the lane
+// authored or edited must resolve, or a new artifact could simply invent a
+// SHA-shaped value and rely on the object being missing to escape checking.
 const PROVENANCE_COMMIT_FIELDS = ["final_pull_request_head"];
 
 function git(args) {
@@ -287,11 +292,51 @@ export function validateArtifact(
     // shaOf already records a shape violation, which stays a hard failure.
     const value = shaOf(field);
     if (!value) continue;
-    if (!exists(value)) {
+    if (exists(value)) continue;
+
+    // The object is absent. Decide whether that is the legitimate
+    // deleted-branch case or an attempt to cite something unverifiable.
+    //
+    // The exception requires ALL of:
+    //   1. the artifact is NOT changed on this lane — this lane neither
+    //      authored nor edited it, so it cannot have chosen the value;
+    //   2. the artifact explicitly classifies itself as already-merged
+    //      history (lifecycle.merged === true), which is the only state in
+    //      which a pull-request branch is expected to be gone;
+    //   3. no current-candidate binding rests on the same unresolvable sha.
+    //
+    // Any other shape fails closed.
+    const isMergedHistory = artifact?.lifecycle?.merged === true;
+    const citedAsCurrentProof =
+      value === candidateHead || value === canonicalBase;
+
+    if (owned) {
+      errors.push(
+        `${name}: ${field} ${value.slice(0, 12)}… does not resolve, and this ` +
+          `artifact was changed on this lane. Evidence authored or edited here ` +
+          `must cite a commit this checkout can verify — the deleted-branch ` +
+          `exception covers untouched history only, never a value this lane ` +
+          `chose.`,
+      );
+    } else if (!isMergedHistory) {
+      errors.push(
+        `${name}: ${field} ${value.slice(0, 12)}… does not resolve, and this ` +
+          `artifact does not classify itself as merged history ` +
+          `(lifecycle.merged is not true). Only evidence already landed on ` +
+          `canonical history may have a deleted pull-request branch.`,
+      );
+    } else if (citedAsCurrentProof) {
+      errors.push(
+        `${name}: ${field} ${value.slice(0, 12)}… does not resolve and is also ` +
+          `cited as candidate_head or canonical_base. A current-candidate ` +
+          `binding may never rest on an object this checkout cannot verify.`,
+      );
+    } else {
       unresolved.push(
         `${name}: ${field} ${value.slice(0, 12)}… is not present in this ` +
-          `checkout (a merged pull-request branch head is reachable from no ` +
-          `branch); shape verified, object not verifiable here`,
+          `checkout (merged history whose pull-request branch was deleted, ` +
+          `reachable from no branch); shape verified, artifact unchanged here, ` +
+          `no current-candidate binding depends on it`,
       );
     }
   }
@@ -349,11 +394,42 @@ function selfTest() {
     ["historical merge fact naming a non-commit", inherited, { source: { merge_commit: GONE } }, true],
     ["merge_parent naming a non-commit", inherited, { source: { merge_parent: GONE } }, true],
 
+    // ------------------------------------------------------------------
+    // final_pull_request_head: the deleted-branch exception, and its limits.
+    //
     // A merged pull request's branch head is reachable from no branch once the
-    // branch is deleted, so no checkout can resolve it. Shape stays enforced;
-    // absence is a printed note, not a failure, or the gate could never pass on
-    // an artifact that records the head it was reviewed at.
-    ["final_pull_request_head absent from the checkout", inherited, { source: { final_pull_request_head: GONE } }, false],
+    // branch is deleted, so no checkout can resolve it. Tolerating that is only
+    // safe for evidence this lane did not touch and that says it is already
+    // merged. Everything else must fail closed, or a new artifact could invent
+    // a SHA-shaped value and rely on the object being missing.
+    // ------------------------------------------------------------------
+
+    // C: unchanged, already-merged history whose ref disappeared. The ONLY
+    // accepted shape — and it is accepted as historical provenance, never as
+    // current-candidate proof.
+    ["C: unchanged merged history whose PR branch was deleted", inherited, { lifecycle: { merged: true }, source: { final_pull_request_head: GONE } }, false],
+
+    // A: an artifact CHANGED on this lane citing a sha that is not in the
+    // repository. The lane chose the value, so it must resolve.
+    ["A: changed artifact citing a random 40-hex sha not in the repository", ctx, { lifecycle: { merged: true }, source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE, final_pull_request_head: GONE } }, true],
+
+    // B: a NEW artifact (owned by this lane) whose PR-head object does not
+    // exist. Same reasoning as A.
+    ["B: new artifact citing a nonexistent PR-head object", ctx, { source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE, final_pull_request_head: GONE } }, true],
+
+    // D: historical artifact MODIFIED in this PR while keeping the missing
+    // head. Editing it forfeits the exception.
+    ["D: historical artifact modified here while retaining a missing head", ctx, { lifecycle: { merged: true }, source: { branch: "lane", candidate_head: HEAD, candidate_tree: HEAD_TREE, canonical_base: BASE, final_pull_request_head: GONE } }, true],
+
+    // E: an unresolvable sha may not double as current-candidate proof.
+    ["E: unresolvable head also cited as candidate_head", inherited, { lifecycle: { merged: true }, source: { branch: "other", candidate_head: GONE, candidate_tree: HEAD_TREE, canonical_base: BASE, final_pull_request_head: GONE } }, true],
+    ["E2: unresolvable head also cited as canonical_base", inherited, { lifecycle: { merged: true }, source: { canonical_base: GONE, final_pull_request_head: GONE } }, true],
+
+    // An unchanged artifact that does NOT declare merged history cannot claim
+    // the exception either — an unmerged lane's branch should still exist.
+    ["unchanged artifact with a missing head but no merged classification", inherited, { source: { final_pull_request_head: GONE } }, true],
+
+    // Resolvable and malformed values are unaffected by any of the above.
     ["final_pull_request_head that does resolve", inherited, { source: { final_pull_request_head: BASE } }, false],
     ["final_pull_request_head with a malformed sha", inherited, { source: { final_pull_request_head: "nope" } }, true],
 
