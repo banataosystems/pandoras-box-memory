@@ -63,9 +63,25 @@ all four of:
 | `production_verified` or `rehearsal_verified` | Otherwise it is a candidate, not a target. |
 
 `scripts/check_rollback_targets.mjs` enforces this and runs in `npm run verify`.
-It rejects a qualified artifact missing verification, capabilities, an exact
-source commit, or a limitations list, and any summary that overstates what the
-artifact list supports.
+
+**Qualification is derived, never declared.** Every field a registry entry states
+about itself is a claim. The checker computes capability completeness against
+`required_capability_routes` and requires each route to appear in the cited
+evidence; resolves `verification_evidence` to a **current**, same-provider
+evidence entry that names the exact artifact id and carries the required proof
+stage; and resolves `source_commit_evidence` connecting that exact artifact id to
+that exact commit. Cited evidence is hash-verified against the evidence index.
+`source_commit_binding` prose is provenance for a reader, not proof.
+
+The `qualified` field is **generated**. CI asserts
+`qualified === (targetQualificationErrors(...).length === 0)`.
+
+Earlier versions read qualification off the entry: first the `qualified` boolean,
+then — after that was removed — `verification`,
+`capability_manifest_covers_required_routes`, `source_commit` and
+`source_commit_binding`. A registry entry that forged all four with no backing
+evidence still resolved. Both were the same defect: reading a value the checked
+object controls instead of resolving the underlying fact.
 
 Artifact identifiers are validated against a **per-provider allowlist** of
 immutable id shapes. An earlier version tried to keep moving refs out with a
@@ -75,26 +91,41 @@ prohibits could return silently. Ref naming conventions are unenumerable; a
 provider's own id format is exact. A provider with no registered id shape cannot
 contribute a target at all.
 
-### Currently qualified
+### Currently qualified: NONE — ROLLBACK IS UNAVAILABLE
 
-| Artifact | Role | Qualified | Note |
+| Artifact | Role | Qualified | Why |
 | --- | --- | --- | --- |
-| `dpl_7CbTiMxMXQZjrLQDKchf455iBxi4` | current production | **yes** | Production-verified, carries the full capability set. It is the target for a *future* deployment — it is what production runs now. |
-| `dpl_9EkwxicRPzigkvUis5m1qk644CrG` | preserved prior baseline | **no** | Predates the ProjectOS health and Memory search routes. Promoting it would silently drop capabilities. |
+| `dpl_7CbTiMxMXQZjrLQDKchf455iBxi4` | current production | **no** | The only *current* production observation of it, `live-vercel-projectos-state-2026-08-14`, records route presence as booleans rather than naming any required route, and does not connect the deployment to a source commit — it states the exact Git SHA is unproven. |
+| `dpl_9EkwxicRPzigkvUis5m1qk644CrG` | preserved prior baseline | **no** | Observed to lack the ProjectOS health and Memory search routes (`exact_health_result: 404`). Promoting it would silently drop capabilities. |
 
-**Both limitations are recorded and neither was closed in this pass:** the
-capability manifest was not re-probed (Vercel is unauthenticated in this
-session), and the source commit is asserted by prior evidence rather than
-independently rebound to the artifact.
+**This is a change.** This document previously listed the first artifact as
+qualified. That rested on fields the registry entry asserted about itself, plus
+`projectos-memory-connector-recovery-2026-08-10` — which does prove all seven
+routes and the commit, but is **superseded**, and the observation that supersedes
+it explicitly withdraws the source binding it implied. Superseded evidence cannot
+qualify a target.
 
-**If no artifact qualifies, rollback is UNAVAILABLE** and forward recovery is the
+**No artifact qualifies, so rollback is UNAVAILABLE** and forward recovery is the
 safe path. Saying that plainly is the correct outcome; inventing a target is not.
+
+### What would restore availability
+
+1. An authenticated Vercel readback naming the required routes on a specific
+   deployment id, indexed as **current** evidence.
+2. Evidence connecting that exact deployment id to an exact source commit.
+3. Or a rehearsal: deploy to preview from a known-good commit, probe the required
+   routes, and index that observation.
 
 ## Rollback procedure (NOT YET REHEARSED)
 
-1. Select the most recent artifact with `qualified: true` from the registry
-   whose capability manifest covers the routes the incident requires. **Do not
-   take a target from prose, a branch, or `main`.**
+0. **Check whether any artifact qualifies at all.** As of this revision none
+   does, so steps 1-6 cannot currently be executed and forward recovery is the
+   only available path. Do not treat the steps below as an available option
+   because they are written down.
+1. Select the most recent artifact the registry **derives** as qualified, whose
+   capability manifest covers the routes the incident requires. **Do not take a
+   target from prose, a branch, `main`, or from a registry entry's own claim
+   about itself.**
 2. Re-read that artifact from the provider and confirm it still exists and still
    reports the recorded source commit. A registry entry is a claim; the provider
    is the authority.
