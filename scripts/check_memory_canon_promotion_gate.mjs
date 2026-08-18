@@ -15,6 +15,7 @@ const PLANS = new Set([
   "62026a32-9bbb-4441-9f75-203906b73b31", "a0ba735f-d23f-4d14-b13d-e77fe27dccbd",
   "0c2adef8-2372-4823-a5c7-8c5cabadb417", "3b985644-7893-41b7-b356-a76fd7e16937",
   "65fe78ea-8bce-4057-abd0-9928c75b4597", "9c306b09-ebec-4585-9ff3-c12e4537deea",
+  "76c1d531-a1dc-485d-a2e4-cf0cef75227d",
 ]);
 
 function keys(v, wanted, label, e) {
