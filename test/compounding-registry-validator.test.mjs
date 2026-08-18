@@ -38,7 +38,7 @@ test("accepts the exact generated registry", () => {
 test("rejects an invalid classification", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.files[0].classification = "invented";
+      candidate.pinned_canonical_baseline.files[0].classification = "invented";
     },
     /invalid classification/u,
   );
@@ -47,8 +47,8 @@ test("rejects an invalid classification", () => {
 test("rejects a duplicate baseline entry", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.files.push(
-        structuredClone(candidate.current_canonical_source.files[0]),
+      candidate.pinned_canonical_baseline.files.push(
+        structuredClone(candidate.pinned_canonical_baseline.files[0]),
       );
     },
     /duplicate baseline entry/u,
@@ -58,7 +58,7 @@ test("rejects a duplicate baseline entry", () => {
 test("rejects a missing baseline entry", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.files.pop();
+      candidate.pinned_canonical_baseline.files.pop();
     },
     /missing baseline entry/u,
   );
@@ -67,7 +67,7 @@ test("rejects a missing baseline entry", () => {
 test("rejects missing blob identity", () => {
   rejects(
     (candidate) => {
-      delete candidate.current_canonical_source.files[0].git_blob_sha1;
+      delete candidate.pinned_canonical_baseline.files[0].git_blob_sha1;
     },
     /blob SHA mismatch or omission/u,
   );
@@ -76,7 +76,7 @@ test("rejects missing blob identity", () => {
 test("rejects missing byte size", () => {
   rejects(
     (candidate) => {
-      delete candidate.current_canonical_source.files[0].size_bytes;
+      delete candidate.pinned_canonical_baseline.files[0].size_bytes;
     },
     /byte size mismatch or omission/u,
   );
@@ -85,7 +85,7 @@ test("rejects missing byte size", () => {
 test("rejects missing provenance", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.files[0].evidence = [];
+      candidate.pinned_canonical_baseline.files[0].evidence = [];
     },
     /missing provenance/u,
   );
@@ -94,8 +94,8 @@ test("rejects missing provenance", () => {
 test("rejects incomplete canonical-baseline coverage claims", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.coverage.complete = false;
-      candidate.current_canonical_source.coverage.completion_percent = null;
+      candidate.pinned_canonical_baseline.coverage.complete = false;
+      candidate.pinned_canonical_baseline.coverage.completion_percent = null;
     },
     /canonical baseline coverage must be complete/u,
   );
@@ -104,7 +104,7 @@ test("rejects incomplete canonical-baseline coverage claims", () => {
 test("rejects provenance that is not bound to the exact blob", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.files[0].evidence[0].blob_sha1 =
+      candidate.pinned_canonical_baseline.files[0].evidence[0].blob_sha1 =
         "0000000000000000000000000000000000000000";
     },
     /invalid provenance/u,
@@ -129,7 +129,7 @@ test("rejects roadmap source drift", () => {
 test("rejects proof escalation without exact evidence", () => {
   rejects(
     (candidate) => {
-      const proof = candidate.current_canonical_source.files[0].proof;
+      const proof = candidate.pinned_canonical_baseline.files[0].proof;
       proof.stages.production_verified = "proven";
       proof.strongest_proven_state = "production-verified";
     },
@@ -140,7 +140,7 @@ test("rejects proof escalation without exact evidence", () => {
 test("rejects weakening blocked and historical classifications", () => {
   rejects(
     (candidate) => {
-      candidate.current_canonical_source.files.find(
+      candidate.pinned_canonical_baseline.files.find(
         (file) => file.path === "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
       ).classification = "active-current";
     },
@@ -149,7 +149,7 @@ test("rejects weakening blocked and historical classifications", () => {
 });
 
 test("keeps the recovery manifest at documented and blocked proof", () => {
-  const manifest = registry.current_canonical_source.files.find(
+  const manifest = registry.pinned_canonical_baseline.files.find(
     (file) => file.path === "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
   );
   assert.equal(manifest.proof.strongest_proven_state, "documented");

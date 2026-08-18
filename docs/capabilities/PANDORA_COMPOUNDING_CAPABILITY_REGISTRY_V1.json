@@ -117,7 +117,7 @@
       }
     ]
   },
-  "current_canonical_source": {
+  "pinned_canonical_baseline": {
     "repository": "banataosystems/pandoras-box-memory",
     "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
     "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
@@ -136,6 +136,8 @@
     },
     "relationship_to_original_archive": "not-proven",
     "relationship_to_current_production_deployment": "not-proven-file-by-file",
+    "snapshot_scope": "per-file registry pinned to the historical baseline commit below. This is NOT a file listing of current canonical main; see current_canonical_main for that relationship.",
+    "is_current_canonical_main": false,
     "files": [
       {
         "path": ".github/workflows/security-source-gate.yml",
@@ -1998,6 +2000,30 @@
         "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
       }
     ]
+  },
+  "current_canonical_main": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "commit": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "tree": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "regular_file_count": 94,
+    "relationship_to_pinned_baseline": {
+      "baseline_commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "baseline_regular_file_count": 62,
+      "baseline_files_unchanged_at_main": 58,
+      "baseline_files_changed_at_main": 4,
+      "baseline_files_removed_at_main": 0,
+      "files_added_since_baseline": 32,
+      "changed_paths": [
+        "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+        "package.json",
+        "supabase/functions/pandora-machine-gateway/index.ts",
+        "supabase/functions/pandora-projectos-bridge/index.ts"
+      ],
+      "removed_paths": [],
+      "method": "git blob SHA-1 comparison of every path in both trees"
+    },
+    "per_file_registry_coverage_of_current_main": "not-claimed",
+    "note": "The per-file registry is pinned to the historical baseline and is NOT regenerated against current main by this change, so the historical registry evidence is preserved rather than overwritten. Files added since the baseline are therefore unregistered, and no coverage or completion percentage is claimed for current main."
   },
   "live_runtime_snapshot": {
     "observed_at": "2026-08-14T01:36:00+08:00",

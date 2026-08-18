@@ -85,6 +85,113 @@ export function normalizeRoadmap(value) {
   return value.endsWith("\n") ? value.slice(0, -1) : value;
 }
 
+
+/** Current default-branch commit, or null when it cannot be resolved offline. */
+export function resolveDefaultBranchCommit() {
+  for (const ref of ["origin/main", "main"]) {
+    try {
+      return execFileSync("git", ["rev-parse", "--verify", `${ref}^{commit}`], {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "ignore"],
+      }).trim();
+    } catch {
+      // try the next ref
+    }
+  }
+  return null;
+}
+
+export function resolveTree(commit) {
+  try {
+    return execFileSync("git", ["rev-parse", `${commit}^{tree}`], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+export function countTreeFiles(commit) {
+  const blobs = readTreeBlobs(commit);
+  return blobs.size > 0 ? blobs.size : null;
+}
+
+
+/**
+ * The pinned baseline is history; this block is the present.
+ *
+ * The registry previously described the baseline commit under a field named
+ * `current_canonical_source`. That was true when written and became false the
+ * moment main advanced, which is exactly the drift the registry exists to
+ * catch. The per-file registry stays pinned — overwriting it would destroy the
+ * historical evidence — so the relationship to current main is computed here
+ * instead, by comparing blob SHA-1s across both trees.
+ */
+
+/** path -> blob SHA-1 for every regular file in `commit`. */
+export function readTreeBlobs(commit) {
+  const map = new Map();
+  let raw;
+  try {
+    raw = execFileSync("git", ["ls-tree", "-r", commit], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    });
+  } catch {
+    return map;
+  }
+  for (const line of raw.trim().split("\n").filter(Boolean)) {
+    const match = line.match(/^\d+\s+blob\s+([0-9a-f]{40})\t(.+)$/u);
+    if (match) map.set(match[2], match[1]);
+  }
+  return map;
+}
+
+export function buildCurrentMainBlock() {
+  const commit = resolveDefaultBranchCommit();
+  const baseline = new Map(
+    readBaselineTree().map((entry) => [entry.path, entry.blobSha]),
+  );
+  const current = commit ? readTreeBlobs(commit) : new Map();
+
+  const changed = [];
+  const removed = [];
+  let unchanged = 0;
+  for (const [path, sha] of baseline) {
+    if (!current.has(path)) removed.push(path);
+    else if (current.get(path) !== sha) changed.push(path);
+    else unchanged += 1;
+  }
+  let added = 0;
+  for (const path of current.keys()) if (!baseline.has(path)) added += 1;
+
+  return {
+    repository: BASELINE.repository,
+    commit,
+    tree: commit ? resolveTree(commit) : null,
+    regular_file_count: current.size,
+    relationship_to_pinned_baseline: {
+      baseline_commit: BASELINE.commit,
+      baseline_regular_file_count: BASELINE.regularFileCount,
+      baseline_files_unchanged_at_main: unchanged,
+      baseline_files_changed_at_main: changed.length,
+      baseline_files_removed_at_main: removed.length,
+      files_added_since_baseline: added,
+      changed_paths: changed.sort(),
+      removed_paths: removed.sort(),
+      method: "git blob SHA-1 comparison of every path in both trees",
+    },
+    per_file_registry_coverage_of_current_main: "not-claimed",
+    note:
+      "The per-file registry is pinned to the historical baseline and is NOT " +
+      "regenerated against current main by this change, so the historical " +
+      "registry evidence is preserved rather than overwritten. Files added " +
+      "since the baseline are therefore unregistered, and no coverage or " +
+      "completion percentage is claimed for current main.",
+  };
+}
+
 export function readBaselineTree() {
   const raw = execFileSync(
     "git",
@@ -317,7 +424,7 @@ export function buildRegistry(treeEntries) {
         evidence: ROADMAP.issueUrl,
       })),
     },
-    current_canonical_source: {
+    pinned_canonical_baseline: {
       repository: BASELINE.repository,
       commit: BASELINE.commit,
       tree: BASELINE.tree,
@@ -337,8 +444,14 @@ export function buildRegistry(treeEntries) {
       },
       relationship_to_original_archive: "not-proven",
       relationship_to_current_production_deployment: "not-proven-file-by-file",
+      snapshot_scope:
+        "per-file registry pinned to the historical baseline commit below. " +
+        "This is NOT a file listing of current canonical main; see " +
+        "current_canonical_main for that relationship.",
+      is_current_canonical_main: false,
       files,
     },
+    current_canonical_main: buildCurrentMainBlock(),
     live_runtime_snapshot: {
       observed_at: "2026-08-14T01:36:00+08:00",
       durable_documentary_source: {
@@ -457,7 +570,43 @@ export function validateRegistry(registry, treeEntries, roadmapText) {
   add(archive?.coverage?.completion_percent === null, "archive completion percentage must remain null");
   add(archive?.coverage?.classification === "blocked-pending-proof", "archive must remain blocked-pending-proof");
 
-  const current = registry?.current_canonical_source;
+  // The pinned baseline is deliberately historical, so it must SAY so. A block
+  // that pins an old commit while presenting itself as current state is the
+  // exact drift this registry exists to prevent.
+  add(
+    registry?.pinned_canonical_baseline?.is_current_canonical_main === false,
+    "pinned baseline must not present itself as current canonical main",
+  );
+
+  // The current-main block must match real git state, or it rots the moment
+  // main advances — which is how the previous snapshot became untrue.
+  const main = registry?.current_canonical_main;
+  const headCommit = resolveDefaultBranchCommit();
+  if (headCommit) {
+    add(
+      main?.commit === headCommit,
+      `current_canonical_main.commit must be the current default-branch commit (${headCommit})`,
+    );
+    const headTree = resolveTree(headCommit);
+    add(
+      main?.tree === headTree,
+      `current_canonical_main.tree must be the tree of ${headCommit}`,
+    );
+    add(
+      main?.regular_file_count === countTreeFiles(headCommit),
+      "current_canonical_main.regular_file_count must match the real tree",
+    );
+  }
+  add(
+    main?.relationship_to_pinned_baseline?.baseline_commit === BASELINE.commit,
+    "current_canonical_main must name the pinned baseline it is compared against",
+  );
+  add(
+    main?.per_file_registry_coverage_of_current_main === "not-claimed",
+    "per-file coverage of current main must not be claimed while the registry stays pinned",
+  );
+
+  const current = registry?.pinned_canonical_baseline;
   add(current?.repository === BASELINE.repository, "canonical repository mismatch");
   add(current?.commit === BASELINE.commit, "canonical baseline commit mismatch");
   add(current?.tree === BASELINE.tree, "canonical baseline tree mismatch");
