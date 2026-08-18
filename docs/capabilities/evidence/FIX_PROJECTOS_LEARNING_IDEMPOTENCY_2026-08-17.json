@@ -7,10 +7,17 @@
   "source": {
     "pull_request": 32,
     "branch": "fix/projectos-learning-idempotency-audit",
-    "candidate_head": "45f7d502aa479ecb2fb426bf1ee62b3a2f3ed7c5",
-    "candidate_tree": "eb5fa560c962403b88cf83e15864a7b7ca81963d",
+    "candidate_head": "2459d278b4728b1ad706c4aa3b79f98d1e647f24",
+    "candidate_tree": "ae50271ed868eb29a3b623ca1f4e4d821d46bd79",
     "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
     "superseded_candidates": [
+      {
+        "candidate_head": "45f7d502aa479ecb2fb426bf1ee62b3a2f3ed7c5",
+        "candidate_tree": "eb5fa560c962403b88cf83e15864a7b7ca81963d",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-3 review: production uniqueness readback checker added",
+        "recovery_ref": "recovery/review-20260818/pr-32-84196353"
+      },
       {
         "candidate_head": "485363185de58daad648f8dccd00091aef8edae8",
         "candidate_tree": "549c568251d190b609465db399da5dd287cdf480",
@@ -80,6 +87,33 @@
       "audit_logs_requires_uniqueness": false,
       "production_constraints_confirmed": false,
       "production_mutation": false
+    },
+    "production_schema_readback_verifier": {
+      "finding": "the concurrency proof establishes the three UNIQUE constraints are required but cannot establish that production carries them; without a verifier any eventual readback would land as prose",
+      "resolution": "docs/verification/introspection/PRODUCTION_UNIQUENESS_INTROSPECTION.sql captures live index and column-nullability state through an authenticated read-only path; scripts/check_production_idempotency_constraints.mjs validates it offline against the three exact key sets",
+      "verdicts_required": [
+        "constraints_satisfied",
+        "capture_authoritative"
+      ],
+      "authoritative_project_ref": "ivmvufhcsezyhczzondn",
+      "fixture_can_close_gate": false,
+      "fails_closed_on": [
+        "wrong columns",
+        "superset key",
+        "subset key",
+        "non-unique index",
+        "partial unique index",
+        "table absent from capture",
+        "is_unique omitted",
+        "conflicting duplicate index rows",
+        "column nullability not captured",
+        "nullable key column under default NULLS DISTINCT"
+      ],
+      "column_order_material": false,
+      "bare_unique_index_accepted": true,
+      "regressions_added": 22,
+      "gate_closed_by_this_change": false,
+      "production_state_read_or_mutated": false
     }
   },
   "behavior_contract": {
@@ -122,6 +156,6 @@
     "merge into canonical main with the exact-merge-result gates green",
     "source-provenanced preview deployment verification",
     "separate production deployment authorization and rollback rehearsal",
-    "authoritative read-only schema introspection confirming the production database actually carries the three UNIQUE constraints now proven to be load-bearing \u2014 their defining migrations are classified 'missing' and Supabase list_tables/list_migrations returned 'You do not have permission'"
+    "an authenticated read-only introspection capture from project ivmvufhcsezyhczzondn that scripts/check_production_idempotency_constraints.mjs accepts on BOTH verdicts \u2014 the verifier now exists, the capture does not; Supabase list_projects currently succeeds but returns an empty array, so that connection holds zero projects in scope"
   ]
 }
