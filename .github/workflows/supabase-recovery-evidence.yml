@@ -10,7 +10,8 @@ on:
 permissions:
   contents: read
 jobs:
-  verify:
+  supabase-recovery-evidence:
+    name: Supabase recovery evidence
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
