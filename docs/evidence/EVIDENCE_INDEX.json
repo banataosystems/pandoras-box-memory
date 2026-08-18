@@ -132,7 +132,7 @@
       "current": true,
       "supersedes": [],
       "superseded_by": null,
-      "evidence_sha256": "6538f98adb5bfe1deecff8f1e6d020219815087c685badf6a3e36413526f7075",
+      "evidence_sha256": "bbda54763ff9c2eabc3fd4fc5e83369ab5e1ab5d49361845c61d637c0f765f51",
       "review_status": "awaiting_independent_review",
       "deployment_status": "source_only",
       "production_verified": false,
@@ -474,6 +474,25 @@
       "review_status": "not_submitted",
       "deployment_status": "production_deployed",
       "production_verified": true,
+      "rollback_ref": null
+    },
+    {
+      "evidence_id": "2026-08-17-memory-evidence-intake-source",
+      "path": "docs/capabilities/evidence/MEMORY_EVIDENCE_INTAKE_SOURCE_2026-08-17.json",
+      "observed_at": "2026-08-17T10:07:00Z",
+      "source_commit": "d0e689556cc01428500b796cade87032ea5c0ad8",
+      "source_tree": "8f31f2f752ce5d8704a25d70266763f30faa72f2",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box-memory#27",
+      "proof_stage": "merged",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "91223630f7a3805a7685a347965d7e673dc503fca2dae54f1d9dd34652accaab",
+      "review_status": "not_submitted",
+      "deployment_status": "source_only",
+      "production_verified": false,
       "rollback_ref": null
     }
   ]

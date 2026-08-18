@@ -7,9 +7,19 @@
   "source": {
     "pull_request": 30,
     "branch": "governance/main-proof-enforcement",
-    "candidate_head": "0b52110d30262e768bd5889736a93d23dcf72361",
-    "candidate_tree": "d9b1ec98f80867162a050bbd780f723da5286900",
-    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
+    "candidate_head": "cc9c91d4bc9341d330aa5f3763138186fe657d2b",
+    "candidate_tree": "db814bf109aa66b0787447d22737f310d1f18214",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "superseded_candidates": [
+      {
+        "candidate_head": "0b52110d30262e768bd5889736a93d23dcf72361",
+        "candidate_tree": "d9b1ec98f80867162a050bbd780f723da5286900",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto canonical main 27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "recovery_ref": "recovery/review-20260818/pr-30-9f27e355",
+        "recovery_head": "9f27e355589f0856020b53a392a430f2486a2fad"
+      }
+    ]
   },
   "lifecycle": {
     "documented": true,
