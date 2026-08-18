@@ -7,11 +7,13 @@
   "source": {
     "pull_request": 33,
     "branch": "hardening/gateway-api-boundaries",
-    "candidate_head": "e733203223f27ad92bd580f7af436e5f587edda1",
-    "candidate_tree": "765eb53f64241064441606b2c5dd85eb5373acd0",
+    "candidate_head": "f17f9576194a9879fddbc840ab4db5fd16bea141",
+    "candidate_tree": "c8f29c8478a8fbd047d83cba5625ddee392f7147",
     "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
     "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
     "describes_commits": [
+      "f17f9576194a9879fddbc840ab4db5fd16bea141",
+      "54b225b430c77bb5ed51372451d19fc4663c1fbf",
       "e733203223f27ad92bd580f7af436e5f587edda1",
       "a65962c9b057e629430b27632dfc9b3f5f6b46fa",
       "9de9f19be7196ca386e409cebcaa870e8a2e7ae0",
@@ -29,6 +31,13 @@
       "827780f2a5466edcf6a0c2319f84c468ffed7079"
     ],
     "superseded_candidates": [
+      {
+        "candidate_head": "e733203223f27ad92bd580f7af436e5f587edda1",
+        "candidate_tree": "765eb53f64241064441606b2c5dd85eb5373acd0",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-2 review: deleted-branch exception narrowed to untouched merged history",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55"
+      },
       {
         "candidate_head": "689513f6ec019b68df20d380a8668f9399df8920",
         "candidate_tree": "9e9955f9a78c588162ef97be01c287a99a9a889a",
@@ -184,6 +193,13 @@
       "rename own lane to a fabricated lane",
       "point at a real other lane to escape",
       "drop the whole source block"
-    ]
+    ],
+    "final_pull_request_head_fail_open": {
+      "finding": "the unresolvable-object exception was applied unconditionally, so a new or edited artifact could cite an arbitrary 40-hex value and be merely noted rather than rejected",
+      "resolution": "absence is tolerated only for an artifact unchanged on this lane that classifies itself as merged history and whose sha is not also cited as candidate_head or canonical_base; every other shape fails closed",
+      "regressions_added": 8,
+      "total_self_test_cases": 45,
+      "defect_reintroduction_demonstrated": true
+    }
   }
 }
