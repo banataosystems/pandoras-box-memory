@@ -7,9 +7,19 @@
   "source": {
     "pull_request": 32,
     "branch": "fix/projectos-learning-idempotency-audit",
-    "candidate_head": "6bc2aadd4dee2699aaf60573c939c14bd513aa99",
-    "candidate_tree": "64664b0cc43bdb7c8d67e21a6b96ae35a0482c8e",
-    "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
+    "candidate_head": "485363185de58daad648f8dccd00091aef8edae8",
+    "candidate_tree": "549c568251d190b609465db399da5dd287cdf480",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "superseded_candidates": [
+      {
+        "candidate_head": "6bc2aadd4dee2699aaf60573c939c14bd513aa99",
+        "candidate_tree": "64664b0cc43bdb7c8d67e21a6b96ae35a0482c8e",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto repaired governance base and canonical main 27a3db9",
+        "recovery_ref": "recovery/review-20260818/pr-32-84196353",
+        "recovery_head": "84196353abb5f5f00bbe2d5ff665c1c6eab74870"
+      }
+    ]
   },
   "lifecycle": {
     "documented": true,
@@ -66,6 +76,7 @@
     "independent review of this exact candidate head",
     "merge into canonical main with the exact-merge-result gates green",
     "source-provenanced preview deployment verification",
-    "separate production deployment authorization and rollback rehearsal"
+    "separate production deployment authorization and rollback rehearsal",
+    "database-level verification that memory_capture_candidates, memory_review_queue_items, memory_session_digests and the learning audit_logs rows actually enforce uniqueness on source_ref \u2014 the defining migrations are classified 'missing' in the parity manifest, so the idempotency premise is unverified in source and the behavior suite proves handler ordering only"
   ]
 }
