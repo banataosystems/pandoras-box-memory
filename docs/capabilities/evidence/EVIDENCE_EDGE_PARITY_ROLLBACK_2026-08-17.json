@@ -7,8 +7,8 @@
   "source": {
     "pull_request": 34,
     "branch": "evidence/edge-parity-and-rollback",
-    "candidate_head": "1495b58a88409dfaafee9fc2929acea9b34e39f6",
-    "candidate_tree": "2e6f97621e33e9cfde17e63a4c24b6edb3aa537e",
+    "candidate_head": "7eb7d5b1c0fb95db9f38bd4196702c7e286fc152",
+    "candidate_tree": "b597e987b8bc02f8d3b9febf048fb72af7da7086",
     "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
     "binding_note": "candidate_head names the parent of the commit carrying this artifact. Enforced by scripts/check_capability_evidence_binding.mjs, which lands on the gateway-boundaries lane.",
     "superseded_candidates": [
