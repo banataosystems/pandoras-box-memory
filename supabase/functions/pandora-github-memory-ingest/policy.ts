@@ -82,8 +82,9 @@ export function validateVerifiedGithubClaims(
   const repositoryOwner = claimText(payload.repository_owner);
   const repositoryOwnerId = claimText(payload.repository_owner_id);
   const ref = claimText(payload.ref);
-  const workflowRef = claimText(payload.job_workflow_ref);
+  const workflowRef = claimText(payload.workflow_ref);
   const sourceSha = claimText(payload.sha)?.toLowerCase() ?? null;
+  const workflowSha = claimText(payload.workflow_sha)?.toLowerCase() ?? null;
   const eventName = claimText(payload.event_name);
   const workflowRunId = claimText(payload.run_id);
   const workflowRunAttemptRaw = claimText(payload.run_attempt);
@@ -95,6 +96,7 @@ export function validateVerifiedGithubClaims(
   if (ref !== principal.allowed_ref) return null;
   if (workflowRef !== principal.workflow_ref) return null;
   if (!sourceSha || !SHA40.test(sourceSha)) return null;
+  if (!workflowSha || workflowSha !== sourceSha || !SHA40.test(workflowSha)) return null;
   if (eventName !== "push" && eventName !== "workflow_dispatch") return null;
   if (workflowRunId !== null && !DECIMAL.test(workflowRunId)) return null;
 
