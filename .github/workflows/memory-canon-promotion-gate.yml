@@ -1,0 +1,38 @@
+name: Memory canon promotion gate
+
+on:
+  pull_request:
+    paths:
+      - "supabase/migrations/20260819000100_enforce_memory_canon_promotion_gate.sql"
+      - "scripts/check_memory_canon_promotion_gate.mjs"
+      - "docs/capabilities/evidence/MEMORY_CANON_PROMOTION_GATE_2026-08-19.json"
+      - "docs/capabilities/evidence/MEMORY_CANON_PROMOTION_GATE_2026-08-19.json.sha256"
+      - ".github/workflows/memory-canon-promotion-gate.yml"
+  push:
+    branches:
+      - main
+      - "security/**"
+    paths:
+      - "supabase/migrations/20260819000100_enforce_memory_canon_promotion_gate.sql"
+      - "scripts/check_memory_canon_promotion_gate.mjs"
+      - "docs/capabilities/evidence/MEMORY_CANON_PROMOTION_GATE_2026-08-19.json"
+      - "docs/capabilities/evidence/MEMORY_CANON_PROMOTION_GATE_2026-08-19.json.sha256"
+      - ".github/workflows/memory-canon-promotion-gate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify fail-closed promotion boundary and evidence envelope
+        run: node scripts/check_memory_canon_promotion_gate.mjs --self-test
+      - name: Scan source and evidence for literal secrets
+        run: bash scripts/check_no_literal_secrets.sh

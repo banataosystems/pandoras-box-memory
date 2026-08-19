@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-canon-promotion-gate-2026-08-19",
+  "captured_at": "2026-08-18T22:53:12Z",
+  "project": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "canonical_main_at_capture": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "canonical_main_tree_at_capture": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "supabase_project_ref": "ivmvufhcsezyhczzondn"
+  },
+  "lane": {
+    "worker": "Pandora Worker 2 — Supabase / Memory Source Parity / Recovery",
+    "branch": "security/memory-canon-promotion-gate-20260819",
+    "worker_1_paths_modified": false,
+    "parity_evidence_paths_modified": false
+  },
+  "finding": {
+    "classification": "security_correctness_defect",
+    "current_boundary_permits_authenticated_non_draft_insert": true,
+    "current_insert_policy_expression": "(auth.uid() = user_id)",
+    "current_function_definition_sha256": "98abdb7cc80bb5c7c3bf8a44225c44039a9e3bf0bc2946cb17f1b21627e743a6",
+    "origin_migration_version": "20260620000500",
+    "origin_migration_name": "memory_candidate_transaction",
+    "origin_statement_sha256": "48f7239d715946dd9fff519102144ccd911155a8d1cb4f55d3fdac900951ea1b",
+    "authenticated_update_or_delete_policy_present": false,
+    "candidate_rpc_trace_count": 0,
+    "existing_rows_reclassified": 0
+  },
+  "candidate": {
+    "migration_path": "supabase/migrations/20260819000100_enforce_memory_canon_promotion_gate.sql",
+    "migration_sha256": "120eada4ca23d4b680776379c16c0ac7d3db7e8c6710ef5165d0b65cf6c03fe3",
+    "behavior": "authenticated candidate creation is draft-only; canonical promotion remains service-role and review-gated",
+    "data_rewrite": false,
+    "destructive_ddl": false,
+    "rollback_classification": "forward_recovery",
+    "transaction_rollback_verified": true
+  },
+  "provider_proofs": [
+    {
+      "plan_id": "62026a32-9bbb-4441-9f75-203906b73b31",
+      "proof": "current authenticated non-draft insert accepted",
+      "persistent_mutation": false
+    },
+    {
+      "plan_id": "a0ba735f-d23f-4d14-b13d-e77fe27dccbd",
+      "proof": "candidate policy rejects non-draft and accepts draft",
+      "persistent_mutation": false
+    },
+    {
+      "plan_id": "0c2adef8-2372-4823-a5c7-8c5cabadb417",
+      "proof": "provider-derived candidate function compiles",
+      "persistent_mutation": false
+    },
+    {
+      "plan_id": "3b985644-7893-41b7-b356-a76fd7e16937",
+      "proof": "candidate RPC rejects non-draft before persistence",
+      "persistent_mutation": false
+    },
+    {
+      "plan_id": "65fe78ea-8bce-4057-abd0-9928c75b4597",
+      "proof": "candidate function execute grants narrow to authenticated and service_role",
+      "persistent_mutation": false
+    },
+    {
+      "plan_id": "9c306b09-ebec-4585-9ff3-c12e4537deea",
+      "proof": "post-failure live source and zero-residue readback",
+      "persistent_mutation": false
+    },
+    {
+      "plan_id": "76c1d531-a1dc-485d-a2e4-cf0cef75227d",
+      "proof": "exact committed migration compiles as one transaction and rolls back with original live source restored",
+      "persistent_mutation": false
+    }
+  ],
+  "recovery_observations": {
+    "hard_canon_rows_observed": 239,
+    "hard_canon_rows_without_governance_evidence": 87,
+    "unrestricted_candidate_rpc_trace_count": 0,
+    "unproven_rows_automatically_changed": 0,
+    "required_next_action": "independent provenance review; do not downgrade or delete rows without row-level evidence"
+  },
+  "safety": {
+    "production_schema_mutated": false,
+    "production_data_mutated": false,
+    "migration_replayed": false,
+    "edge_function_deployed": false,
+    "supabase_branch_created": false,
+    "new_cost_incurred": false,
+    "production_release_performed": false,
+    "secret_values_recorded": false,
+    "direct_user_identifiers_recorded": false
+  },
+  "proof_ladder": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "transaction_tested": true,
+    "independently_reviewed": false,
+    "merged": false,
+    "deployed": false,
+    "production_verified_after_repair": false
+  }
+}
