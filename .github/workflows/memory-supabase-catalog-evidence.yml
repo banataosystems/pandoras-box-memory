@@ -5,16 +5,20 @@ on:
     paths:
       - "docs/provider-observations/memory-supabase-20260819/**"
       - "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md*"
+      - "docs/recovery/PANDORA_SUPABASE_SCHEDULED_JOB_DRIFT_2026-08-19.md"
       - "docs/capabilities/evidence/MEMORY_SUPABASE_LIVE_CATALOG_2026-08-19.json*"
       - "scripts/check_memory_supabase_catalog.mjs"
+      - "scripts/check_memory_supabase_scheduled_jobs.mjs"
       - ".github/workflows/memory-supabase-catalog-evidence.yml"
   push:
     branches: [main]
     paths:
       - "docs/provider-observations/memory-supabase-20260819/**"
       - "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md*"
+      - "docs/recovery/PANDORA_SUPABASE_SCHEDULED_JOB_DRIFT_2026-08-19.md"
       - "docs/capabilities/evidence/MEMORY_SUPABASE_LIVE_CATALOG_2026-08-19.json*"
       - "scripts/check_memory_supabase_catalog.mjs"
+      - "scripts/check_memory_supabase_scheduled_jobs.mjs"
       - ".github/workflows/memory-supabase-catalog-evidence.yml"
   workflow_dispatch:
 
@@ -49,7 +53,9 @@ jobs:
           test "$actual" = "$expected"
           echo "source_sha=$actual" >> "$GITHUB_STEP_SUMMARY"
           echo "tree_sha=$(git rev-parse HEAD^{tree})" >> "$GITHUB_STEP_SUMMARY"
-      - name: Verify content-addressed live catalog evidence
+      - name: Verify historical catalog capture and current RED status
         run: node scripts/check_memory_supabase_catalog.mjs
+      - name: Verify scheduled-job rowset, provenance, drift, and adversarial cases
+        run: node scripts/check_memory_supabase_scheduled_jobs.mjs --self-test
       - name: Scan source for literal secrets
         run: bash scripts/check_no_literal_secrets.sh
