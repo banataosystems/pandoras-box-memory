@@ -3,8 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import {
   createRemoteJWKSet,
   decodeJwt,
-  jwtVerify,
   type JWTPayload,
+  jwtVerify,
 } from "jose";
 
 import {
@@ -42,7 +42,8 @@ const headers = {
 const respond = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers });
 
-const byteLength = (value: string) => new TextEncoder().encode(value).byteLength;
+const byteLength = (value: string) =>
+  new TextEncoder().encode(value).byteLength;
 
 const errorCode = (error: unknown): string =>
   typeof error === "object" && error !== null && "code" in error
@@ -75,7 +76,9 @@ const readBody = async (request: Request): Promise<JsonRecord | null> => {
   if (!raw.trim()) return {};
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return null;
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      return null;
+    }
     return parsed as JsonRecord;
   } catch {
     return null;
@@ -85,17 +88,28 @@ const readBody = async (request: Request): Promise<JsonRecord | null> => {
 const authenticate = async (
   request: Request,
   admin: AdminClient,
-): Promise<{ ok: true; principal: RuntimePrincipal; identity: GithubSourceIdentity } | { ok: false; response: Response }> => {
+): Promise<
+  { ok: true; principal: RuntimePrincipal; identity: GithubSourceIdentity } | {
+    ok: false;
+    response: Response;
+  }
+> => {
   const token = bearerToken(request);
   if (!token) {
-    return { ok: false, response: respond({ ok: false, error: "unauthorized" }, 401) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "unauthorized" }, 401),
+    };
   }
 
   let unverified: JWTPayload;
   try {
     unverified = decodeJwt(token);
   } catch {
-    return { ok: false, response: respond({ ok: false, error: "invalid_identity" }, 401) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "invalid_identity" }, 401),
+    };
   }
   const lookup = unverifiedLookup(unverified);
   if (
@@ -103,7 +117,10 @@ const authenticate = async (
     lookup.issuer !== GITHUB_OIDC_ISSUER ||
     lookup.audience !== GITHUB_OIDC_AUDIENCE
   ) {
-    return { ok: false, response: respond({ ok: false, error: "identity_not_allowed" }, 403) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "identity_not_allowed" }, 403),
+    };
   }
 
   const { data, error } = await admin
@@ -117,12 +134,18 @@ const authenticate = async (
     .eq("is_active", true)
     .maybeSingle();
   if (error || !data) {
-    return { ok: false, response: respond({ ok: false, error: "principal_unavailable" }, 403) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "principal_unavailable" }, 403),
+    };
   }
 
   const principal = data as RuntimePrincipal;
   if (!principal.memory_user_id) {
-    return { ok: false, response: respond({ ok: false, error: "principal_unavailable" }, 503) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "principal_unavailable" }, 503),
+    };
   }
 
   let verified: JWTPayload;
@@ -140,7 +163,12 @@ const authenticate = async (
     return {
       ok: false,
       response: respond(
-        { ok: false, error: unavailable ? "identity_key_unavailable" : "identity_verification_failed" },
+        {
+          ok: false,
+          error: unavailable
+            ? "identity_key_unavailable"
+            : "identity_verification_failed",
+        },
         unavailable ? 502 : 401,
       ),
     };
@@ -148,14 +176,19 @@ const authenticate = async (
 
   const identity = validateVerifiedGithubClaims(verified, principal);
   if (!identity) {
-    return { ok: false, response: respond({ ok: false, error: "identity_not_allowed" }, 403) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "identity_not_allowed" }, 403),
+    };
   }
   return { ok: true, principal, identity };
 };
 
 const readBoundedText = async (response: Response): Promise<string | null> => {
   const declared = Number(response.headers.get("content-length") || 0);
-  if (Number.isFinite(declared) && declared > MAX_GITHUB_RESPONSE_BYTES) return null;
+  if (Number.isFinite(declared) && declared > MAX_GITHUB_RESPONSE_BYTES) {
+    return null;
+  }
   const text = await response.text();
   return byteLength(text) <= MAX_GITHUB_RESPONSE_BYTES ? text : null;
 };
@@ -163,8 +196,9 @@ const readBoundedText = async (response: Response): Promise<string | null> => {
 const fetchProviderCommit = async (identity: GithubSourceIdentity) => {
   const [owner, repo] = identity.repository.split("/");
   if (!owner || !repo) return null;
-  const url =
-    `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/git/commits/${identity.sourceSha}`;
+  const url = `https://api.github.com/repos/${encodeURIComponent(owner)}/${
+    encodeURIComponent(repo)
+  }/git/commits/${identity.sourceSha}`;
   const response = await fetch(url, {
     method: "GET",
     redirect: "error",
@@ -193,7 +227,9 @@ const createOrReadSnapshot = async (
   identity: GithubSourceIdentity,
   providerCommit: NonNullable<Awaited<ReturnType<typeof fetchProviderCommit>>>,
   snapshotSha256: string,
-): Promise<{ ok: true; id: string; created: boolean } | { ok: false; response: Response }> => {
+): Promise<
+  { ok: true; id: string; created: boolean } | { ok: false; response: Response }
+> => {
   const { data: existing, error: existingError } = await admin
     .from("pandora_github_source_snapshots")
     .select("id,snapshot_sha256")
@@ -201,11 +237,17 @@ const createOrReadSnapshot = async (
     .eq("source_sha", providerCommit.sourceSha)
     .maybeSingle();
   if (existingError) {
-    return { ok: false, response: respond({ ok: false, error: "snapshot_lookup_failed" }, 500) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "snapshot_lookup_failed" }, 500),
+    };
   }
   if (existing?.id) {
     if (existing.snapshot_sha256 !== snapshotSha256) {
-      return { ok: false, response: respond({ ok: false, error: "snapshot_conflict" }, 409) };
+      return {
+        ok: false,
+        response: respond({ ok: false, error: "snapshot_conflict" }, 409),
+      };
     }
     return { ok: true, id: existing.id, created: false };
   }
@@ -234,7 +276,10 @@ const createOrReadSnapshot = async (
     return { ok: true, id: inserted.id, created: true };
   }
   if (errorCode(insertError) !== "23505") {
-    return { ok: false, response: respond({ ok: false, error: "snapshot_insert_failed" }, 500) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "snapshot_insert_failed" }, 500),
+    };
   }
 
   const { data: raced, error: racedError } = await admin
@@ -244,7 +289,10 @@ const createOrReadSnapshot = async (
     .eq("source_sha", providerCommit.sourceSha)
     .maybeSingle();
   if (racedError || !raced?.id || raced.snapshot_sha256 !== snapshotSha256) {
-    return { ok: false, response: respond({ ok: false, error: "snapshot_recovery_failed" }, 409) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "snapshot_recovery_failed" }, 409),
+    };
   }
   return { ok: true, id: raced.id, created: false };
 };
@@ -256,10 +304,21 @@ const ensureMemoryCandidate = async (
   snapshotId: string,
   snapshotSha256: string,
   providerCommit: NonNullable<Awaited<ReturnType<typeof fetchProviderCommit>>>,
-): Promise<{ ok: true; candidateId: string; created: boolean; sourceRef: string; summary: string } | { ok: false; response: Response }> => {
-  const sourceRef = `github-source:${identity.repositoryId}:${providerCommit.sourceSha}`;
+): Promise<
+  {
+    ok: true;
+    candidateId: string;
+    created: boolean;
+    sourceRef: string;
+    summary: string;
+  } | { ok: false; response: Response }
+> => {
+  const sourceRef =
+    `github-source:${identity.repositoryId}:${providerCommit.sourceSha}`;
   const summary =
-    `Verified GitHub main source snapshot ${identity.repository}@${providerCommit.sourceSha.slice(0, 12)}.`;
+    `Verified GitHub main source snapshot ${identity.repository}@${
+      providerCommit.sourceSha.slice(0, 12)
+    }.`;
   const { data: existing, error: existingError } = await admin
     .from("memory_capture_candidates")
     .select("id,metadata")
@@ -269,7 +328,10 @@ const ensureMemoryCandidate = async (
     .eq("source_ref", sourceRef)
     .maybeSingle();
   if (existingError) {
-    return { ok: false, response: respond({ ok: false, error: "candidate_lookup_failed" }, 500) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "candidate_lookup_failed" }, 500),
+    };
   }
   if (existing?.id) {
     const metadata = existing.metadata as JsonRecord | null;
@@ -278,9 +340,18 @@ const ensureMemoryCandidate = async (
       metadata.snapshot_sha256 !== snapshotSha256 ||
       metadata.source_sha !== providerCommit.sourceSha
     ) {
-      return { ok: false, response: respond({ ok: false, error: "candidate_conflict" }, 409) };
+      return {
+        ok: false,
+        response: respond({ ok: false, error: "candidate_conflict" }, 409),
+      };
     }
-    return { ok: true, candidateId: existing.id, created: false, sourceRef, summary };
+    return {
+      ok: true,
+      candidateId: existing.id,
+      created: false,
+      sourceRef,
+      summary,
+    };
   }
 
   const now = new Date().toISOString();
@@ -340,10 +411,19 @@ const ensureMemoryCandidate = async (
     .select("id")
     .maybeSingle();
   if (!insertError && inserted?.id) {
-    return { ok: true, candidateId: inserted.id, created: true, sourceRef, summary };
+    return {
+      ok: true,
+      candidateId: inserted.id,
+      created: true,
+      sourceRef,
+      summary,
+    };
   }
   if (errorCode(insertError) !== "23505") {
-    return { ok: false, response: respond({ ok: false, error: "candidate_insert_failed" }, 500) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "candidate_insert_failed" }, 500),
+    };
   }
 
   const { data: raced, error: racedError } = await admin
@@ -361,9 +441,18 @@ const ensureMemoryCandidate = async (
     !metadata ||
     metadata.snapshot_sha256 !== snapshotSha256
   ) {
-    return { ok: false, response: respond({ ok: false, error: "candidate_recovery_failed" }, 409) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "candidate_recovery_failed" }, 409),
+    };
   }
-  return { ok: true, candidateId: raced.id, created: false, sourceRef, summary };
+  return {
+    ok: true,
+    candidateId: raced.id,
+    created: false,
+    sourceRef,
+    summary,
+  };
 };
 
 const ensureReviewItem = async (
@@ -376,7 +465,12 @@ const ensureReviewItem = async (
   snapshotId: string,
   snapshotSha256: string,
   providerCommit: NonNullable<Awaited<ReturnType<typeof fetchProviderCommit>>>,
-): Promise<{ ok: true; reviewId: string; created: boolean } | { ok: false; response: Response }> => {
+): Promise<
+  { ok: true; reviewId: string; created: boolean } | {
+    ok: false;
+    response: Response;
+  }
+> => {
   const { data: existing, error: existingError } = await admin
     .from("memory_review_queue_items")
     .select("id,evidence_snapshot")
@@ -386,7 +480,10 @@ const ensureReviewItem = async (
     .eq("source_ref", sourceRef)
     .maybeSingle();
   if (existingError) {
-    return { ok: false, response: respond({ ok: false, error: "review_lookup_failed" }, 500) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "review_lookup_failed" }, 500),
+    };
   }
   if (existing?.id) {
     const evidence = existing.evidence_snapshot as JsonRecord | null;
@@ -395,7 +492,10 @@ const ensureReviewItem = async (
       evidence.candidateId !== candidateId ||
       evidence.snapshotSha256 !== snapshotSha256
     ) {
-      return { ok: false, response: respond({ ok: false, error: "review_conflict" }, 409) };
+      return {
+        ok: false,
+        response: respond({ ok: false, error: "review_conflict" }, 409),
+      };
     }
     return { ok: true, reviewId: existing.id, created: false };
   }
@@ -464,7 +564,10 @@ const ensureReviewItem = async (
     return { ok: true, reviewId: inserted.id, created: true };
   }
   if (errorCode(insertError) !== "23505") {
-    return { ok: false, response: respond({ ok: false, error: "review_insert_failed" }, 500) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "review_insert_failed" }, 500),
+    };
   }
 
   const { data: raced, error: racedError } = await admin
@@ -483,7 +586,10 @@ const ensureReviewItem = async (
     evidence.candidateId !== candidateId ||
     evidence.snapshotSha256 !== snapshotSha256
   ) {
-    return { ok: false, response: respond({ ok: false, error: "review_recovery_failed" }, 409) };
+    return {
+      ok: false,
+      response: respond({ ok: false, error: "review_recovery_failed" }, 409),
+    };
   }
   return { ok: true, reviewId: raced.id, created: false };
 };
@@ -514,7 +620,10 @@ Deno.serve(async (request: Request) => {
   if (!providerCommit) {
     return respond({ ok: false, error: "github_commit_unavailable" }, 502);
   }
-  const canonical = canonicalSnapshotPayload(authorization.identity, providerCommit);
+  const canonical = canonicalSnapshotPayload(
+    authorization.identity,
+    providerCommit,
+  );
   const snapshotSha256 = await sha256(JSON.stringify(canonical));
 
   const snapshot = await createOrReadSnapshot(
