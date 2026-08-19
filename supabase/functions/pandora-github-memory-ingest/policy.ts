@@ -96,7 +96,9 @@ export function validateVerifiedGithubClaims(
   if (ref !== principal.allowed_ref) return null;
   if (workflowRef !== principal.workflow_ref) return null;
   if (!sourceSha || !SHA40.test(sourceSha)) return null;
-  if (!workflowSha || workflowSha !== sourceSha || !SHA40.test(workflowSha)) return null;
+  if (!workflowSha || workflowSha !== sourceSha || !SHA40.test(workflowSha)) {
+    return null;
+  }
   if (eventName !== "push" && eventName !== "workflow_dispatch") return null;
   if (workflowRunId !== null && !DECIMAL.test(workflowRunId)) return null;
 
@@ -104,7 +106,9 @@ export function validateVerifiedGithubClaims(
   if (workflowRunAttemptRaw !== null) {
     if (!DECIMAL.test(workflowRunAttemptRaw)) return null;
     const parsed = Number(workflowRunAttemptRaw);
-    if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 1000) return null;
+    if (!Number.isSafeInteger(parsed) || parsed < 1 || parsed > 1000) {
+      return null;
+    }
     workflowRunAttempt = parsed;
   }
 
@@ -133,16 +137,22 @@ export function validateProviderCommit(
   const sourceSha = claimText(record.sha)?.toLowerCase() ?? null;
   const tree = record.tree;
   const parents = record.parents;
-  if (!sourceSha || sourceSha !== expectedSha || !SHA40.test(sourceSha)) return null;
+  if (!sourceSha || sourceSha !== expectedSha || !SHA40.test(sourceSha)) {
+    return null;
+  }
   if (!tree || typeof tree !== "object" || Array.isArray(tree)) return null;
-  const sourceTreeSha = claimText((tree as Record<string, unknown>).sha)?.toLowerCase() ?? null;
+  const sourceTreeSha =
+    claimText((tree as Record<string, unknown>).sha)?.toLowerCase() ?? null;
   if (!sourceTreeSha || !SHA40.test(sourceTreeSha)) return null;
   if (!Array.isArray(parents) || parents.length > MAX_PARENT_SHAS) return null;
 
   const parentShas: string[] = [];
   for (const parent of parents) {
-    if (!parent || typeof parent !== "object" || Array.isArray(parent)) return null;
-    const sha = claimText((parent as Record<string, unknown>).sha)?.toLowerCase() ?? null;
+    if (!parent || typeof parent !== "object" || Array.isArray(parent)) {
+      return null;
+    }
+    const sha =
+      claimText((parent as Record<string, unknown>).sha)?.toLowerCase() ?? null;
     if (!sha || !SHA40.test(sha)) return null;
     parentShas.push(sha);
   }
