@@ -20,42 +20,6 @@ env:
   EXPECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
 jobs:
-  format-candidate:
-    name: Emit exact-head Deno formatter artifact
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Check out exact event source
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
-        with:
-          ref: ${{ env.EXPECTED_HEAD }}
-          fetch-depth: 0
-          persist-credentials: false
-      - name: Assert exact checkout
-        shell: bash
-        run: |
-          set -euo pipefail
-          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
-      - name: Set up Deno
-        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
-        with:
-          deno-version: v2.4.3
-      - name: Format isolated GitHub intake sources
-        run: >-
-          deno fmt
-          supabase/functions/pandora-github-memory-ingest/deno.json
-          supabase/functions/pandora-github-memory-ingest/index.ts
-          supabase/functions/pandora-github-memory-ingest/policy.ts
-          supabase/functions/pandora-github-memory-ingest/policy_test.ts
-      - name: Upload formatted exact-head sources
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          name: github-memory-formatted-${{ env.EXPECTED_HEAD }}
-          path: supabase/functions/pandora-github-memory-ingest/
-          if-no-files-found: error
-          retention-days: 1
-
   contract:
     name: Verify GitHub Memory source sync contract
     runs-on: ubuntu-latest
