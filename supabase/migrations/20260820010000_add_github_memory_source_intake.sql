@@ -127,7 +127,7 @@ SELECT
   'github-pandora-memory-main',
   'https://token.actions.githubusercontent.com',
   'pandora-memory-github-v1',
-  'repo:banataosystems/pandoras-box-memory:ref:refs/heads/main',
+  'repo:banataosystems@314296438/pandoras-box-memory@1327294429:ref:refs/heads/main',
   'banataosystems/pandoras-box-memory',
   1327294429,
   'banataosystems',
@@ -146,20 +146,26 @@ DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1
-    FROM public.pandora_github_source_principals
-    WHERE principal_key = 'github-pandora-memory-main'
-      AND oidc_issuer = 'https://token.actions.githubusercontent.com'
-      AND oidc_audience = 'pandora-memory-github-v1'
-      AND oidc_subject = 'repo:banataosystems/pandoras-box-memory:ref:refs/heads/main'
-      AND repository = 'banataosystems/pandoras-box-memory'
-      AND repository_id = 1327294429
-      AND repository_owner = 'banataosystems'
-      AND repository_owner_id = 314296438
-      AND allowed_ref = 'refs/heads/main'
-      AND workflow_ref = 'banataosystems/pandoras-box-memory/.github/workflows/github-memory-source-sync.yml@refs/heads/main'
-      AND memory_namespace = 'au'::public.pandora_namespace
-      AND memory_user_id IS NOT NULL
-      AND is_active = true
+    FROM public.pandora_github_source_principals AS github_principal
+    WHERE github_principal.principal_key = 'github-pandora-memory-main'
+      AND github_principal.oidc_issuer = 'https://token.actions.githubusercontent.com'
+      AND github_principal.oidc_audience = 'pandora-memory-github-v1'
+      AND github_principal.oidc_subject = 'repo:banataosystems@314296438/pandoras-box-memory@1327294429:ref:refs/heads/main'
+      AND github_principal.repository = 'banataosystems/pandoras-box-memory'
+      AND github_principal.repository_id = 1327294429
+      AND github_principal.repository_owner = 'banataosystems'
+      AND github_principal.repository_owner_id = 314296438
+      AND github_principal.allowed_ref = 'refs/heads/main'
+      AND github_principal.workflow_ref = 'banataosystems/pandoras-box-memory/.github/workflows/github-memory-source-sync.yml@refs/heads/main'
+      AND github_principal.memory_namespace = 'au'::public.pandora_namespace
+      AND github_principal.memory_user_id = (
+        SELECT projectos.memory_user_id
+        FROM public.pandora_service_principals AS projectos
+        WHERE projectos.principal_key = 'projectos-mcpmaster-production'
+          AND projectos.is_active = true
+        LIMIT 1
+      )
+      AND github_principal.is_active = true
   ) THEN
     RAISE EXCEPTION 'github_memory_source_principal_unavailable_or_conflicting';
   END IF;
