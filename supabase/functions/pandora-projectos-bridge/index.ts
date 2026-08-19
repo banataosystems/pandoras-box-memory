@@ -902,7 +902,7 @@ const submitEvidenceCandidate = async (
   principal: Principal,
   admin: AdminClient,
 ): Promise<Response> => {
-  if (!principal.scopes.includes("memory:write")) {
+  if (!principal.scopes.includes("memory:evidence-candidate:submit")) {
     return respond({ ok: false, error: "scope_not_allowed" }, 403);
   }
 
