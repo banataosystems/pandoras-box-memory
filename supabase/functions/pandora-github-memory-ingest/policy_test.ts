@@ -26,7 +26,8 @@ const principal: GithubSourcePrincipal = {
   principal_key: "github-pandora-memory-main",
   oidc_issuer: GITHUB_OIDC_ISSUER,
   oidc_audience: GITHUB_OIDC_AUDIENCE,
-  oidc_subject: "repo:banataosystems/pandoras-box-memory:ref:refs/heads/main",
+  oidc_subject:
+    "repo:banataosystems@314296438/pandoras-box-memory@1327294429:ref:refs/heads/main",
   repository: "banataosystems/pandoras-box-memory",
   repository_id: 1327294429,
   repository_owner: "banataosystems",
@@ -52,7 +53,8 @@ function claims(overrides: Record<string, unknown> = {}): JWTPayload {
     repository_owner: principal.repository_owner,
     repository_owner_id: String(principal.repository_owner_id),
     ref: principal.allowed_ref,
-    job_workflow_ref: principal.workflow_ref,
+    workflow_ref: principal.workflow_ref,
+    workflow_sha: sourceSha,
     sha: sourceSha,
     event_name: "push",
     run_id: "123456789",
@@ -78,8 +80,9 @@ for (const [name, override] of [
   ["owner", { repository_owner: "someone-else" }],
   ["owner id", { repository_owner_id: "1" }],
   ["ref", { ref: "refs/heads/feature" }],
-  ["workflow ref", { job_workflow_ref: "other/workflow.yml@refs/heads/main" }],
+  ["workflow ref", { workflow_ref: "other/workflow.yml@refs/heads/main" }],
   ["source sha", { sha: "deadbeef" }],
+  ["workflow sha", { workflow_sha: "4".repeat(40) }],
   ["event", { event_name: "pull_request" }],
 ] as Array<[string, Record<string, unknown>]>) {
   Deno.test(`rejects wrong ${name}`, () => {
@@ -98,9 +101,19 @@ Deno.test("rejects an inactive principal", () => {
 });
 
 Deno.test("requires one exact OIDC audience", () => {
-  assertEquals(exactAudience({ aud: [GITHUB_OIDC_AUDIENCE] }), GITHUB_OIDC_AUDIENCE, "single audience");
-  assert(exactAudience({ aud: [GITHUB_OIDC_AUDIENCE, "extra"] }) === null, "multiple audiences must fail");
-  assert(unverifiedLookup({ iss: GITHUB_OIDC_ISSUER, aud: [], sub: principal.oidc_subject }) === null, "empty audience must fail");
+  assertEquals(
+    exactAudience({ aud: [GITHUB_OIDC_AUDIENCE] }),
+    GITHUB_OIDC_AUDIENCE,
+    "single audience",
+  );
+  assert(
+    exactAudience({ aud: [GITHUB_OIDC_AUDIENCE, "extra"] }) === null,
+    "multiple audiences must fail",
+  );
+  assert(
+    unverifiedLookup({ iss: GITHUB_OIDC_ISSUER, aud: [], sub: principal.oidc_subject }) === null,
+    "empty audience must fail",
+  );
 });
 
 Deno.test("accepts exact public Git commit identity", () => {
