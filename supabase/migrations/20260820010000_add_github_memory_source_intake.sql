@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS public.pandora_github_source_principals (
   allowed_ref text NOT NULL,
   workflow_ref text NOT NULL,
   memory_namespace public.pandora_namespace NOT NULL DEFAULT 'au'::public.pandora_namespace,
+  memory_user_id uuid NOT NULL,
   is_active boolean NOT NULL DEFAULT true,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
@@ -67,14 +68,12 @@ CREATE TABLE IF NOT EXISTS public.pandora_github_source_snapshots (
   CONSTRAINT pandora_github_source_snapshots_digest_check
     CHECK (snapshot_sha256 ~ '^[0-9a-f]{64}$'),
   CONSTRAINT pandora_github_source_snapshots_parent_count_check
-    CHECK (coalesce(array_length(parent_shas, 1), 0) <= 8),
+    CHECK (cardinality(parent_shas) <= 8),
   CONSTRAINT pandora_github_source_snapshots_parent_sha_check
     CHECK (
-      NOT EXISTS (
-        SELECT 1
-        FROM unnest(parent_shas) AS parent_sha
-        WHERE parent_sha !~ '^[0-9a-f]{40}$'
-      )
+      cardinality(parent_shas) = 0
+      OR array_to_string(parent_shas, ',', '<null>')
+        ~ '^[0-9a-f]{40}(,[0-9a-f]{40})*$'
     )
 );
 
@@ -121,9 +120,10 @@ INSERT INTO public.pandora_github_source_principals (
   allowed_ref,
   workflow_ref,
   memory_namespace,
+  memory_user_id,
   is_active
 )
-VALUES (
+SELECT
   'github-pandora-memory-main',
   'https://token.actions.githubusercontent.com',
   'pandora-memory-github-v1',
@@ -135,8 +135,11 @@ VALUES (
   'refs/heads/main',
   'banataosystems/pandoras-box-memory/.github/workflows/github-memory-source-sync.yml@refs/heads/main',
   'au'::public.pandora_namespace,
+  memory_user_id,
   true
-)
+FROM public.pandora_service_principals
+WHERE principal_key = 'projectos-mcpmaster-production'
+  AND is_active = true
 ON CONFLICT (principal_key) DO NOTHING;
 
 DO $$
@@ -155,9 +158,10 @@ BEGIN
       AND allowed_ref = 'refs/heads/main'
       AND workflow_ref = 'banataosystems/pandoras-box-memory/.github/workflows/github-memory-source-sync.yml@refs/heads/main'
       AND memory_namespace = 'au'::public.pandora_namespace
+      AND memory_user_id IS NOT NULL
       AND is_active = true
   ) THEN
-    RAISE EXCEPTION 'github_memory_source_principal_conflict';
+    RAISE EXCEPTION 'github_memory_source_principal_unavailable_or_conflicting';
   END IF;
 END;
 $$;
