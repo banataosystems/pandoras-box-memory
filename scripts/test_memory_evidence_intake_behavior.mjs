@@ -73,7 +73,7 @@ const principal = {
   environment: "production",
   memory_user_id: "11111111-1111-4111-8111-111111111111",
   allowed_namespaces: ["real_life"],
-  scopes: ["memory:write"],
+  scopes: ["memory:evidence-candidate:submit"],
 };
 
 function validBody(projectKey = "mcpmaster-pandoras-box", overrides = {}) {
@@ -202,6 +202,22 @@ class FakeAdmin {
 
 async function json(response) {
   return { status: response.status, body: await response.json() };
+}
+
+{
+  const db = new FakeAdmin();
+  const broadWritePrincipal = {
+    ...principal,
+    scopes: ["memory:write"],
+  };
+  const response = await json(await submitEvidenceCandidate(
+    validBody(),
+    broadWritePrincipal,
+    db,
+  ));
+  assert.equal(response.status, 403);
+  assert.equal(response.body.error, "scope_not_allowed");
+  assert.equal(db.calls.length, 0, "broad memory:write must fail before DB I/O");
 }
 
 {
