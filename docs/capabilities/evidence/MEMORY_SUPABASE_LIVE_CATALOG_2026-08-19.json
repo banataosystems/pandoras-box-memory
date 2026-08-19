@@ -58,7 +58,7 @@
     "report_path": "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md",
     "report_sha256": "fd075134465d74c48c49c8a56d12ae0e5baa976d69b9655c6d66e0653f5fccc8",
     "verifier_path": "scripts/check_memory_supabase_catalog.mjs",
-    "verifier_sha256": "500777b0a83e2d101fa58efe9751a226745abec74ac93a0241ca35d5f0875fc4",
+    "verifier_sha256": "6490de35bad8587aa0be56a18017f5976ffbe65b828dfbd2e5ecce17e311c0b1",
     "workflow_path": ".github/workflows/memory-supabase-catalog-evidence.yml",
     "workflow_sha256": "fea2444a6dc01404916b612fd2ca7d06dc7f19191df0e66e2de0362e22059c0f",
     "scheduled_job_query_path": "docs/provider-observations/memory-supabase-20260819/scheduled-jobs/SCHEDULED_JOBS_CAPTURE.sql",

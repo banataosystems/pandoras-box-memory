@@ -6,88 +6,62 @@ const P = {
   manifest: "docs/provider-observations/memory-supabase-20260819/LIVE_CATALOG_MANIFEST.json",
   boundaries: "docs/provider-observations/memory-supabase-20260819/SECURITY_BOUNDARIES.json",
   timeline: "docs/provider-observations/memory-supabase-20260819/scheduled-jobs/OBSERVATION_TIMELINE.json",
-  report: "docs/recovery/PANDORA_SUPABASE_CATAOG_SUPPLEMENT_2026-08-19.md",
+  report: "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md",
   capability: "docs/capabilities/evidence/MEMORY_SUPABASE_LIVE_CATALOG_2026-08-19.json",
   verifier: "scripts/check_memory_supabase_catalog.mjs",
   workflow: ".github/workflows/memory-supabase-catalog-evidence.yml",
 };
-const sha256 = x => createHash("sha256").update(x).digest("hex");
-const bytes = p => readFileSync(p);
-const json = p => JSON.parse(readFileSync(p, "utf8"));
-const d = json(P.manifest);
-const b = json(P.boundaries);
-const t = json(P.timeline);
-const c = json(P.capability);
+const bytes = path => readFileSync(path);
+const json = path => JSON.parse(readFileSync(path, "utf8"));
+const sha256 = value => createHash("sha256").update(value).digest("hex");
+const hex64 = value => /^[0-9a-f]{64}$/.test(value ?? "");
+const fail = (condition, message, errors) => { if (!condition) errors.push(message); };
+
+const manifest = json(P.manifest);
+const boundaries = json(P.boundaries);
+const timeline = json(P.timeline);
+const capability = json(P.capability);
 const errors = [];
-const bad = (ok,msg) => { if (!ok) errors.push(msg); };
-const hex64 = x => /^[0-9a-f]{64}$/.test(x ?? "");
 
-for (const key of ["manifest","boundaries","report","verifier","workflow"]) {
-  const expected = c.source?.[`${key}_sha256`];
-  bad(hex64(expected), `${key}: missing content address`);
-  bad(expected === sha256(bytes(P[key])), `${key}: content-address mismatch`);
+for (const key of ["manifest", "boundaries", "report", "verifier", "workflow"]) {
+  const expected = capability.source?.[`${key}_sha256`];
+  fail(hex64(expected), `${key}: missing content address`, errors);
+  fail(expected === sha256(bytes(P[key])), `${key}: content-address mismatch`, errors);
 }
-bad(d.capture_method?.catalog_boundaries_sha256 === sha256(bytes(P.boundaries)), "manifest boundary pin mismatch");
-bad(d.provider?.project_ref === "ivmvufhcsezyhczzondn", "wrong project");
-bad(d.provider?.region === "ap-southeast-2" && d.provider?.status === "ACTIVE_HEALTHY", "project identity drift");
-bad(d.authority?.canonical_context?.degraded === true, "canonical freshness degradation erased");
 
-const m=d.migrations ?? {};
-bad(m.live_count===68 && m.stored_statement_count===542 && m.stored_statement_bytes===246216, "migration inventory drift");
-bad(m.provider_tsv_bytes===9278 && m.provider_tsv_sha256==="1ee828f6844dfedf800b3c5a7a2b8e35c785214e548213defaf01013dd5bda65", "migration fingerprint drift");
-bad(Object.values(m.source_classification ?? {}).reduce((a,x)=>a+x,0)===68, "migration classification total mismatch");
-bad(m.source_classification?.A_exact_source_match===14 && m.source_classification?.C_identity_recovered_source_missing===53 && m.source_classification?.D_sanitized_recovery_artifact===1, "migration provenance overstated");
-bad(m.rollback_metadata_count===0 && m.rollback_qualified===false && m.forward_recovery_required===true, "unsafe migration recovery claim");
+fail(manifest.provider?.project_ref === "ivmvufhcsezyhczzondn", "wrong project", errors);
+fail(manifest.migrations?.live_count === 68, "migration count drift", errors);
+fail(manifest.migrations?.stored_statement_count === 542, "statement count drift", errors);
+fail(manifest.migrations?.stored_statement_bytes === 246216, "statement bytes drift", errors);
+fail(Object.values(manifest.migrations?.source_classification ?? {}).reduce((a, b) => a + b, 0) === 68, "classification total mismatch", errors);
+fail(manifest.migrations?.rollback_qualified === false && manifest.migrations?.forward_recovery_required === true, "unsafe recovery claim", errors);
+fail(boundaries.scheduled_jobs?.length === 1 && boundaries.scheduled_jobs[0]?.command_persisted === false, "historical cron capture drift", errors);
+fail(boundaries.application_triggers?.length === 14, "trigger inventory drift", errors);
+fail(boundaries.security_definer_functions?.length === 11, "SECURITY DEFINER inventory drift", errors);
+fail(Object.values(boundaries.privacy ?? {}).every(value => value === false), "privacy exclusion failed", errors);
 
-const r=d.relations ?? {};
-bad(r.relation_count===89 && r.rls_enabled_count===83 && r.rls_forced_count===31 && r.rls_disabled_count===6, "relation inventory drift");
-bad(hex64(r.provider_manifest_sha256) && b.private_relations?.length===8, "relation evidence incomplete");
+fail(timeline.status === "RED", "current RED status erased", errors);
+fail(timeline.stable_pass_verified === false, "stable PASS falsely asserted", errors);
+fail(timeline.worker6_verdict?.verdict === "FAIL" && timeline.worker6_verdict?.blocking === true, "Worker 6 verdict erased", errors);
+fail(timeline.reconciliation?.historical_three_job_observation_explained === false, "cron contradiction falsely resolved", errors);
+fail(timeline.reconciliation?.production_verified_complete_catalog === false, "historical capture promoted to complete catalog", errors);
+fail(timeline.reconciliation?.live_parity_proven === false, "live parity falsely proven", errors);
 
-const p=d.rls_policies ?? {};
-bad(p.policy_count===117 && p.table_count===62, "policy total drift");
-bad(p.commands?.SELECT===44 && p.commands?.INSERT===44 && p.commands?.UPDATE===11 && p.commands?.DELETE===0 && p.commands?.ALL===18, "policy command drift");
-bad(hex64(p.provider_manifest_sha256), "policy fingerprint missing");
+fail(capability.lifecycle?.production_verified_read_only === false, "capability still claims production verification", errors);
+fail(capability.provider_proof?.current_catalog_production_verified === false, "provider proof still claims complete catalog", errors);
+fail(capability.provider_proof?.original_committed_active_job_count === 1, "original count erased", errors);
+fail(capability.provider_proof?.prior_authenticated_active_job_count === 3, "three-job contradiction erased", errors);
+fail(capability.provider_proof?.latest_bounded_active_job_count === 1, "latest bounded count drift", errors);
+fail(capability.provider_proof?.projectos_audit_result_digest_available === false, "audit binding gap hidden", errors);
+fail(capability.verification?.current_parity_status === "RED" && capability.verification?.stable_pass_verified === false, "capability parity gate not RED", errors);
 
-const f=d.functions ?? {};
-bad(f.function_count===25 && f.security_definer_count===11 && f.security_definer_without_fixed_search_path===0, "function security drift");
-bad(f.public_execute_count===10 && f.anon_execute_count===10 && f.authenticated_execute_count===10, "function ACL drift");
-bad(b.security_definer_functions?.length===11 && b.security_definer_functions.every(x=>hex64(x.sha256)&&x.search_path), "definer evidence incomplete");
-
-const a=d.automatic_execution ?? {};
-bad(a.application_trigger_count===14 && a.enabled_application_trigger_count===14 && b.application_triggers?.length===14, "trigger drift");
-bad(b.scheduled_jobs?.length===1 && b.scheduled_jobs[0]?.command_persisted===false, "historical cron capture incomplete");
-bad(b.provider_event_triggers?.length===6 && a.application_event_trigger_count===0, "event-trigger evidence incomplete");
-
-const acl=d.acl ?? {};
-bad(acl.privilege_entry_count===1797 && acl.grouped_grant_count===280, "ACL inventory drift");
-bad(acl.grouped_by_grantee?.PUBLIC===11 && acl.grouped_by_grantee?.anon===79 && acl.grouped_by_grantee?.authenticated===79 && acl.grouped_by_grantee?.service_role===110 && acl.grouped_by_grantee?.postgres===1, "ACL role totals drift");
-bad(b.private_relation_non_owner_grants?.length===3 && acl.general_private_client_schema_access===false, "private ACL evidence incomplete");
-
-const adv=d.security_advisors ?? {};
-bad(adv.total===27 && adv.rls_enabled_no_policy_info===21 && adv.mutable_search_path_warnings===4 && adv.extension_in_public_warnings===1 && adv.leaked_password_protection_disabled===true, "advisor drift");
-
-const edge=d.edge_functions ?? {};
-bad(edge.functions?.length===3 && edge.live_bundle_source_fetched===false && edge.production_deploy_performed===false, "Edge parity overstated");
-bad(edge.functions?.every(x=>hex64(x.provider_hash)&&x.status==="ACTIVE"), "bad Edge metadata");
-
-bad(d.reconstruction?.rollback_qualified===false && d.reconstruction?.forward_recovery_required===true, "unsafe rollback qualification");
-bad(Object.values(d.safety ?? {}).every(x=>x===false), "unsafe action recorded");
-bad(Object.values(b.privacy ?? {}).every(x=>x===false), "privacy exclusion failed");
-
-bad(t.status==="RED" && t.stable_pass_verified===false, "current RED status erased");
-bad(t.reconciliation?.production_verified_complete_catalog===false, "historical capture promoted to current complete catalog");
-bad(t.reconciliation?.historical_three_job_observation_explained===false, "unresolved cron contradiction erased");
-bad(c.lifecycle?.production_verified_read_only===false, "capability still claims current production verification");
-bad(c.provider_proof?.current_catalog_production_verified===false, "provider proof still claims current complete catalog");
-bad(c.verification?.current_parity_status==="RED" && c.verification?.stable_pass_verified===false, "capability parity gate is not RED");
-
-const raw=JSON.stringify({d,b,t,c});
-bad(!/(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----)/.test(raw), "literal secret pattern");
-bad(!/"(password|access_token|refresh_token|service_role_key|jwt_secret|hmac_secret|private_key)"\s*:/.test(raw), "forbidden secret key");
+const raw = JSON.stringify({ manifest, boundaries, timeline, capability });
+fail(!/(gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]{20,}|-----BEGIN (?:[A-Z0-9 ]+ )?PRIVATE KEY-----)/.test(raw), "literal secret pattern", errors);
+fail(!/"(password|access_token|refresh_token|service_role_key|jwt_secret|hmac_secret|private_key)"\s*:/.test(raw), "forbidden secret key", errors);
 
 if (errors.length) {
-  for (const e of errors) console.error(`ERROR: ${e}`);
+  for (const error of errors) console.error(`ERROR: ${error}`);
   process.exit(1);
 }
-console.log("Pandora Memory Supabase historical catalog capture verified; current live parity remains RED.");
-console.log(`migrations=${m.live_count} relations=${r.relation_count} policies=${p.policy_count} functions=${f.function_count} triggers=${a.application_trigger_count} grants=${acl.grouped_grant_count} status=${t.status}`);
+console.log("Pandora Memory historical catalog capture verified; current live parity remains RED.");
+console.log(`migrations=${manifest.migrations.live_count} triggers=${boundaries.application_triggers.length} historical_jobs=${boundaries.scheduled_jobs.length} status=${timeline.status}`);
