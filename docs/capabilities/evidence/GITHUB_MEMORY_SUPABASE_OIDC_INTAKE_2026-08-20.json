@@ -1,0 +1,118 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "github-memory-supabase-oidc-intake-2026-08-20",
+  "captured_at": "2026-08-19T17:15:00Z",
+  "project": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "repository_id": 1327294429,
+    "repository_owner_id": 314296438,
+    "canonical_main_at_start": "63d133f6e865a2cf6f4a874c6304ce351df9ac4a",
+    "supabase_project_ref": "ivmvufhcsezyhczzondn"
+  },
+  "candidate": {
+    "pull_request": 47,
+    "branch": "integration/github-memory-supabase-oidc-20260820",
+    "source_paths": [
+      ".github/workflows/github-memory-source-sync.yml",
+      "supabase/functions/pandora-github-memory-ingest/deno.json",
+      "supabase/functions/pandora-github-memory-ingest/index.ts",
+      "supabase/functions/pandora-github-memory-ingest/policy.ts",
+      "supabase/functions/pandora-github-memory-ingest/policy_test.ts",
+      "supabase/migrations/20260820010000_add_github_memory_source_intake.sql"
+    ],
+    "integration_kind": "github_actions_oidc_to_supabase_memory_review_queue",
+    "authentication": "short_lived_github_actions_oidc",
+    "supabase_key_required_in_github": false,
+    "canonical_memory_write_allowed": false,
+    "review_required": true
+  },
+  "identity_boundary": {
+    "issuer": "https://token.actions.githubusercontent.com",
+    "audience": "pandora-memory-github-v1",
+    "subject_uses_immutable_owner_and_repository_ids": true,
+    "repository": "banataosystems/pandoras-box-memory",
+    "repository_id": 1327294429,
+    "repository_owner": "banataosystems",
+    "repository_owner_id": 314296438,
+    "allowed_ref": "refs/heads/main",
+    "workflow_ref": "banataosystems/pandoras-box-memory/.github/workflows/github-memory-source-sync.yml@refs/heads/main",
+    "source_sha_must_equal_workflow_sha": true,
+    "allowed_events": [
+      "push",
+      "workflow_dispatch"
+    ]
+  },
+  "source_snapshot_contract": {
+    "provider_resolution": "github_public_git_commit_api",
+    "provider_fields_bound": [
+      "source_sha",
+      "source_tree_sha",
+      "parent_shas"
+    ],
+    "content_addressed_sha256": true,
+    "append_only": true,
+    "idempotent": true,
+    "conflicting_replay_fails_closed": true,
+    "raw_commit_message_imported": false,
+    "raw_workflow_arguments_imported": false,
+    "raw_provider_results_imported": false,
+    "raw_provider_errors_imported": false
+  },
+  "memory_boundary": {
+    "candidate_table": "memory_capture_candidates",
+    "review_queue_table": "memory_review_queue_items",
+    "candidate_status": "pending",
+    "review_status": "pending_review",
+    "requires_review": true,
+    "canonical_memory_written": false,
+    "existing_canonical_promotion_gate_preserved": true
+  },
+  "observed_validation": {
+    "draft_pr_created": true,
+    "exact_checkout_passed_on_first_ci_run": true,
+    "first_ci_failure": "deno_formatting_only",
+    "policy_tests_executed": false,
+    "typecheck_executed": false,
+    "literal_secret_scan_executed": false,
+    "capability_registry_gate_first_failure": "evidence_cochange_required"
+  },
+  "provider_state": {
+    "supabase_connector_project_access": false,
+    "migration_applied": false,
+    "edge_function_deployed": false,
+    "controlled_main_submission_run": false,
+    "provider_readback_verified": false
+  },
+  "safety": {
+    "production_schema_mutated": false,
+    "production_data_mutated": false,
+    "edge_function_deployed": false,
+    "canonical_memory_promoted": false,
+    "pull_request_merged": false,
+    "production_release_performed": false,
+    "supabase_secret_committed": false,
+    "supabase_secret_logged": false,
+    "supabase_secret_persisted_in_memory": false,
+    "new_cost_incurred": false
+  },
+  "proof_ladder": {
+    "documented": true,
+    "implemented_on_isolated_branch": true,
+    "formatted": false,
+    "source_tested": false,
+    "independently_reviewed": false,
+    "provider_applied": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "required_next_actions": [
+    "produce a formatted exact-head source candidate",
+    "run policy tests, typecheck, source secret scan, capability registry gate and repository security gate",
+    "obtain independent review of one unchanged exact head",
+    "restore authenticated Supabase connector access to project ivmvufhcsezyhczzondn before any provider mutation",
+    "apply and read back the exact reviewed migration",
+    "deploy and read back the exact reviewed Edge Function using custom GitHub OIDC verification",
+    "perform one controlled main-source submission and verify append-only snapshot plus pending review candidate",
+    "preserve forward-recovery and rollback evidence before any merge or release decision"
+  ]
+}
