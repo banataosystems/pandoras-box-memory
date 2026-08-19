@@ -1,0 +1,93 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "governance-main-proof-enforcement-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "main-branch-proof-enforcement-and-verification-interface",
+  "source": {
+    "pull_request": 30,
+    "branch": "governance/main-proof-enforcement",
+    "candidate_head": "cc9c91d4bc9341d330aa5f3763138186fe657d2b",
+    "candidate_tree": "db814bf109aa66b0787447d22737f310d1f18214",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "superseded_candidates": [
+      {
+        "candidate_head": "0b52110d30262e768bd5889736a93d23dcf72361",
+        "candidate_tree": "d9b1ec98f80867162a050bbd780f723da5286900",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto canonical main 27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "recovery_ref": "recovery/review-20260818/pr-30-9f27e355",
+        "recovery_head": "9f27e355589f0856020b53a392a430f2486a2fad"
+      }
+    ]
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "repository governance, CI determinism, unified verification interface, and evidence classification. No runtime, application, database, or provider state is modified.",
+  "review_remediation": {
+    "finding": "the prepared branch-protection ruleset required contexts produced by path-filtered workflows",
+    "consequence": "GitHub blocks a pull request until every required context reports; a path-filtered workflow never reports on a PR outside its paths, so a valid PR would have been permanently unmergeable",
+    "severity": "would have caused a merge-path outage worse than the governance gap it closed",
+    "fix": "required contexts are now restricted to workflows that run unconditionally on pull_request; capability-registry-gate and machine-gateway-namespace-isolation had their path filters removed; web-recovery-build and memory-evidence-intake are no longer required because pandora-verify already runs typecheck, build, and the Memory evidence intake contract on every PR",
+    "regression_guard": "scripts/check_branch_protection_contexts.mjs parses the workflow files and fails on any required context that is path-filtered, unknown, ambiguous, or lacking a pull_request trigger; wired into npm run verify with 9 self-tests and 2 unit tests",
+    "guard_verified_against_original_defect": true
+  },
+  "enforcement": {
+    "gates_now_running_on_main_push": [
+      "pandora-verify",
+      "capability-registry-gate",
+      "security-source-gate",
+      "memory-evidence-intake",
+      "web-recovery-build",
+      "machine-gateway-namespace-isolation",
+      "verify-memory-searchpath-advisor"
+    ],
+    "required_contexts": [
+      "Verify exact candidate source",
+      "no-literal-secrets",
+      "Validate exact-head evidence registry",
+      "Prove same-owner cross-namespace denial"
+    ],
+    "all_required_contexts_report_unconditionally": true,
+    "exact_head_assertion": true,
+    "npm_ci_replaces_npm_install": true,
+    "cache_keyed_on_lockfile": true,
+    "tracked_build_output_rejected": true,
+    "third_party_actions_pinned_to_sha": "all except actions/setup-python, which could not be verified from this repository-scoped session and is deliberately left on a tag rather than falsely pinned"
+  },
+  "branch_protection": {
+    "ruleset_authored": true,
+    "ruleset_path": ".github/branch-protection/main.json",
+    "applied": false,
+    "provider_readback_verified": false,
+    "main_currently_protected": false
+  },
+  "evidence_normalization": {
+    "index_path": "docs/evidence/EVIDENCE_INDEX.json",
+    "historical_bytes_modified": 0,
+    "immutability_enforced_by_ci": true,
+    "pr35_artifact_classified": "MCP_GITHUB_ACTIONS_WRITE_2026-08-17.md recorded as production_verified for the narrow claim it makes, after the coverage gate caught it as unclassified"
+  },
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "merge into canonical main with the exact-merge-result gates green",
+    "source-provenanced preview deployment verification",
+    "separate production deployment authorization and rollback rehearsal"
+  ]
+}

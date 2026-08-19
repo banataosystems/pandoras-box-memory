@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "supabase-provider-readback-status-2026-08-19",
+  "evidence_payload": {
+    "captured_at": "2026-08-18T21:17:05Z",
+    "repository": "banataosystems/pandoras-box-memory",
+    "source_context": {
+      "canonical_main_sha": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+      "canonical_main_tree": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+      "lane_branch": "recovery/migration-provenance-20260817",
+      "lane_pull_request": 31,
+      "lane_base_sha": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+      "pre_observation_head_sha": "7ffd66b93547bb61d0dfa5de41ca425cd8f17ad1",
+      "pre_observation_tree_sha": "c106f539054798923719a496e9cec06b4bd8abc5",
+      "edge_parity_owner_pull_request": 34
+    },
+    "memory_authority": {
+      "health": {
+        "ok": true,
+        "project": "pandora-memory-engine",
+        "status": "projectos-connected",
+        "origin": "https://pandorasbox-memory.vercel.app",
+        "auth": "vercel_oidc"
+      },
+      "canonical_context": {
+        "degraded": true,
+        "freshest_approved_record_at": "2026-08-14T02:42:46.235Z",
+        "fallback_authority": "github_and_supabase",
+        "effect": "historical_memory_records_are_context_only_until_provider_readback"
+      }
+    },
+    "supabase_readback": {
+      "provider": "supabase",
+      "project_ref": "ivmvufhcsezyhczzondn",
+      "environment": "production",
+      "status": "blocked_authorization_and_response_schema",
+      "current_provider_state_refreshed": false,
+      "current_live_migration_count": null,
+      "current_edge_function_inventory_verified": false,
+      "current_schema_security_inventory_verified": false,
+      "last_verified_ledger": {
+        "path": "docs/migrations/LIVE_MIGRATION_LEDGER_2026-08-17.json",
+        "observed_at": "2026-08-17T10:20:00Z",
+        "migration_count": 68,
+        "statement_count": 542,
+        "sql_bytes": 246216,
+        "rollback_metadata_count": 0,
+        "classification": "last_authenticated_provider_observation_not_current_readback"
+      },
+      "attempts": [
+        {
+          "tool": "Supabase.get_project",
+          "operation": "project_identity",
+          "result": "permission_denied",
+          "sanitized_result": "MCP error -32600: You do not have permission to perform this action",
+          "ownership": "worker_2_provider_read",
+          "implementation_action": "none_read_only_attempt",
+          "request_sha256": "5cf05a677b8323efd77cd3f7c6e28586cdc1f3904573df938e3a766d78212577",
+          "sanitized_result_sha256": "cc4577d70c8fc2a4b066184cd3e0e5e3dd16949639b33338a066d07cb8d68a0a"
+        },
+        {
+          "tool": "Supabase.list_projects",
+          "operation": "connector_scope_inventory",
+          "result": "authenticated_zero_project_scope",
+          "sanitized_result": "{\"projects\":[]}",
+          "ownership": "worker_2_provider_read",
+          "implementation_action": "none_read_only_attempt",
+          "request_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "sanitized_result_sha256": "46a926de2121dfc5e3e5c1c9430c5ec5235c1f0e5a32277765aab35e6536b8b4"
+        },
+        {
+          "tool": "Supabase.list_migrations",
+          "operation": "live_migration_ledger",
+          "result": "permission_denied",
+          "sanitized_result": "MCP error -32600: You do not have permission to perform this action",
+          "ownership": "worker_2_provider_read",
+          "implementation_action": "none_read_only_attempt",
+          "request_sha256": "917e6f7adb8813524ef7072b46e5906f4c48c542a27a36e187ecc553ced591f3",
+          "sanitized_result_sha256": "cc4577d70c8fc2a4b066184cd3e0e5e3dd16949639b33338a066d07cb8d68a0a"
+        },
+        {
+          "tool": "Pandoras-box.supabase.list-accounts",
+          "operation": "governed_supabase_account_discovery",
+          "result": "response_schema_validation_error",
+          "sanitized_result": "ValidationError: structuredContent expected a dictionary but received a list",
+          "ownership": "worker_1_projectos_reliability",
+          "implementation_action": "documented_only_no_competing_fix",
+          "request_sha256": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+          "sanitized_result_sha256": "43b07a9e550fc7d9d51f398542fced9c31e974eded3a0e320bb1da61395368e1"
+        }
+      ],
+      "conclusion": "The 68-entry ledger remains a dated authenticated observation. These failed read-only attempts do not prove that 68 is the current 2026-08-19 migration count and must not refresh its production-verified timestamp.",
+      "next_read_gate": "Restore project-scoped Supabase read permission or complete the Worker 1 connector response-schema repair, then recapture the project, migration ledger, Edge Functions, schema, RLS, grants, triggers, jobs, and advisors read-only."
+    },
+    "lane_boundaries": {
+      "worker_1_issue": 55,
+      "worker_1_owns": [
+        "ProjectOS Supabase connector array/list response schema repair",
+        "canonicalContext write/read acceptance",
+        "memory.submitEvidenceCandidate control path"
+      ],
+      "worker_2_action_on_worker_1_defect": "documented_only_no_competing_fix",
+      "edge_function_parity_owned_by_pull_request": 34
+    },
+    "safety": {
+      "production_database_mutated": false,
+      "production_edge_function_deployed": false,
+      "production_release_performed": false,
+      "billable_supabase_branch_created": false,
+      "migration_replayed": false,
+      "historical_evidence_overwritten": false,
+      "secret_values_recorded": false
+    }
+  },
+  "evidence_payload_sha256": "53f21f43a10e930fa1723ab9f5756b2a1cb9bf1e6357b46f01ea6a5025e72d9d"
+}

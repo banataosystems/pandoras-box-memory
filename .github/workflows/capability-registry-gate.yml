@@ -1,32 +1,18 @@
 name: Capability Registry Gate
 
+# NOTE: deliberately NOT path-filtered.
+#
+# This is a REQUIRED status check. A path-filtered workflow does not run, and
+# therefore never reports, on a pull request that touches none of its paths —
+# which would leave that PR permanently blocked waiting for a check that never
+# arrives. The co-change logic below already passes when no tracked source
+# changed, so running unconditionally is correct and cheap.
 on:
   pull_request:
-    paths:
-      - ".github/workflows/**"
-      - "app/**"
-      - "docs/capabilities/**"
-      - "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md"
-      - "lib/**"
-      - "next.config.ts"
-      - "package.json"
-      - "scripts/**"
-      - "supabase/**"
-      - "tsconfig.json"
   push:
     branches:
       - main
-    paths:
-      - ".github/workflows/**"
-      - "app/**"
-      - "docs/capabilities/**"
-      - "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md"
-      - "lib/**"
-      - "next.config.ts"
-      - "package.json"
-      - "scripts/**"
-      - "supabase/**"
-      - "tsconfig.json"
+  workflow_dispatch:
 
 permissions:
   contents: read
