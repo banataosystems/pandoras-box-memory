@@ -70,7 +70,7 @@
     "scheduled_job_report_path": "docs/recovery/PANDORA_SUPABASE_SCHEDULED_JOB_DRIFT_2026-08-19.md",
     "scheduled_job_report_sha256": "9d327d72b48644e3df969bb97e767ef195b8e5ba8801a6ddcb153f35da35f638",
     "scheduled_job_verifier_path": "scripts/check_memory_supabase_scheduled_jobs.mjs",
-    "scheduled_job_verifier_sha256": "f65aceec7e7eeb94ca5ef69cb65ea80469154f967a7ec77a497e23ab3111bcfe"
+    "scheduled_job_verifier_sha256": "5ce34d95753c31983e1d66747eaa6f5d7414f20c6cebaee10742ba7b581d28be"
   },
   "verification": {
     "hosted_exact_head_ci_required": true,
