@@ -1,0 +1,337 @@
+{
+  "schema_version": "2.0.0",
+  "observation_id": "pandora-memory-supabase-source-parity-2026-08-19",
+  "captured_at": "2026-08-18T21:54:24Z",
+  "captured_local_date": "2026-08-19",
+  "purpose": "Content-addressed, read-only reconciliation of current Pandora Memory Supabase provider identity, migration identities, relevant Edge Function metadata, advisor state, source-provenance dependencies, and recovery limits.",
+  "authority": {
+    "pandora_memory_health": {
+      "ok": true,
+      "status": "projectos-connected"
+    },
+    "canonical_context": {
+      "degraded": true,
+      "freshest_approved_record_at": "2026-08-14T02:42:46.235Z",
+      "fallback_authority": [
+        "github",
+        "supabase"
+      ],
+      "rule": "Authenticated provider evidence governs current reality. Stale Memory remains historical evidence until corrected."
+    }
+  },
+  "source": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "canonical_main_at_capture": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "canonical_main_tree_at_capture": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "worker_branch": "recovery/memory-supabase-source-parity-20260819",
+    "base_commit": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "base_tree": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "closed_predecessor": {
+      "pull_request": 41,
+      "head": "1b3f2774f4a41f3f3282ff4a015802caf4068b3e",
+      "tree": "a6b0305ca687714a215f55ede398a53628554e36",
+      "state": "closed_unmerged",
+      "preservation_rule": "Preserve as historical blocked observation; do not overwrite it."
+    },
+    "migration_provenance_dependency": {
+      "pull_request": 31,
+      "head": "dbc661aa1ab86b4b75c8f14c6bf9c501213625ea",
+      "tree": "5890db3bd195ad6fa3857bb4920e15124ff744d9",
+      "ledger_path": "docs/migrations/LIVE_MIGRATION_LEDGER_2026-08-17.json",
+      "ledger_blob": "242f25aa9931fe38436dbfd8d1d58da487c688eb",
+      "ledger_size_bytes": 25168,
+      "parity_path": "docs/migrations/MIGRATION_PARITY_MANIFEST.json",
+      "parity_blob": "d14777959b3d352daba90eb30c742ce7b63c352f",
+      "parity_size_bytes": 47664,
+      "ownership": "PR #31 remains authoritative for per-migration source classification; this observation does not rewrite its files."
+    },
+    "edge_recovery_dependency": {
+      "pull_request": 34,
+      "head": "c1cd5232299ce6bff7ca5c91a7ef45ec877b4c7e",
+      "tree": "9f878f67898d2550606e70aba6f225ee877dca33",
+      "manifest_path": "docs/parity/EDGE_FUNCTION_PARITY_2026-08-17.json",
+      "manifest_blob": "653f3dc7040f4daefcefafc4503ccce92b5aab1c",
+      "manifest_size_bytes": 5928,
+      "ownership": "PR #34 remains authoritative for its preserved Edge/rollback evidence; this observation adds fresh metadata only."
+    }
+  },
+  "provider_transport": {
+    "direct_supabase_connector": {
+      "scope": "empty_or_denied",
+      "authoritative_absence_claim": false
+    },
+    "governed_account_id": "battle-realmatch",
+    "governed_exact_item_reads": "successful",
+    "governed_head_reads": "successful",
+    "governed_list_body_decoder": "blocked_array_to_object_schema_mismatch",
+    "implementation_owner": "worker_1_issue_55",
+    "worker_2_changed_connector_code": false,
+    "function_bundle_fetch": "provider_502"
+  },
+  "project": {
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "name": "Memory",
+    "organization_id": "lqvpjqbgfodmtswxizwf",
+    "region": "ap-southeast-2",
+    "status": "ACTIVE_HEALTHY",
+    "postgres_version": "17.6.1.147",
+    "default_branch": {
+      "id": "c6231bc3-73fa-4a05-9558-61372df01bcf",
+      "project_ref": "ivmvufhcsezyhczzondn",
+      "engine_major": 17,
+      "release_channel": "ga",
+      "status": "ACTIVE_HEALTHY"
+    },
+    "branch_list": {
+      "head_etag": "W/\"180-/VfFy96QgtDMNme3tMIQXBJzwEA\"",
+      "inventory_complete": false,
+      "non_default_branch_count": null,
+      "current_branch_cost_usd_per_hour": null,
+      "reason": "List body is blocked by Worker 1-owned response decoding. No branch was created."
+    }
+  },
+  "migrations": {
+    "identity_verification": "production_verified",
+    "list_head_etag": "W/\"139a-Rb+o60KCJ/jLFibPKSwymerAMcU\"",
+    "ordered_identity_payload_bytes": 5018,
+    "ordered_identity_payload_sha256": "0d6110e17a01304eebb57cca57369f7b9b6961eb7a23b2c40871c8d90f5da0f3",
+    "computed_weak_etag": "W/\"139a-Rb+o60KCJ/jLFibPKSwymerAMcU\"",
+    "etag_match": true,
+    "live_count": 68,
+    "latest_identity": {
+      "version": "20260813114649",
+      "name": "remove_temporary_flutterflow_http_probe_20260813"
+    },
+    "classifications": {
+      "A_exact_source_match": 14,
+      "B_authentic_source_recovered": 0,
+      "C_identity_recovered_source_missing": 53,
+      "D_sanitized_recovery_artifact": 1,
+      "E_source_divergence": 0,
+      "F_unknown": 0,
+      "classification_authority": "PR #31 exact head and blob references above"
+    },
+    "rollback_metadata_present": 0,
+    "idempotency_metadata_complete": false,
+    "source_parity_complete": false,
+    "reconstruction_status": "partial",
+    "ordered_identities": [
+      {"version":"20260620000100","name":"core_database_schema"},
+      {"version":"20260620000200","name":"rls_policy_foundation"},
+      {"version":"20260620000210","name":"rls_real_life_tables"},
+      {"version":"20260620000220","name":"rls_au_tables"},
+      {"version":"20260620000300","name":"persistent_idempotency"},
+      {"version":"20260620000400","name":"idempotency_rpc_strategy"},
+      {"version":"20260620000500","name":"memory_candidate_transaction"},
+      {"version":"20260620000600","name":"memory_ingest_response_cache_contract"},
+      {"version":"20260620000700","name":"memory_ingest_transactional_rpc_boundary"},
+      {"version":"20260620000800","name":"memory_review_queue_storage_boundary"},
+      {"version":"20260620000900","name":"memory_review_decision_append_rpc"},
+      {"version":"20260620006200","name":"memory_review_queue_rls_tables"},
+      {"version":"20260623006600","name":"memory_execute_approved_review_persistence"},
+      {"version":"20260626040000","name":"phase_4a_memory_proposals"},
+      {"version":"20260626041000","name":"phase_4a_daily_chatgpt_memory_bridge"},
+      {"version":"20260627040000","name":"phase_4c_adaptive_memory_intelligence"},
+      {"version":"20260628050000","name":"phase_5b_memory_feedback_events"},
+      {"version":"20260628070000","name":"env_broker"},
+      {"version":"20260629000000","name":"phase_5d_memory_scoring"},
+      {"version":"20260701000000","name":"phase_6a_operating_brain"},
+      {"version":"20260701010000","name":"phase_6b_project_context_engine"},
+      {"version":"20260704114354","name":"adaptive_log_rls_policies"},
+      {"version":"20260715200029","name":"adaptive_profile_versioning_columns"},
+      {"version":"20260715200058","name":"pandora_operator_action_center"},
+      {"version":"20260715200108","name":"pandora_operator_action_runner_statuses"},
+      {"version":"20260715200130","name":"pandora_shadow_context_pack_lab"},
+      {"version":"20260715200149","name":"pandora_shadow_pack_preflight"},
+      {"version":"20260715200514","name":"pandora_promotion_request_board"},
+      {"version":"20260716000000","name":"pandora_promotion_executor"},
+      {"version":"20260731111248","name":"posthog_product_intelligence"},
+      {"version":"20260731111340","name":"product_intelligence_deny_policies"},
+      {"version":"20260731125443","name":"remove_mistaken_product_intelligence_fabric_v2"},
+      {"version":"20260731190810","name":"projectos_oidc_memory_bridge"},
+      {"version":"20260801163126","name":"pandora_fxpass_growth_bridge"},
+      {"version":"20260803111852","name":"rebind_mcpmaster_memory_principal_to_canonical_vercel_identity"},
+      {"version":"20260806083053","name":"pandora_governed_memory_model"},
+      {"version":"20260806083532","name":"pandora_governed_approval_operations"},
+      {"version":"20260806083632","name":"pandora_approval_denial_audit_correctness"},
+      {"version":"20260807050123","name":"add_pandora_source_snapshots"},
+      {"version":"20260807053859","name":"enable_http_extension_for_source_recovery"},
+      {"version":"20260807054503","name":"lock_down_pandora_source_snapshots"},
+      {"version":"20260807054513","name":"remove_temporary_http_recovery_extension"},
+      {"version":"20260807055209","name":"temporary_fxpass_snapshot_export_gate"},
+      {"version":"20260807055550","name":"remove_temporary_fxpass_snapshot_export_gate"},
+      {"version":"20260807081540","name":"temporary_fxpass_privacy_snapshot_export_gate"},
+      {"version":"20260807081642","name":"remove_blocked_fxpass_privacy_snapshot_export_gate"},
+      {"version":"20260807082820","name":"projectos_post_task_learning_foundation"},
+      {"version":"20260807084620","name":"projectos_daily_pack_and_runtime_reconciliation"},
+      {"version":"20260807085215","name":"projectos_bridge_v13_evidence_reconciliation"},
+      {"version":"20260807085935","name":"projectos_native_hydration_gate_evidence"},
+      {"version":"20260807090642","name":"projectos_memory_daily_pack_private_execution_boundary"},
+      {"version":"20260807090844","name":"projectos_no_github_final_security_evidence"},
+      {"version":"20260808170034","name":"migrate_pandora_integration_credentials_to_vault"},
+      {"version":"20260808181824","name":"add_machine_gateway_authorization_registry"},
+      {"version":"20260808183717","name":"add_gateway_service_action_registry"},
+      {"version":"20260808190813","name":"add_gateway_workload_oidc"},
+      {"version":"20260808220117","name":"record_owner_env_admin_recovery_grant"},
+      {"version":"20260809140538","name":"gateway_auto_enroll_oauth_memory_clients"},
+      {"version":"20260810032703","name":"flutterflow_secure_credential_handoff_v1"},
+      {"version":"20260810044812","name":"flutterflow_manual_vault_secret_lookup_v1"},
+      {"version":"20260810045632","name":"flutterflow_private_yaml_snapshot_cache_v1"},
+      {"version":"20260810052850","name":"flutterflow_private_snapshot_writer_v1"},
+      {"version":"20260810055928","name":"flutterflow_private_snapshot_reader_v1"},
+      {"version":"20260810060747","name":"flutterflow_private_snapshot_files_reader_v1"},
+      {"version":"20260810102152","name":"flutterflow_github_oidc_broker"},
+      {"version":"20260810103038","name":"fix_flutterflow_oidc_service_role_gate"},
+      {"version":"20260810115547","name":"record_flutterflow_oidc_attempts"},
+      {"version":"20260813114649","name":"remove_temporary_flutterflow_http_probe_20260813"}
+    ],
+    "algorithm_anchor": {
+      "version": "20260810115547",
+      "name": "record_flutterflow_oidc_attempts",
+      "exact_item_response_etag": "W/\"a67-XQD68h5utTTfC3+54qHJfurGA1M\"",
+      "sanitized_compact_json_bytes": 2663,
+      "etag_algorithm_reproduced": true,
+      "provider_sql_embedded_here": false,
+      "canonical_path": "supabase/migrations/20260810115547_record_flutterflow_oidc_attempts.sql",
+      "canonical_blob": "557c7108ad56d98c38906563677c236e31ee3274",
+      "canonical_bytes": 2409,
+      "canonical_sha256": "9e1babfb9f17360a59a639c4b752a18b32ac0edd1fd0e57de35663b075e5caf3"
+    },
+    "interpretation": "The full ordered migration identity list is current and exact. This does not convert the 53 missing historical SQL sources into authentic source and does not qualify rollback."
+  },
+  "edge_functions": {
+    "list_head_etag": "W/\"4295-7V0fbpbFuoogqvCYGDNAlXhHQHo\"",
+    "list_payload_bytes": 17045,
+    "inventory_complete": false,
+    "minimum_relevant_exact_reads": [
+      {
+        "slug": "pandora-projectos-bridge",
+        "id": "0e7e24e6-7cb7-46d0-b474-3d626898d7e6",
+        "version": 13,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "import_map": true,
+        "provider_source_hash": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a"
+      },
+      {
+        "slug": "pandora-projectos-learning",
+        "id": "f34c7114-ebd9-40a1-945f-20fc29c5072d",
+        "version": 1,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "import_map": false,
+        "provider_source_hash": "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe"
+      },
+      {
+        "slug": "pandora-machine-gateway",
+        "id": "ed958ba5-3c53-4537-b358-6ca1e14bd78a",
+        "version": 3,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "import_map": false,
+        "provider_source_hash": "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f"
+      }
+    ],
+    "live_bundle_source_fetched": false,
+    "exact_executable_diff_complete": false,
+    "comment_only_equivalence_freshly_proven": false,
+    "canonical_directory_count": 3,
+    "interpretation": "Current metadata for the three required functions is provider-verified. The complete live function inventory and executable source parity remain blocked; historical comment-only findings are not promoted to fresh proof."
+  },
+  "security_and_database_inventory": {
+    "security_advisors": {
+      "head_etag": "W/\"3f51-CeWTqya5ENYowBPhsZVgxTGU5Zc\"",
+      "total": 27,
+      "info_rls_enabled_no_policy": 21,
+      "warn_mutable_function_search_path": 4,
+      "warn_extension_in_public": 1,
+      "warn_leaked_password_protection_disabled": 1,
+      "mutable_search_path_functions": [
+        "public.set_pandora_promotion_executions_updated_at",
+        "public.set_updated_at",
+        "public.set_pandora_shadow_context_pack_updated_at",
+        "public.set_pandora_promotion_requests_updated_at"
+      ],
+      "baseline_level_cache_key_sha256": "199de803d105e2b396708ba8bf83565313828586774e3e118487bb573c818579",
+      "automatic_remediation_performed": false
+    },
+    "performance_advisors": {
+      "head_etag": "W/\"33813-j79axhAgwp/U76mj1GbdSuML8G0\"",
+      "body_retrieved": true,
+      "full_normalized_count": null,
+      "categories_observed": [
+        "unindexed_foreign_keys",
+        "auth_rls_initplan",
+        "unused_index",
+        "auth_db_connections_absolute"
+      ],
+      "automatic_remediation_performed": false
+    },
+    "schemas": {"status":"blocked","inventory":null},
+    "tables_columns_constraints_indexes": {"status":"blocked","inventory":null},
+    "rls_policy_inventory": {"status":"partial_advisor_only","inventory":null},
+    "privilege_inventory": {"status":"blocked","inventory":null},
+    "security_definer_inventory": {"status":"blocked","inventory":null},
+    "trigger_inventory": {"status":"blocked","inventory":null},
+    "event_trigger_inventory": {"status":"historical_only_not_fresh","inventory":null},
+    "scheduled_job_inventory": {"status":"blocked","inventory":null},
+    "exposed_schema_configuration": {"status":"historical_only_not_fresh","inventory":null},
+    "auth_security_configuration": {"status":"partial_advisor_only","inventory":null},
+    "reason": "Read-only SQL/catalog access is not available through the current connector scope; Management API list decoding remains blocked."
+  },
+  "memory_lifecycle": {
+    "current_object_level_readback_complete": false,
+    "migration_identities_current": true,
+    "hmac_contract_currently_source_diffed": false,
+    "privacy_exclusions_currently_source_diffed": false,
+    "review_gating_currently_catalog_verified": false,
+    "outbox_jobs_currently_catalog_verified": false,
+    "interpretation": "Lifecycle identities exist in the current migration order, but exact live tables/functions/triggers/jobs/grants were not freshly cataloged. Historical evidence is not silently promoted."
+  },
+  "recovery": {
+    "overall_reconstructability": "partial",
+    "reconstructable": "Current project identity, exact ordered migration identities, three required Edge Function metadata identities, and current advisor summary.",
+    "partially_reconstructable": "Schema and lifecycle state whose resulting design is represented by source/recovery evidence but whose original migration source is incomplete.",
+    "non_reconstructable": "The 53 authentic migration files still missing, the complete live Edge Function inventory/source bundles, and fresh schema/RLS/grants/trigger/job catalog state.",
+    "rollback_qualified": false,
+    "known_good_database_rollback_point": null,
+    "forward_recovery_required": true,
+    "production_recovery_today": "Restore infrastructure from canonical/recovery source where exact; take a fresh provider/catalog snapshot; preserve data; reconcile unknown or irreversible state through independently reviewed forward migrations/functions. Do not replay missing history or claim an older deployment alone is a database rollback."
+  },
+  "safety": {
+    "production_database_mutation": false,
+    "production_data_mutation": false,
+    "migration_replay": false,
+    "edge_function_deployment": false,
+    "vercel_production_release": false,
+    "supabase_branch_created": false,
+    "new_cost_incurred": false,
+    "secret_values_persisted": false,
+    "worker_1_paths_modified": false,
+    "other_worker_work_merged": false
+  },
+  "verification": {
+    "local": {
+      "node_version": "22.16.0",
+      "verifier_path": "scripts/check_memory_supabase_parity.mjs",
+      "verifier_sha256": "e49f25b533d119d79d7e6d8847a795c5dc2c467cffd409e041ff03e73cddf8a8",
+      "self_test_cases": 12,
+      "result": "pass"
+    },
+    "hosted_exact_head_ci": {"status":"pending_until_commit_and_pr"}
+  },
+  "proof_stage": {
+    "documented": true,
+    "implemented": true,
+    "tested": {"local":true,"hosted_exact_head":false},
+    "deployed": false,
+    "production_verified": {
+      "project_identity": true,
+      "migration_identity_order": true,
+      "three_required_edge_metadata": true,
+      "security_advisor_summary": true,
+      "full_source_parity": false,
+      "full_reconstruction": false
+    }
+  }
+}

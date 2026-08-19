@@ -1,0 +1,124 @@
+{
+  "schema_version": "1.0.0",
+  "matrix_id": "pandora-memory-supabase-recovery-matrix-2026-08-19",
+  "captured_at": "2026-08-18T21:54:24Z",
+  "observation_ref": "docs/provider-observations/PANDORA_SUPABASE_PROVIDER_OBSERVATION_2026-08-19.json",
+  "project_ref": "ivmvufhcsezyhczzondn",
+  "rule": "Rollback is qualified only by exact compatible source, migration state, restoration method, and acceptable data-loss evidence. Otherwise forward recovery is required.",
+  "subsystems": [
+    {
+      "subsystem": "migration_ledger",
+      "current_source": "PR #31 head dbc661aa1ab86b4b75c8f14c6bf9c501213625ea plus this exact 68-identity ETag proof",
+      "live_state": "68 ordered identities provider-verified; 14 A, 1 D, 53 C; zero rollback metadata",
+      "rollback_qualified": false,
+      "forward_recovery": "Preserve identity/source gaps, recover authentic source only from trusted evidence, use reviewed additive repair; never replay invented history.",
+      "evidence": [
+        "migration ETag W/\"139a-Rb+o60KCJ/jLFibPKSwymerAMcU\"",
+        "identity payload SHA-256 0d6110e17a01304eebb57cca57369f7b9b6961eb7a23b2c40871c8d90f5da0f3"
+      ]
+    },
+    {
+      "subsystem": "memory_schema",
+      "current_source": "Canonical migrations plus PR #31 provenance registry",
+      "live_state": "Exact current catalog inventory blocked",
+      "rollback_qualified": false,
+      "forward_recovery": "Capture fresh schema/data-compatible state, then use reviewed idempotent forward migrations.",
+      "evidence": [
+        "project ACTIVE_HEALTHY",
+        "catalog read unavailable"
+      ]
+    },
+    {
+      "subsystem": "projectos_lifecycle",
+      "current_source": "Canonical migration and function source, partially missing historical SQL",
+      "live_state": "Migration identities current; object-level tables/functions/triggers/grants/jobs not freshly cataloged",
+      "rollback_qualified": false,
+      "forward_recovery": "Reconcile exact live catalog to source before any reviewed repair.",
+      "evidence": [
+        "current migration identity list",
+        "Memory lifecycle readback incomplete"
+      ]
+    },
+    {
+      "subsystem": "review_promotion_system",
+      "current_source": "Canonical migration/recovery source",
+      "live_state": "Advisor-visible tables exist; policy/ACL/function behavior not fully fresh",
+      "rollback_qualified": false,
+      "forward_recovery": "Preserve review-gated behavior and use additive fixes after catalog proof.",
+      "evidence": [
+        "21 RLS-enabled/no-policy advisor items include lifecycle tables",
+        "fresh ACL inventory blocked"
+      ]
+    },
+    {
+      "subsystem": "outbox",
+      "current_source": "Canonical lifecycle source and migration identities",
+      "live_state": "Current job/trigger/privilege inventory blocked",
+      "rollback_qualified": false,
+      "forward_recovery": "Snapshot pending work and reconcile idempotently before re-enabling execution.",
+      "evidence": [
+        "current migration identities",
+        "scheduled jobs not freshly read"
+      ]
+    },
+    {
+      "subsystem": "scheduled_jobs",
+      "current_source": "Historical recovery evidence only",
+      "live_state": "Fresh cron/job inventory unavailable",
+      "rollback_qualified": false,
+      "forward_recovery": "Inventory provider cron/jobs first; re-create only from authenticated source and preserve idempotency.",
+      "evidence": [
+        "catalog read blocked"
+      ]
+    },
+    {
+      "subsystem": "pandora_projectos_bridge",
+      "current_source": "Canonical supabase/functions/pandora-projectos-bridge plus PR #34 evidence",
+      "live_state": "v13 ACTIVE; provider source hash current; live bundle fetch 502",
+      "rollback_qualified": false,
+      "forward_recovery": "Keep current production unchanged; fetch/diff bundle, independently review, then deploy only if an executable defect is proven.",
+      "evidence": [
+        "v13",
+        "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a"
+      ]
+    },
+    {
+      "subsystem": "pandora_projectos_learning",
+      "current_source": "Canonical supabase/functions/pandora-projectos-learning plus PR #34 evidence",
+      "live_state": "v1 ACTIVE; provider source hash current; live bundle fetch 502",
+      "rollback_qualified": false,
+      "forward_recovery": "Preserve review gating; fetch/diff bundle and independently review before mutation.",
+      "evidence": [
+        "v1",
+        "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe"
+      ]
+    },
+    {
+      "subsystem": "pandora_machine_gateway",
+      "current_source": "Canonical supabase/functions/pandora-machine-gateway plus PR #34 evidence",
+      "live_state": "v3 ACTIVE; provider source hash current; fresh executable/comment diff unavailable",
+      "rollback_qualified": false,
+      "forward_recovery": "Do not redeploy for textual parity; fetch/diff exact live bundle, independently classify differences, then repair only proven executable/security drift.",
+      "evidence": [
+        "v3",
+        "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f"
+      ]
+    },
+    {
+      "subsystem": "web_api_runtime",
+      "current_source": "Canonical main 27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+      "live_state": "Not changed or released by this lane; database compatibility remains the limiting recovery condition",
+      "rollback_qualified": false,
+      "forward_recovery": "Bind any runtime recovery to exact compatible database state and verified deployment source.",
+      "evidence": [
+        "no production release",
+        "database rollback point absent"
+      ]
+    }
+  ],
+  "summary": {
+    "rollback_qualified_subsystems": 0,
+    "forward_recovery_required_subsystems": 10,
+    "production_mutation_performed": false
+  }
+}

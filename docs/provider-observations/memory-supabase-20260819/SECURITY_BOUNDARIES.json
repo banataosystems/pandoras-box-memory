@@ -1,0 +1,248 @@
+{
+  "application_triggers": [
+    {
+      "function": "public.set_updated_at",
+      "name": "set_decision_gates_updated_at",
+      "sha256": "1d9723156a359ea75ac1ea858b52409dd4d55daa5175f86523d3407f7c860057",
+      "table": "public.decision_gates"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_one_best_next_actions_updated_at",
+      "sha256": "d707f825311f764ec26ad4b704e32b1b55e6ce91e51c979fbc817eae870e6e85",
+      "table": "public.one_best_next_actions"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_operating_project_artifacts_updated_at",
+      "sha256": "225ea913ac7f0f7821ec473fd2dcb7b4b2bc20b1ff166f9b2d1239e42b812d04",
+      "table": "public.operating_project_artifacts"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_operating_project_constraints_updated_at",
+      "sha256": "a92455f2796b719f08d235c3dc40ead4557c80db5583abaea6bdc548295db612",
+      "table": "public.operating_project_constraints"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_operating_project_decisions_updated_at",
+      "sha256": "95fb725b81fbbe42e63d3e58569b43704b9daf31885d04e842e9e4c941990129",
+      "table": "public.operating_project_decisions"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_operating_project_open_loops_updated_at",
+      "sha256": "733023ffe97dc2043d9177eeb727c5e7e154601dc13e790007c9bf1144c171fb",
+      "table": "public.operating_project_open_loops"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_operating_project_tasks_updated_at",
+      "sha256": "44b9124b6edcc5726b576d99026a5f1cbe4c4edfe664bba07d47e5acade1574a",
+      "table": "public.operating_project_tasks"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_operating_projects_updated_at",
+      "sha256": "b4602590ca2d07c5d29f743364ffe318955159751e8a20b8702af4324f23a007",
+      "table": "public.operating_projects"
+    },
+    {
+      "function": "public.set_pandora_promotion_executions_updated_at",
+      "name": "set_pandora_promotion_executions_updated_at",
+      "sha256": "39e4f5e5b74a2e314abbb47643b1184f604169b600d919336bc416405aa0b496",
+      "table": "public.pandora_promotion_executions"
+    },
+    {
+      "function": "public.set_pandora_promotion_requests_updated_at",
+      "name": "set_pandora_promotion_requests_updated_at",
+      "sha256": "1e7401210e6ad05efed56324325b3475561bcdec6432bd99d1dfd4fec7715dd1",
+      "table": "public.pandora_promotion_requests"
+    },
+    {
+      "function": "public.set_pandora_shadow_context_pack_updated_at",
+      "name": "set_pandora_shadow_context_pack_updated_at",
+      "sha256": "ba382fa8fa23f1c3da5ed85aced1557d73d9176daf7f6806704a455e1fb0cd2a",
+      "table": "public.pandora_shadow_context_packs"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_priority_locks_updated_at",
+      "sha256": "de935e702cfe64f0a4180c3f7b211a0886ef90ca00136147611fb29ceadc3e17",
+      "table": "public.priority_locks"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_raw_movement_items_updated_at",
+      "sha256": "786b413c9236d4768aa22e9bf483688f8b963fcca636e12827a57644185cfdcc",
+      "table": "public.raw_movement_items"
+    },
+    {
+      "function": "public.set_updated_at",
+      "name": "set_work_sessions_updated_at",
+      "sha256": "aa85a6e20af3804eb6b248d12e47b03e9d47e6dd0a708f6a4defdeff47b9be0a",
+      "table": "public.work_sessions"
+    }
+  ],
+  "captured_at": "2026-08-18T22:56:15Z",
+  "observation_id": "pandora-memory-supabase-security-boundaries-2026-08-19",
+  "privacy": {
+    "cron_command_persisted": false,
+    "raw_function_definitions_persisted": false,
+    "raw_policy_expressions_persisted": false,
+    "secret_values_persisted": false
+  },
+  "private_relation_non_owner_grants": [
+    {
+      "grantee": "service_role",
+      "privileges": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "relation": "private.flutterflow_project_snapshots"
+    },
+    {
+      "grantee": "service_role",
+      "privileges": [
+        "DELETE",
+        "INSERT",
+        "SELECT",
+        "UPDATE"
+      ],
+      "relation": "private.flutterflow_project_yaml_files"
+    },
+    {
+      "grantee": "service_role",
+      "privileges": [
+        "INSERT",
+        "SELECT"
+      ],
+      "relation": "private.pandora_recovery_auth_changes"
+    }
+  ],
+  "private_relations": [
+    {
+      "name": "private.flutterflow_credential_handoffs",
+      "rls": false,
+      "sha256": "1e6c26d0845f02fcf889ac2a81a1361d477d01b52d4212990e27c0927178d8f3"
+    },
+    {
+      "name": "private.flutterflow_github_oidc_attempts",
+      "rls": true,
+      "sha256": "867722b72b6edef855de0411853af80659ca6294bb9a557b4d3d469244b57b47"
+    },
+    {
+      "name": "private.flutterflow_github_oidc_grants",
+      "rls": true,
+      "sha256": "dd1d9210bb067257d29c35f9c730f2be48859be52dcba7e2d13f7c270713cad7"
+    },
+    {
+      "name": "private.flutterflow_integration_credentials",
+      "rls": false,
+      "sha256": "5455c0010468d132ef0987b679eb3cb65b2b9d41f8f466a320bcecbebb24ad2b"
+    },
+    {
+      "name": "private.flutterflow_project_snapshots",
+      "rls": false,
+      "sha256": "28154129ff4bb3902df597a03e200db6e70c88108176e0c9c5ef9b4fec56fa39"
+    },
+    {
+      "name": "private.flutterflow_project_yaml_files",
+      "rls": false,
+      "sha256": "1a2819d832a4167e53795e725b48a5b292c77246d74a1914e91beb7a45b5a917"
+    },
+    {
+      "name": "private.pandora_integration_credentials",
+      "rls": false,
+      "sha256": "30f68748f2756682fcab11ee341f87932000283e47c51b40a5e2a66ea2dcf6f7"
+    },
+    {
+      "name": "private.pandora_recovery_auth_changes",
+      "rls": false,
+      "sha256": "972745340bbc387f7ded614136d837c7b45af5ae81dda7213dcb56d315bc579c"
+    }
+  ],
+  "project_ref": "ivmvufhcsezyhczzondn",
+  "provider_event_triggers": [
+    "issue_graphql_placeholder",
+    "issue_pg_cron_access",
+    "issue_pg_graphql_access",
+    "issue_pg_net_access",
+    "pgrst_ddl_watch",
+    "pgrst_drop_watch"
+  ],
+  "scheduled_jobs": [
+    {
+      "active": true,
+      "command_bytes": 54,
+      "command_persisted": false,
+      "command_sha256": "1abab78475b233c52db64e595e411b5d0b0c5b7c84a6908d2cb525becb8b9f90",
+      "database": "postgres",
+      "job_id": 1,
+      "name": "projectos-memory-daily-context-pack",
+      "schedule": "*/15 * * * *",
+      "username": "postgres"
+    }
+  ],
+  "schema_version": "1.0.0",
+  "security_definer_functions": [
+    {
+      "search_path": "\"\"",
+      "sha256": "9448d0ad4de46a769be7c9a225fca8478eaaa5a9818445942706fcccf57bb6d9",
+      "signature": "private.refresh_projectos_daily_context_pack()"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "a50b97bbe47480351bd8ebf1d9286445b639fbfc9ee5b578c348928bdc87f47e",
+      "signature": "public.consume_flutterflow_credential_handoff(text,text,text,text)"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "a9f5e33c3239d8748954023f28045ca40dfaf1240731e7cb5cd5fbd11a66d024",
+      "signature": "public.consume_flutterflow_github_oidc_grant(text,text,text,text,text,text,text,text,text,text,integer)"
+    },
+    {
+      "search_path": "public, auth, pg_temp",
+      "sha256": "af04301610b7c5fd79fefd0e60a0bf961c222d03e9d6ddff101eb533730e3214",
+      "signature": "public.gateway_authorize_oauth(uuid,text,text,text,text,text)"
+    },
+    {
+      "search_path": "public, auth, pg_temp",
+      "sha256": "13b93606058324d8e968c13f03bbedb502605dcf6f7490d6ca48b3a90cdc4e82",
+      "signature": "public.gateway_authorize_oidc(text,text,text,text,text,text,text)"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "cf8b61fc6ea27d8506ce3dd23ec434905f121fb18fb648170abb184f22b3f66f",
+      "signature": "public.get_flutterflow_project_api_secret()"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "106f3ef9ac11331ba2bae240cf7777fa84300a4d39eba104f4dd4478d0f6c265",
+      "signature": "public.get_flutterflow_snapshot_file(uuid,text)"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "b3bcb37003ee74cce7b1569b57e33ef0b98ef45572a80bd8ff619d53524a2ddf",
+      "signature": "public.get_flutterflow_snapshot_files(uuid)"
+    },
+    {
+      "search_path": "private, public, vault, auth, pg_temp",
+      "sha256": "158d02575495abeaa288cc0bcbdcde8f7564291cac9677a80c1477d2bd001263",
+      "signature": "public.pandora_integration_credential(text)"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "4baf796ef8cd0ba99de9c3055343df5b3509c396c15fc3d10a40a9ae68c0842b",
+      "signature": "public.record_flutterflow_github_oidc_attempt(text,text,text,text,text,text,integer,text)"
+    },
+    {
+      "search_path": "\"\"",
+      "sha256": "6910984383a1a6b2cf084e730a570593b730fb3a03425b926fbc317306421277",
+      "signature": "public.save_flutterflow_project_snapshot(text,text,integer,text,jsonb,jsonb)"
+    }
+  ]
+}

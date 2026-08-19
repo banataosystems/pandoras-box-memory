@@ -1,0 +1,61 @@
+name: Memory Supabase live catalog evidence
+
+on:
+  pull_request:
+    paths:
+      - "docs/provider-observations/memory-supabase-20260819/**"
+      - "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md*"
+      - "docs/recovery/PANDORA_SUPABASE_SCHEDULED_JOB_DRIFT_2026-08-19.md"
+      - "docs/capabilities/evidence/MEMORY_SUPABASE_LIVE_CATALOG_2026-08-19.json*"
+      - "scripts/check_memory_supabase_catalog.mjs"
+      - "scripts/check_memory_supabase_scheduled_jobs.mjs"
+      - ".github/workflows/memory-supabase-catalog-evidence.yml"
+  push:
+    branches: [main]
+    paths:
+      - "docs/provider-observations/memory-supabase-20260819/**"
+      - "docs/recovery/PANDORA_SUPABASE_CATALOG_SUPPLEMENT_2026-08-19.md*"
+      - "docs/recovery/PANDORA_SUPABASE_SCHEDULED_JOB_DRIFT_2026-08-19.md"
+      - "docs/capabilities/evidence/MEMORY_SUPABASE_LIVE_CATALOG_2026-08-19.json*"
+      - "scripts/check_memory_supabase_catalog.mjs"
+      - "scripts/check_memory_supabase_scheduled_jobs.mjs"
+      - ".github/workflows/memory-supabase-catalog-evidence.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: memory-supabase-catalog-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-memory-supabase-live-catalog:
+    name: Verify Memory Supabase live catalog evidence
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact event source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Set up Node 22
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: "22"
+      - name: Bind checkout to exact source SHA
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="${{ github.event.pull_request.head.sha || github.sha }}"
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$expected"
+          echo "source_sha=$actual" >> "$GITHUB_STEP_SUMMARY"
+          echo "tree_sha=$(git rev-parse HEAD^{tree})" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify historical catalog capture and current RED status
+        run: node scripts/check_memory_supabase_catalog.mjs
+      - name: Verify scheduled-job rowset, provenance, drift, and adversarial cases
+        run: node scripts/check_memory_supabase_scheduled_jobs.mjs --self-test
+      - name: Scan source for literal secrets
+        run: bash scripts/check_no_literal_secrets.sh

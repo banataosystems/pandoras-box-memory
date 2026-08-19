@@ -1,0 +1,121 @@
+{
+  "schema_version": "1.0.0",
+  "status": "RED",
+  "stable_pass_verified": false,
+  "scope": "Pandora Memory Supabase scheduled-job parity and authenticated provider provenance",
+  "repository": "banataosystems/pandoras-box-memory",
+  "pull_request": 42,
+  "reviewed_head": "ca1646a357eae324b482854370f66f1c050d671c",
+  "reviewed_tree": "bfb8d2546691f868a294b1eacbfb489f67f656f1",
+  "worker6_verdict": {
+    "review_id": "PRR_kwDOTxzn3c8AAAABKA_wfA",
+    "submitted_at": "2026-08-18T23:44:15Z",
+    "verdict": "FAIL",
+    "finding_ids": [
+      "W2-R3-F1",
+      "W2-R3-F2",
+      "W2-R3-F3"
+    ],
+    "blocking": true
+  },
+  "observations": [
+    {
+      "id": "committed-catalog-capture",
+      "kind": "repository_capture",
+      "source_head": "ca1646a357eae324b482854370f66f1c050d671c",
+      "observed_at": "2026-08-18T22:56:15Z",
+      "active_job_count": 1,
+      "job_ids": [
+        1
+      ],
+      "artifact": "docs/provider-observations/memory-supabase-20260819/SECURITY_BOUNDARIES.json",
+      "binding": "internal_content_address_only",
+      "current_claim_allowed": false
+    },
+    {
+      "id": "authenticated-three-job-observation",
+      "kind": "authenticated_provider_attestation",
+      "review_id": "PRR_kwDOTxzn3c8AAAABKA7eiQ",
+      "review_submitted_at": "2026-08-18T23:36:02Z",
+      "reported_capture_epoch": "2026-08-19T23:44:13.22137Z",
+      "reported_capture_epoch_temporally_consistent": false,
+      "projectos_plan_id": "4e8c36ba-c019-4465-a08c-9c649b84bc19",
+      "active_job_count": 3,
+      "job_ids": null,
+      "rowset_digest": null,
+      "rowset_artifact": null,
+      "binding": "insufficient_result_provenance",
+      "current_claim_allowed": false
+    },
+    {
+      "id": "bounded-capture-20260819T030551Z",
+      "kind": "authenticated_provider_rowset",
+      "observed_at": "2026-08-19T03:05:51.805068Z",
+      "active_job_count": 1,
+      "job_ids": [
+        1
+      ],
+      "seven_day_distinct_job_ids": [
+        1
+      ],
+      "seven_day_run_count": 672,
+      "seven_day_failed_count": 0,
+      "seven_day_overlap_count": 0,
+      "capture_path": "docs/provider-observations/memory-supabase-20260819/scheduled-jobs/CAPTURE_2026-08-19T030551Z.json",
+      "capture_sha256": "30e93ff475cf62036974b33b693edf832214b51c3aa3fa40d93294dee70a47f6",
+      "provider_payload_sha256": "507272c1f623fe91b158ec1efd14d78585a5c9bc3f147f31cf9488b37d892ef6",
+      "query_sha256": "abe450c881278184d4854ad1d2207a219b88b7ce0bf963bf0d6dab5cb011c6d5",
+      "projectos_plan_id": "f632066d-3b69-4c15-b955-dcd744d6cdde",
+      "binding": "provider_payload_exact_repository_bytes_but_audit_result_digest_unavailable",
+      "current_claim_allowed": true
+    }
+  ],
+  "reconciliation": {
+    "result": "unresolved_authenticated_observation_drift",
+    "latest_bounded_active_job_count": 1,
+    "prior_authenticated_active_job_count": 3,
+    "extra_job_identities_recovered": false,
+    "extra_job_provenance_recovered": false,
+    "current_seven_day_history_contains_only_job_1": true,
+    "historical_three_job_observation_explained": false,
+    "production_verified_complete_catalog": false,
+    "live_parity_proven": false,
+    "rollback_qualified": false,
+    "forward_recovery_required": true
+  },
+  "job_semantics": {
+    "job_id": 1,
+    "name": "projectos-memory-daily-context-pack",
+    "schedule": "*/15 * * * *",
+    "cadence": "every_15_minutes",
+    "name_schedule_divergence": true,
+    "migration_identity_links": [
+      "20260807084620_projectos_daily_pack_and_runtime_reconciliation",
+      "20260807085935_projectos_native_hydration_gate_evidence",
+      "20260807090844_projectos_no_github_final_security_evidence"
+    ],
+    "authentic_migration_source_available": false,
+    "referenced_function": "private.refresh_projectos_daily_context_pack()",
+    "function_owner": "postgres",
+    "function_security_definer": true,
+    "function_search_path": "\"\"",
+    "definition_sha256": "9448d0ad4de46a769be7c9a225fca8478eaaa5a9818445942706fcccf57bb6d9",
+    "observed_overlap_count_7d": 0,
+    "max_duration_ms_7d": 397.554,
+    "interval_ms": 900000,
+    "code_level_overlap_prevention_proven": false,
+    "idempotency_proven": false,
+    "explicit_retry_contract_proven": false,
+    "exception_block_present": true,
+    "interpretation": "The job name says daily while cron evaluates every 15 minutes. Seven-day history shows short, non-overlapping successful executions, but source-level idempotency, locking, and retry guarantees are not proven because authentic migration source is missing and the function indicators show no ON CONFLICT, advisory-lock, or SKIP LOCKED marker."
+  },
+  "gates": {
+    "source_artifacts_tested": false,
+    "qualified_independent_review": false,
+    "different_vendor_stable_pass": false,
+    "projectos_result_digest_available": false,
+    "merge_authorized": false,
+    "production_release_authorized": false
+  },
+  "next_safe_action": "Commit this contradiction-preserving capture and fail-closed verifier on PR #42, run exact-head CI, then obtain a fresh qualified independent review. Worker 1 must add privacy-safe provider-result digests to ProjectOS audit before production-verified live parity can be claimed."
+}

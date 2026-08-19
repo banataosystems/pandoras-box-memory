@@ -1,0 +1,104 @@
+{
+  "schema_version": "1.0.0",
+  "capture_id": "memory-supabase-scheduled-jobs-20260819T030551Z",
+  "status": "captured_read_only",
+  "scope": "current cron.job rows plus privacy-safe seven-day cron.job_run_details statistics",
+  "provider": {
+    "account_id": "battle-realmatch",
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "database": "postgres",
+    "server_version": "17.6",
+    "capture_role": "supabase_read_only_user",
+    "capture_epoch": "2026-08-19T03:05:51.805068Z",
+    "transaction_snapshot": "17116:17116:"
+  },
+  "source_binding": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "branch": "recovery/memory-supabase-source-parity-20260819",
+    "pull_request": 42,
+    "source_head_at_capture": "ca1646a357eae324b482854370f66f1c050d671c",
+    "source_tree_at_capture": "bfb8d2546691f868a294b1eacbfb489f67f656f1",
+    "query_path": "docs/provider-observations/memory-supabase-20260819/scheduled-jobs/SCHEDULED_JOBS_CAPTURE.sql",
+    "query_bytes": 5943,
+    "query_sha256": "abe450c881278184d4854ad1d2207a219b88b7ce0bf963bf0d6dab5cb011c6d5"
+  },
+  "projectos": {
+    "plan_id": "f632066d-3b69-4c15-b955-dcd744d6cdde",
+    "request_id": "14d016ae-16ee-4ae5-9e70-5e8265c50ada",
+    "intake_id": "160a8fd1-9cd8-496a-bc67-d27940998334",
+    "project_id": "ee282126-3f61-4058-8c92-2fedbfcecf1f",
+    "project_key": "mcpmaster",
+    "plan_payload_sha256": "0a3022bee588ac79d83c61f378be6352a197bd543ddece35552f385f7c671e5e",
+    "audit": {
+      "created": {
+        "sequence": 4938,
+        "event_hash": "7b3168b29aab6a221362d51bfcff935fbe335772516914a342b8b754862665f2",
+        "occurred_at": "2026-08-19T03:05:29.306252Z"
+      },
+      "approved": {
+        "sequence": 4940,
+        "event_hash": "0c0b834d451e48b8cda8e2ff535108913e5e7e9c28740d47c3e7585504fba587",
+        "occurred_at": "2026-08-19T03:05:38.498351Z",
+        "approval_identifier_exposed": false
+      },
+      "claimed": {
+        "sequence": 4941,
+        "event_hash": "b9bd8a6bd40dc7a40a09a10a4b64f3628981f9f8be4c7ddcc4f7287fcbfe720c",
+        "occurred_at": "2026-08-19T03:05:49.515764Z"
+      },
+      "finished": {
+        "sequence": 4942,
+        "event_hash": "6c2ceeedf12462170a2229cc589d52861b394413b9c619b8abbcf0440e1e6dc3",
+        "occurred_at": "2026-08-19T03:05:52.492542Z",
+        "status": "completed",
+        "result_summary": {
+          "type": "object"
+        }
+      }
+    },
+    "audit_result_digest_available": false,
+    "audit_result_digest_limitation": "ProjectOS audit exposes lifecycle, plan payload hash, and result type only; it does not expose the provider result bytes or result digest. Worker 1 owns that control-path provenance gap."
+  },
+  "provider_response": {
+    "payload_canonical_json": "{\"privacy\": {\"raw_commands_included\": false, \"secret_values_included\": false, \"return_messages_included\": false}, \"database\": \"postgres\", \"project_ref\": \"ivmvufhcsezyhczzondn\", \"capture_role\": \"supabase_read_only_user\", \"current_jobs\": {\"rows\": [{\"name\": \"projectos-memory-daily-context-pack\", \"active\": true, \"job_id\": 1, \"database\": \"postgres\", \"schedule\": \"*/15 * * * *\", \"username\": \"postgres\", \"command_bytes\": 54, \"command_sha256\": \"1abab78475b233c52db64e595e411b5d0b0c5b7c84a6908d2cb525becb8b9f90\", \"migration_sources\": [{\"name\": \"projectos_daily_pack_and_runtime_reconciliation\", \"version\": \"20260807084620\"}, {\"name\": \"projectos_native_hydration_gate_evidence\", \"version\": \"20260807085935\"}, {\"name\": \"projectos_no_github_final_security_evidence\", \"version\": \"20260807090844\"}], \"referenced_functions\": [{\"name\": \"refresh_projectos_daily_context_pack\", \"owner\": \"postgres\", \"schema\": \"private\", \"signature\": \"\", \"volatility\": \"v\", \"search_path\": \"\\\"\\\"\", \"has_on_conflict\": false, \"has_skip_locked\": false, \"security_definer\": true, \"definition_sha256\": \"9448d0ad4de46a769be7c9a225fca8478eaaa5a9818445942706fcccf57bb6d9\", \"has_advisory_lock\": false, \"has_exception_block\": true}]}], \"row_count\": 1, \"active_count\": 1, \"inactive_count\": 0}, \"capture_epoch\": \"2026-08-19T03:05:51.805068\", \"run_history_7d\": {\"rows\": [{\"job_id\": 1, \"last_end\": \"2026-08-19T03:00:00.495264+00:00\", \"run_count\": 672, \"last_start\": \"2026-08-19T03:00:00.241274+00:00\", \"first_start\": \"2026-08-12T03:15:00.242611+00:00\", \"failed_count\": 0, \"command_bytes\": 54, \"overlap_count\": 0, \"command_sha256\": \"1abab78475b233c52db64e595e411b5d0b0c5b7c84a6908d2cb525becb8b9f90\", \"avg_duration_ms\": 92.971, \"max_duration_ms\": 397.554, \"succeeded_count\": 672, \"currently_present\": true, \"other_status_count\": 0}], \"distinct_job_id_count\": 1}, \"schema_version\": \"1.0.0\", \"server_version\": \"17.6\", \"transaction_snapshot\": \"17116:17116:\"}",
+    "payload_bytes": 1904,
+    "payload_sha256": "507272c1f623fe91b158ec1efd14d78585a5c9bc3f147f31cf9488b37d892ef6",
+    "current_job_row_count": 1,
+    "current_active_job_count": 1,
+    "current_inactive_job_count": 0,
+    "seven_day_distinct_job_id_count": 1,
+    "privacy": {
+      "raw_commands_included": false,
+      "return_messages_included": false,
+      "secret_values_included": false
+    }
+  },
+  "binding": {
+    "query_to_repository": "exact_sha256",
+    "provider_payload_to_repository": "exact_bytes_and_sha256",
+    "projectos_plan_to_audit": "hash_chain_event",
+    "projectos_audit_to_provider_result": "not_available",
+    "overall": "partial_not_audit_result_bound"
+  },
+  "interpretation": {
+    "current_capture_job_count": 1,
+    "seven_day_history_job_count": 1,
+    "seven_day_run_count": 672,
+    "seven_day_succeeded_count": 672,
+    "seven_day_failed_count": 0,
+    "seven_day_overlap_count": 0,
+    "stable_live_parity_proven": false,
+    "production_verified_catalog_claim_permitted": false,
+    "reason": "A prior authenticated observation reported three active jobs without an independently recoverable rowset. This newer capture proves the current bounded rowset only; it cannot erase or explain the contradiction."
+  },
+  "safety": {
+    "database_mutation": false,
+    "production_data_mutation": false,
+    "cron_mutation": false,
+    "edge_deployment": false,
+    "secret_persistence": false,
+    "raw_command_persistence": false,
+    "merge": false,
+    "production_release": false
+  }
+}

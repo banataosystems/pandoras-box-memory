@@ -1,0 +1,230 @@
+{
+  "acl": {
+    "general_private_client_schema_access": false,
+    "grouped_by_grantee": {
+      "PUBLIC": 11,
+      "anon": 79,
+      "authenticated": 79,
+      "postgres": 1,
+      "service_role": 110
+    },
+    "grouped_by_object_type": {
+      "function": 54,
+      "relation": 221,
+      "schema": 5
+    },
+    "grouped_grant_count": 280,
+    "privilege_entry_count": 1797,
+    "provider_full_plan_id": "6e641339-f42c-4318-9a49-d13f474549f4",
+    "provider_manifest_sha256": "3d335fad835a53ffe7b704550897f89a09c052bba7b151028a6b422f1177881f",
+    "provider_role_count_plan_id": "b4e563a7-bb5e-4c3a-9788-ccba1da1cb34"
+  },
+  "authority": {
+    "canonical_context": {
+      "current_reality_authority": [
+        "github",
+        "supabase"
+      ],
+      "degraded": true,
+      "freshest_approved_record_at": "2026-08-14T02:42:46.235Z",
+      "rule": "Authenticated provider evidence governs current reality until reconciled evidence is accepted into Pandora Memory."
+    },
+    "pandora_memory_health": "healthy"
+  },
+  "automatic_execution": {
+    "application_event_trigger_count": 0,
+    "application_trigger_count": 14,
+    "enabled_application_trigger_count": 14,
+    "provider_complete_fingerprint_plan_id": "1c3341ea-9eef-43ca-876b-13409bc11edf",
+    "provider_manifest_sha256": "b29d868560f62a75f57e8b82e933ae90b9f7b0262be19158aa1f9c6c3f9bcd36",
+    "provider_summary_plan_id": "12a732c9-3e9c-47e5-9aba-ef18b3b8859d"
+  },
+  "capture_method": {
+    "catalog_boundaries_path": "docs/provider-observations/memory-supabase-20260819/SECURITY_BOUNDARIES.json",
+    "catalog_boundaries_sha256": "2e2179788b2282c5a6a057eb18852b40118cc5d56a0d0a0ad7b0e3e72e7aceb6",
+    "database_role": "supabase_read_only_user",
+    "endpoint": "database/query/read-only",
+    "full_rowsets_in_projectos_audit": true,
+    "provider_writes_performed": false,
+    "transport_limitations": {
+      "auth_security_helper": "HTTP 502; advisor state used",
+      "collection_decoder": "Worker 1-owned array/list response boundary",
+      "edge_bundle_body": "HTTP 502"
+    }
+  },
+  "captured_at": "2026-08-18T22:56:15Z",
+  "captured_local_date": "2026-08-19",
+  "edge_functions": {
+    "body_fetch_error": "HTTP 502",
+    "functions": [
+      {
+        "current_parity": "executable divergence from later canonical source is known; Worker 1 PR #56 is not deployed",
+        "provider_hash": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+        "slug": "pandora-projectos-bridge",
+        "status": "ACTIVE",
+        "version": 13
+      },
+      {
+        "current_parity": "previous exact match remains source-stable; fresh bundle bytes unavailable",
+        "provider_hash": "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe",
+        "slug": "pandora-projectos-learning",
+        "status": "ACTIVE",
+        "version": 1
+      },
+      {
+        "current_parity": "fresh executable/comment-only comparison unproven because live bundle bytes are unavailable",
+        "provider_hash": "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f",
+        "slug": "pandora-machine-gateway",
+        "status": "ACTIVE",
+        "version": 3
+      }
+    ],
+    "inventory_scope": "minimum relevant exact metadata",
+    "live_bundle_source_fetched": false,
+    "production_deploy_performed": false
+  },
+  "functions": {
+    "anon_execute_count": 10,
+    "authenticated_execute_count": 10,
+    "function_count": 25,
+    "provider_complete_fingerprint_plan_id": "032105c9-f71f-41ec-ad8a-030fc2684df9",
+    "provider_manifest_sha256": "e07304195ce813d6a7a1f9b78eaa75542136af608f62756a8f7d22978c7421f6",
+    "provider_summary_plan_id": "c2f20987-6581-4f39-9c4f-b9d5a5a6dfdb",
+    "public_execute_count": 10,
+    "security_definer_count": 11,
+    "security_definer_without_fixed_search_path": 0,
+    "service_role_execute_count": 25
+  },
+  "migrations": {
+    "first_version": "20260620000100",
+    "forward_recovery_required": true,
+    "historical_reconstruction": "partial",
+    "last_version": "20260813114649",
+    "live_count": 68,
+    "ordered_identity_sha256": "0d6110e17a01304eebb57cca57369f7b9b6961eb7a23b2c40871c8d90f5da0f3",
+    "provider_idempotency_key_count": 0,
+    "provider_rowset_body_sha256": "2d533104eff45a734ee43b76a2324813b4f368d5ef81d9748d1b65349d2e190e",
+    "provider_tsv_bytes": 9278,
+    "provider_tsv_plan_id": "ff40d38f-0ee5-47a3-9bda-6960a35bef9f",
+    "provider_tsv_row_count": 68,
+    "provider_tsv_sha256": "1ee828f6844dfedf800b3c5a7a2b8e35c785214e548213defaf01013dd5bda65",
+    "rollback_metadata_count": 0,
+    "rollback_qualified": false,
+    "source_classification": {
+      "A_exact_source_match": 14,
+      "B_authentic_source_recovered": 0,
+      "C_identity_recovered_source_missing": 53,
+      "D_sanitized_recovery_artifact": 1,
+      "E_source_divergence": 0,
+      "F_unknown": 0
+    },
+    "stored_statement_bytes": 246216,
+    "stored_statement_count": 542
+  },
+  "observation_id": "pandora-memory-supabase-live-catalog-2026-08-19",
+  "proof_state": {
+    "deployed": false,
+    "documented": true,
+    "implemented_on_dedicated_branch": true,
+    "production_verified": true,
+    "production_verified_scope": "Read-only provider identity, migration ledger/fingerprints, public/private catalog, RLS, ACL summaries, functions, triggers, cron, advisors, and required Edge metadata.",
+    "tested": false
+  },
+  "provider": {
+    "account_id": "battle-realmatch",
+    "default_branch_id": "c6231bc3-73fa-4a05-9558-61372df01bcf",
+    "new_branch_created": false,
+    "new_cost_incurred": false,
+    "organization_id": "lqvpjqbgfodmtswxizwf",
+    "postgres_provider_version": "17.6.1.147",
+    "postgres_server_version": "17.6",
+    "project_name": "Memory",
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "region": "ap-southeast-2",
+    "status": "ACTIVE_HEALTHY"
+  },
+  "reconstruction": {
+    "current_catalog_state": "production-verified by deterministic fingerprints",
+    "forward_recovery_required": true,
+    "historical_migration_chain": "partial",
+    "known_non_reconstructable_or_incomplete": [
+      "53 authentic historical migration SQL sources",
+      "fresh raw live Edge Function bundle bytes",
+      "evidence-qualified database rollback point"
+    ],
+    "production_recovery_today": "Forward-reconcile authentic source and data to committed fingerprints; independently review and authorize any production repair.",
+    "replay_reconstruction_test": "not performed; no no-cost isolated branch was available and no billable branch was authorized",
+    "rollback_qualified": false
+  },
+  "relations": {
+    "provider_complete_fingerprint_plan_id": "5e14836d-eb64-4789-8451-e99b9e09316a",
+    "provider_manifest_sha256": "4e06ed5a789c47976d16b34c7b684c987b7756d15d8d7df8f76566d4d2ef3cad",
+    "provider_summary_plan_id": "6d79a8bb-d931-4717-9bf3-372657cc67ae",
+    "relation_count": 89,
+    "rls_disabled_count": 6,
+    "rls_enabled_count": 83,
+    "rls_forced_count": 31,
+    "schemas": [
+      "private",
+      "public"
+    ]
+  },
+  "rls_policies": {
+    "commands": {
+      "ALL": 18,
+      "DELETE": 0,
+      "INSERT": 44,
+      "SELECT": 44,
+      "UPDATE": 11
+    },
+    "policy_count": 117,
+    "provider_complete_fingerprint_plan_id": "7b468f8c-6242-4b64-879a-7e57da9f18d7",
+    "provider_manifest_sha256": "732798faf831574cc57811d361bbb17b26600e432d1290d29b4967335d23f5e9",
+    "provider_summary_plan_id": "f21dc8f7-8e37-4068-8f84-ac6948edd55b",
+    "table_count": 62
+  },
+  "safety": {
+    "edge_function_deployment": false,
+    "merge_performed": false,
+    "migration_replay": false,
+    "new_cost_incurred": false,
+    "production_data_mutation": false,
+    "production_database_mutation": false,
+    "production_release": false,
+    "raw_cron_command_persisted": false,
+    "secret_values_persisted": false,
+    "supabase_branch_created": false,
+    "worker_1_paths_modified": false
+  },
+  "schema_version": "1.0.0",
+  "security_advisors": {
+    "extension_in_public_warnings": 1,
+    "leaked_password_protection_disabled": true,
+    "mutable_search_path_warnings": 4,
+    "rls_enabled_no_policy_info": 21,
+    "total": 27
+  },
+  "source": {
+    "branch": "recovery/memory-supabase-source-parity-20260819",
+    "branch_parent_before_catalog_supplement": "c3d76c9da3c880b9737c7fa246e5d2333f41d3ba",
+    "canonical_main": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "canonical_main_tree": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "lane_dependencies": {
+      "edge_recovery": {
+        "head": "c1cd5232299ce6bff7ca5c91a7ef45ec877b4c7e",
+        "pull_request": 34
+      },
+      "migration_provenance": {
+        "head": "dbc661aa1ab86b4b75c8f14c6bf9c501213625ea",
+        "pull_request": 31
+      },
+      "worker_1": {
+        "head": "465f79540d3689552f454d2e7c281b7e7955f979",
+        "pull_request": 56,
+        "repository": "banataosystems/Pandoras-box"
+      }
+    },
+    "pull_request": 42,
+    "repository": "banataosystems/pandoras-box-memory"
+  }
+}
