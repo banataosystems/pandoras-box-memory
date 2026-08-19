@@ -5,8 +5,8 @@ import {
   exactAudience,
   GITHUB_OIDC_AUDIENCE,
   GITHUB_OIDC_ISSUER,
-  MAX_PARENT_SHAS,
   type GithubSourcePrincipal,
+  MAX_PARENT_SHAS,
   unverifiedLookup,
   validateProviderCommit,
   validateVerifiedGithubClaims,
@@ -66,25 +66,37 @@ function claims(overrides: Record<string, unknown> = {}): JWTPayload {
 Deno.test("accepts the exact allowlisted signed GitHub identity", () => {
   const identity = validateVerifiedGithubClaims(claims(), principal);
   assert(identity, "expected exact identity to be accepted");
-  assertEquals(identity.repository, principal.repository, "repository must bind exactly");
+  assertEquals(
+    identity.repository,
+    principal.repository,
+    "repository must bind exactly",
+  );
   assertEquals(identity.sourceSha, sourceSha, "source SHA must bind exactly");
-  assertEquals(identity.namespace, "au", "namespace must come from the principal");
+  assertEquals(
+    identity.namespace,
+    "au",
+    "namespace must come from the principal",
+  );
 });
 
-for (const [name, override] of [
-  ["issuer", { iss: "https://example.invalid" }],
-  ["audience", { aud: "wrong-audience" }],
-  ["subject", { sub: "repo:banataosystems/pandoras-box-memory:pull_request" }],
-  ["repository", { repository: "banataosystems/Pandoras-box" }],
-  ["repository id", { repository_id: "1" }],
-  ["owner", { repository_owner: "someone-else" }],
-  ["owner id", { repository_owner_id: "1" }],
-  ["ref", { ref: "refs/heads/feature" }],
-  ["workflow ref", { workflow_ref: "other/workflow.yml@refs/heads/main" }],
-  ["source sha", { sha: "deadbeef" }],
-  ["workflow sha", { workflow_sha: "4".repeat(40) }],
-  ["event", { event_name: "pull_request" }],
-] as Array<[string, Record<string, unknown>]>) {
+for (
+  const [name, override] of [
+    ["issuer", { iss: "https://example.invalid" }],
+    ["audience", { aud: "wrong-audience" }],
+    ["subject", {
+      sub: "repo:banataosystems/pandoras-box-memory:pull_request",
+    }],
+    ["repository", { repository: "banataosystems/Pandoras-box" }],
+    ["repository id", { repository_id: "1" }],
+    ["owner", { repository_owner: "someone-else" }],
+    ["owner id", { repository_owner_id: "1" }],
+    ["ref", { ref: "refs/heads/feature" }],
+    ["workflow ref", { workflow_ref: "other/workflow.yml@refs/heads/main" }],
+    ["source sha", { sha: "deadbeef" }],
+    ["workflow sha", { workflow_sha: "4".repeat(40) }],
+    ["event", { event_name: "pull_request" }],
+  ] as Array<[string, Record<string, unknown>]>
+) {
   Deno.test(`rejects wrong ${name}`, () => {
     assert(
       validateVerifiedGithubClaims(claims(override), principal) === null,
@@ -95,7 +107,10 @@ for (const [name, override] of [
 
 Deno.test("rejects an inactive principal", () => {
   assert(
-    validateVerifiedGithubClaims(claims(), { ...principal, is_active: false }) === null,
+    validateVerifiedGithubClaims(claims(), {
+      ...principal,
+      is_active: false,
+    }) === null,
     "inactive principal must fail closed",
   );
 });
@@ -111,7 +126,11 @@ Deno.test("requires one exact OIDC audience", () => {
     "multiple audiences must fail",
   );
   assert(
-    unverifiedLookup({ iss: GITHUB_OIDC_ISSUER, aud: [], sub: principal.oidc_subject }) === null,
+    unverifiedLookup({
+      iss: GITHUB_OIDC_ISSUER,
+      aud: [],
+      sub: principal.oidc_subject,
+    }) === null,
     "empty audience must fail",
   );
 });
@@ -178,7 +197,11 @@ Deno.test("rejects malformed tree and parents", () => {
 Deno.test("snapshot digest input is replay-stable and excludes run metadata", () => {
   const identity = validateVerifiedGithubClaims(claims(), principal);
   const replayIdentity = validateVerifiedGithubClaims(
-    claims({ run_id: "999999999", run_attempt: "7", event_name: "workflow_dispatch" }),
+    claims({
+      run_id: "999999999",
+      run_attempt: "7",
+      event_name: "workflow_dispatch",
+    }),
     principal,
   );
   const commit = validateProviderCommit(sourceSha, {
@@ -192,7 +215,16 @@ Deno.test("snapshot digest input is replay-stable and excludes run metadata", ()
     canonicalSnapshotPayload(replayIdentity, commit),
     "workflow replay metadata must not change the immutable snapshot",
   );
-  const payload = canonicalSnapshotPayload(identity, commit) as Record<string, unknown>;
-  assert(!("workflow_run_id" in payload), "run id must not be content-addressed");
-  assert(!("observed_at" in payload), "observation time must not be content-addressed");
+  const payload = canonicalSnapshotPayload(identity, commit) as Record<
+    string,
+    unknown
+  >;
+  assert(
+    !("workflow_run_id" in payload),
+    "run id must not be content-addressed",
+  );
+  assert(
+    !("observed_at" in payload),
+    "observation time must not be content-addressed",
+  );
 });
