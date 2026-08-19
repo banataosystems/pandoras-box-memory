@@ -3,10 +3,12 @@ import assert from "node:assert/strict";
 import ts from "typescript";
 
 const routePath = "app/api/projectos/memory/evidence-candidates/route.ts";
-const bridgePath = "supabase/functions/pandora-projectos-bridge/index.ts";\nconst scopeMigrationPath = "supabase/migrations/20260820060000_add_projectos_memory_evidence_candidate_scope.sql";
+const bridgePath = "supabase/functions/pandora-projectos-bridge/index.ts";
+const scopeMigrationPath = "supabase/migrations/20260820060000_add_projectos_memory_evidence_candidate_scope.sql";
 
 const route = fs.readFileSync(routePath, "utf8");
-const bridge = fs.readFileSync(bridgePath, "utf8");\nconst scopeMigration = fs.readFileSync(scopeMigrationPath, "utf8");
+const bridge = fs.readFileSync(bridgePath, "utf8");
+const scopeMigration = fs.readFileSync(scopeMigrationPath, "utf8");
 
 for (const [name, source] of [["route", route], ["bridge", bridge]]) {
   const result = ts.transpileModule(source, {
