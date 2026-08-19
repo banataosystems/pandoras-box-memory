@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "pandora-memory-release-artifacts",
+  "observed_at": "2026-08-18T05:20:00Z",
+  "purpose": "Enumerate immutable release artifacts that may serve as a rollback target. Qualification is DERIVED by scripts/check_rollback_targets.mjs from evidence the artifact does not control; nothing in this file qualifies an artifact by asserting it.",
+  "target_contract": {
+    "must_be_immutable": "A pinned provider artifact id (e.g. a Vercel deployment id). Never a branch, tag, or 'current main', all of which move and can carry work that was merged but never released.",
+    "must_have_exact_source": "The exact source commit the artifact was built from.",
+    "must_have_capability_manifest": "The routes and capabilities the artifact is known to serve, so a rollback cannot silently drop functionality.",
+    "must_have_verification": "Either production_verified (it served production and was verified there) or rehearsal_verified (deployed to non-production and probed). Anything else is a candidate, not a target.",
+    "selection_rule": "At incident start, select the most recent artifact with qualified=true whose capability manifest covers the required routes, and pin its exact id. Re-read the artifact from the provider before promoting it. If no qualified target exists, rollback is UNAVAILABLE and forward recovery is the safe path.",
+    "identifier_validation": "Artifact identifiers are validated against a per-provider ALLOWLIST of immutable id shapes (vercel: dpl_ plus a long base62 token). An earlier version blocklisted origin/*, refs/*, main and HEAD, which let v1.2.3, release/foo and feature/x qualify. A provider with no registered id shape cannot contribute a target.",
+    "qualification_is_derived_not_declared": "Every field an entry states about itself is a claim. Capability completeness is computed by comparing capability_manifest against required_capability_routes AND requiring every required route to appear in the cited capability_manifest_evidence. Verification resolves verification_evidence, which must be CURRENT, same-provider, name this exact artifact id, and carry the proof stage the claimed class requires. Source binding resolves source_commit_evidence, which must connect this exact artifact id to this exact commit. source_commit_binding prose is provenance for a reader, not proof.",
+    "qualified_is_generated": "The 'qualified' field is generated, never authoritative. CI asserts qualified === (targetQualificationErrors(...).length === 0) and fails on any disagreement.",
+    "superseded_evidence_cannot_qualify": "Evidence with current=false cannot qualify a target. A newer observation has replaced it, and in this registry's case the newer observation contradicts part of what the older one recorded."
+  },
+  "required_capability_routes": [
+    "/api/projectos/health",
+    "/api/projectos/memory/search",
+    "/api/mcp",
+    "/.well-known/oauth-protected-resource/api/mcp",
+    "/oauth/consent",
+    "/auth/confirm",
+    "/auth/login"
+  ],
+  "artifacts": [
+    {
+      "artifact_id": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+      "provider": "vercel",
+      "role": "current_production",
+      "source_commit": "fc6eea5b228533464633d2304b159e097b9e2b4f",
+      "source_commit_binding": "Operator deployment record only: the canonical runtime was re-read from merge commit fc6eea5b and deployed through the authenticated Vercel control plane. The provider carries no git SHA metadata for this deployment (git_sha_metadata: null; deployment_source_binding: 'manual deployment; exact Git SHA unproven'), so this is provenance, not proof.",
+      "verification": "production_verified",
+      "verified_at": "2026-08-10",
+      "reverified_in_this_pass": false,
+      "qualified": false,
+      "limitations": [
+        "The capability manifest was not re-probed in this pass; Vercel is unauthenticated in this session.",
+        "No current evidence connects this deployment to an exact source commit.",
+        "This entry previously carried qualified=true on the strength of self-asserted fields."
+      ],
+      "capability_manifest": [
+        "/api/projectos/health",
+        "/api/projectos/memory/search",
+        "/api/mcp",
+        "/.well-known/oauth-protected-resource/api/mcp",
+        "/oauth/consent",
+        "/auth/confirm",
+        "/auth/login"
+      ],
+      "capability_manifest_evidence": "live-vercel-projectos-state-2026-08-14",
+      "verification_evidence": "live-vercel-projectos-state-2026-08-14",
+      "source_commit_evidence": null,
+      "derived_disqualification": "DOES NOT QUALIFY under derivation. The only CURRENT production observation of this deployment, live-vercel-projectos-state-2026-08-14, records route presence as booleans rather than naming any required route, and does not connect the deployment to commit fc6eea5b — it states the exact Git SHA is unproven. The record that does prove all seven routes and the commit, projectos-memory-connector-recovery-2026-08-10, is superseded by that newer observation and cannot qualify a target.",
+      "historical_support": {
+        "evidence_id": "projectos-memory-connector-recovery-2026-08-10",
+        "current": false,
+        "superseded_by": "live-vercel-projectos-state-2026-08-14",
+        "what_it_proves": "route manifest containing all seven required routes on this deployment, and that the runtime was re-read from merge commit fc6eea5b and deployed",
+        "why_it_cannot_qualify": "superseded; and the superseding observation explicitly withdraws the source binding it implies"
+      }
+    },
+    {
+      "artifact_id": "dpl_9EkwxicRPzigkvUis5m1qk644CrG",
+      "provider": "vercel",
+      "role": "preserved_prior_baseline",
+      "source_commit": null,
+      "source_commit_binding": "unknown; no evidence connects this deployment to a source commit",
+      "verification": "production_verified",
+      "verified_at": "before 2026-08-10",
+      "reverified_in_this_pass": false,
+      "qualified": false,
+      "limitations": [
+        "Retained only as historical provenance."
+      ],
+      "capability_manifest": [],
+      "capability_manifest_evidence": "live-vercel-projectos-state-2026-08-14",
+      "verification_evidence": "live-vercel-projectos-state-2026-08-14",
+      "source_commit_evidence": null,
+      "derived_disqualification": "DOES NOT QUALIFY. Independently of the derivation, the current observation records this deployment as lacking the ProjectOS health and search routes (exact_health_result 404). Promoting it would restore a working Memory while silently dropping capabilities — a partial outage presented as a recovery."
+    }
+  ],
+  "explicitly_not_targets": [
+    {
+      "ref": "origin/main",
+      "reason": "A moving ref. Current main can contain work that was merged but never production-authorized, deployed, rehearsed, or production-verified. Promoting it during an incident would ship unreleased changes instead of restoring known-good state. An earlier revision of the rollback procedure made exactly this mistake."
+    },
+    {
+      "ref": "any branch or tag",
+      "reason": "Mutable. A tag can be moved and a branch advances; neither is a pinned artifact."
+    }
+  ],
+  "current_status": {
+    "qualified_targets": 0,
+    "rollback_available_for_a_future_deployment": false,
+    "rollback_rehearsed": false,
+    "status_change": "CHANGED at the sixth review. This registry previously reported one qualified target and rollback as available. That rested on fields the registry entry asserted about itself. Derived from current evidence, no artifact qualifies: rollback is UNAVAILABLE and forward recovery is the safe path.",
+    "what_would_restore_availability": [
+      "an authenticated Vercel readback naming the required routes on a specific deployment id, indexed as current evidence",
+      "evidence connecting that exact deployment id to an exact source commit",
+      "or a rehearsal: deploy to preview from a known-good commit, probe the required routes, and index that observation"
+    ],
+    "rehearsal_gate": "No rehearsal has been performed.",
+    "edge_function_coverage": false,
+    "database_coverage": false,
+    "coverage_note": "This registry covers the Vercel web tier only. Edge Functions version independently at Supabase and do not roll back with a web promotion. No applied migration has rollback metadata, so there is no database rollback path at all. A change spanning the web tier and the database is not rollback-safe."
+  }
+}

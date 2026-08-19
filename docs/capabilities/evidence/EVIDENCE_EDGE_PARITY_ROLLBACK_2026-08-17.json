@@ -1,0 +1,184 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "evidence-edge-parity-rollback-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "edge-function-parity-and-capability-preserving-rollback",
+  "source": {
+    "pull_request": 34,
+    "branch": "evidence/edge-parity-and-rollback",
+    "candidate_head": "7eb7d5b1c0fb95db9f38bd4196702c7e286fc152",
+    "candidate_tree": "b597e987b8bc02f8d3b9febf048fb72af7da7086",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "binding_note": "candidate_head names the parent of the commit carrying this artifact. Enforced by scripts/check_capability_evidence_binding.mjs, which lands on the gateway-boundaries lane.",
+    "superseded_candidates": [
+      {
+        "candidate_head": "bcdfea6f5b0787711d67ba3451f952319425899d",
+        "candidate_tree": "37201fac783362e15e12ccea7d68ff9fbce4a922",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto repaired governance base and canonical main 27a3db9; substring co-occurrence qualification replaced by structured observations",
+        "recovery_ref": "recovery/review-20260818/pr-34-e0d046e6",
+        "recovery_head": "e0d046e6905a9d66c34d5b180627eafb5fad53c3"
+      }
+    ]
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "Edge Function parity evidence and a capability-preserving rollback procedure. Documentation and evidence only; no runtime, application, database, or provider state is modified.",
+  "review_remediation": {
+    "finding": "the rollback document named d0e689556cc01428500b796cade87032ea5c0ad8 as the full-capability target, but canonical main has advanced to aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+    "consequence": "rolling to the documented SHA would silently discard everything merged after it, so it no longer proves capability-preserving rollback",
+    "fix": "artifact identifiers are validated against a per-provider allowlist of immutable id shapes; a provider with no registered shape cannot contribute a target at all",
+    "recurrence_prevention": "the rollback target is selected from docs/rollback/RELEASE_ARTIFACT_REGISTRY.json as an immutable provider artifact. scripts/check_rollback_targets.mjs enforces the registry contract and cross-checks that this artifact's release_candidate_artifact_id names a QUALIFIED registry entry, so durable evidence and validator cannot drift apart.",
+    "parity_manifest_updated": "canonical_commit refreshed to current main with a note to recompute if main advances",
+    "second_review_finding": "replacing the stale fixed SHA with \"whatever origin/main points at\" was itself unsafe: current main can contain work merged but never production-authorized, deployed, rehearsed, or verified, so promoting it mid-incident would ship unreleased changes rather than restore known-good state.",
+    "qualified_target": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+    "disqualified_target": "dpl_9EkwxicRPzigkvUis5m1qk644CrG, which predates the ProjectOS health and Memory search routes",
+    "moving_refs_rejected": [
+      "origin/main",
+      "any branch or tag"
+    ],
+    "guard": "scripts/check_rollback_targets.mjs, 50 self-tests, wired into npm run verify",
+    "unclosed_limitations": [
+      "the qualified artifact capability manifest was not re-probed (Vercel unauthenticated in this session)",
+      "its source commit is asserted by prior evidence and was not independently rebound to the artifact"
+    ],
+    "third_review_finding": "the validator kept moving refs out with a blocklist of origin/*, refs/*, main and HEAD, so v1.2.3, release/foo and feature/x could be listed as artifacts, marked production_verified and qualify \u2014 reintroducing the moving-ref model the registry prohibits",
+    "negative_tests_added": [
+      "origin/main",
+      "main",
+      "HEAD",
+      "v1.2.3",
+      "release/foo",
+      "feature/x",
+      "production",
+      "truncated dpl_ id",
+      "unregistered provider",
+      "missing provider"
+    ],
+    "self_tests": 50,
+    "cross_check": "scripts/check_rollback_targets.mjs derives qualification from the evidence index rather than reading it off the registry entry, and resolution performs the derivation itself so it is safe called alone.",
+    "superseded_statements": [
+      {
+        "field": "review_remediation.recurrence_prevention",
+        "previously_asserted": "the procedure instructs the operator to resolve the rollback target from origin/main",
+        "status": "REJECTED \u2014 a moving ref is not a valid rollback target"
+      },
+      {
+        "field": "rollback.release_candidate",
+        "previously_asserted": "current canonical main, resolved at rollback time",
+        "status": "REJECTED \u2014 replaced by rollback.release_candidate_artifact_id naming an immutable provider artifact"
+      },
+      {
+        "field": "rollback.release_candidate_artifact_id",
+        "previously_asserted": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4 is a qualified release candidate",
+        "status": "WITHDRAWN \u2014 it does not qualify when derived from current evidence"
+      }
+    ],
+    "fourth_review_finding": "the durable evidence still asserted the origin/main model that the validator had already rejected, so code and evidence disagreed and a future operator reading the artifact could have been misled",
+    "fourth_review_fix": "the rollback block now names an artifact id rather than prose, every rejected model is recorded with the review that rejected it, and a registry cross-check makes the disagreement mechanically impossible",
+    "fifth_review_finding": "registry resolution required only that the named id EXIST and that the registry entry assert qualified=true. The properties behind that flag (production/rehearsal verification, capability completeness, exact source binding) were asserted only in validateRegistry(), a separate function. Called on its own, validateEvidenceAgainstRegistry() accepted an artifact that was unverified, capability-incomplete and had no source commit, purely because it claimed qualified=true.",
+    "fifth_review_fix": "targetQualificationErrors() now holds the target properties in one place and is called from BOTH validateRegistry() and the resolution path, so resolution never depends on a self-asserted flag or on another checker having run first. A rollback target must additionally state how its source_commit was bound, so an asserted binding can never be mistaken for a verified one.",
+    "fifth_review_defect_class": "the same class as the rejected self-declared source.branch and the shape-only candidate_tree check: reading a flag the checked object controls, instead of asserting the underlying fact.",
+    "fifth_review_negative_tests": [
+      "resolution alone: named artifact is unverified",
+      "resolution alone: named artifact drops capabilities",
+      "resolution alone: named artifact has no exact source",
+      "resolution alone: named artifact has unstated source binding",
+      "resolution alone: named artifact has no limitations array",
+      "resolution alone: every target property fails at once",
+      "registry: qualified without stated source binding"
+    ],
+    "fifth_review_reproduced_before_fixing": "yes \u2014 the rigged artifact was accepted with zero errors before the change and is rejected with five named reasons after it.",
+    "sixth_review_finding": "the fifth-review fix removed the dependency on qualified=true but left verification, capability_manifest_covers_required_routes, source_commit and source_commit_binding as self-asserted values. The blocking test \u2014 an artifact with a valid-looking dpl_ id, production_verified, capabilities true, 40 hex characters, a declared binding, and zero backing evidence \u2014 resolved successfully. The trust boundary had moved, not closed.",
+    "sixth_review_fix": "qualification is derived: capability completeness is computed against required_capability_routes and every required route must appear in the cited evidence; verification resolves a CURRENT, same-provider evidence entry that names the exact artifact id and carries the required proof stage; source binding resolves evidence connecting that exact artifact id to that exact commit. Cited evidence is hash-verified against the index, so citing tampered evidence fails. 'qualified' is generated and CI asserts it equals the derivation.",
+    "sixth_review_consequence": "MATERIAL STATUS CHANGE. Applying the derivation to real evidence disqualifies the target this artifact previously named. Rollback moves from 'available for a future deployment' to UNAVAILABLE. The prior availability rested on self-assertion plus a superseded record, not on current evidence.",
+    "defect_class_recurrence": [
+      "third review: blocklisted ref names instead of validating the id shape",
+      "fourth review: trusted a self-declared source.branch; shape-only candidate_tree",
+      "fifth review: trusted a self-set qualified flag",
+      "sixth review: trusted four further self-asserted qualification fields",
+      "one class: reading a value the checked object controls instead of resolving the underlying fact"
+    ],
+    "substring_cooccurrence_qualification": {
+      "finding": "qualification used three independent evidence.text.includes() checks (artifact_id, each required route, source_commit) with nothing binding the hits to one another, so one document describing two deployments could qualify deployment A on deployment B's commit and routes",
+      "resolution": "evidence must declare a structured observations array; exactly one observation is selected by exact (artifact_id, provider) equality and every fact is read from that record by structured comparison \u2014 exact source_commit equality, observed_routes set membership, and per-observation environment/deployment_status/proof_stage matching the claimed verification class",
+      "regressions_added": 12,
+      "total_self_test_cases": 63,
+      "defect_reintroduction_demonstrated": true,
+      "historical_prose_reinterpreted": false
+    }
+  },
+  "edge_parity": {
+    "method": "read-only list_edge_functions and get_edge_function; no function deployed, updated, or invoked",
+    "functions": 3,
+    "exact_match": 1,
+    "not_yet_compared": 2,
+    "executable_divergence": 0,
+    "provider_bundle_hash_compared_against_source_hash": false,
+    "parity_claimed_from_name_or_version_match": false
+  },
+  "rollback": {
+    "existing_target_sufficient": false,
+    "release_candidate_artifact_id": null,
+    "release_candidate_source": "docs/rollback/RELEASE_ARTIFACT_REGISTRY.json",
+    "release_candidate_model": "an immutable provider artifact whose capability completeness, verification class, and source binding are DERIVED from current, hash-verified evidence that names the artifact \u2014 never asserted by the registry entry itself",
+    "rejected_target_models": [
+      {
+        "model": "a hard-coded source SHA written into the rollback document (d0e689556cc01428500b796cade87032ea5c0ad8)",
+        "why_rejected": "it rotted the moment canonical main advanced, and the document went on asserting it",
+        "rejected_in_review": "first"
+      },
+      {
+        "model": "whatever origin/main points at, resolved at rollback time",
+        "why_rejected": "current main can contain work merged but never production-authorized, deployed, rehearsed, or production-verified, so promoting it mid-incident would ship unreleased changes while claiming to restore known-good state",
+        "rejected_in_review": "second",
+        "note": "THIS ARTIFACT PREVIOUSLY ASSERTED THIS MODEL, in rollback.release_candidate and in review_remediation.recurrence_prevention. Both statements were wrong and are recorded here as rejected rather than silently deleted."
+      },
+      {
+        "model": "any branch or tag name placed in artifact_id",
+        "why_rejected": "mutable; a tag can be moved and a branch advances, so neither is a pinned artifact",
+        "rejected_in_review": "third"
+      },
+      {
+        "model": "an artifact qualified by the fields its own registry entry asserts",
+        "why_rejected": "verification, capability_manifest_covers_required_routes, source_commit and source_commit_binding are all values the checked object controls. Removing the dependency on 'qualified' alone moved the trust boundary rather than closing it: an entry could forge four fields instead of one. A fully forged entry with zero backing evidence resolved successfully.",
+        "rejected_in_review": "sixth",
+        "note": "THIS ARTIFACT PREVIOUSLY NAMED dpl_7CbTiMxMXQZjrLQDKchf455iBxi4 AS A QUALIFIED RELEASE CANDIDATE on that basis. Deriving the same question from current evidence disqualifies it."
+      }
+    ],
+    "rehearsal_performed": false,
+    "preview_deployment_performed": false,
+    "routes_probed_against_running_instance": false,
+    "production_alias_repointed": false,
+    "rollback_proven": false,
+    "structural_gaps": [
+      "Edge Functions version independently at Supabase and do not roll back with Vercel",
+      "no applied migration has rollback metadata at the provider, so there is no down-migration path for any of the 68"
+    ],
+    "rollback_unavailable_reason": "Derived from current evidence, no registry artifact qualifies. The only CURRENT production observation of dpl_7CbTiMxMXQZjrLQDKchf455iBxi4 records route presence as booleans rather than naming any required route, and does not connect the deployment to a source commit \u2014 it states the exact Git SHA is unproven. The record proving all seven routes and the commit is superseded. Rollback is UNAVAILABLE; forward recovery is the safe path."
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "fetch and byte-compare live source for pandora-machine-gateway and pandora-projectos-bridge",
+    "preview deployment plus route probes to close the web-tier rehearsal gate",
+    "separate authorization for any production promotion; rollback remains unproven until a safe rehearsal completes",
+    "a structured provider observation for an immutable deployment id (routes actually probed, environment, status, observed_at and provider-proved source_commit) \u2014 authenticated read-only Vercel access was unavailable to this worker, so none was gathered and qualified_targets remains 0"
+  ],
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false
+  }
+}

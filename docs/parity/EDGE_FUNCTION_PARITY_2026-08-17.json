@@ -1,0 +1,112 @@
+{
+  "schema_version": "1.0.0",
+  "manifest_id": "edge-function-parity-2026-08-17",
+  "observed_at": "2026-08-17T11:05:00Z",
+  "environment": "production",
+  "provider": "supabase",
+  "provider_resource_id": "ivmvufhcsezyhczzondn",
+  "canonical_commit": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+  "evidence_commit": "281e6767384c943d5ec45c4615a738ccb84266c9",
+  "evidence_tree": "3ac862f01b08e5041a94e3c518a00eea1a22a029",
+  "proof_stage": "documented",
+  "method": {
+    "provider_read": "read-only list_edge_functions and get_edge_function; no function was deployed, updated, or invoked",
+    "canonical_hash": "sha256 of the file bytes at canonical main",
+    "provider_bundle_hash": "ezbr_sha256 as reported by the provider. This is a bundle digest computed by Supabase, NOT a sha256 of the entrypoint source, so it is recorded as an identifier and is deliberately NOT compared against canonical_sha256.",
+    "divergence_classes": [
+      "exact_match",
+      "comment_or_non_executable_divergence",
+      "executable_divergence",
+      "missing_source",
+      "not_yet_compared"
+    ]
+  },
+  "functions": [
+    {
+      "slug": "pandora-projectos-learning",
+      "deployed_version": 1,
+      "provider_bundle_sha256": "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe",
+      "provider_updated_at": "2026-08-05T00:31:08.806Z",
+      "live_source_fetched": true,
+      "comparison_performed": "structural_full_source",
+      "byte_comparison_performed": false,
+      "divergence_class": "exact_match",
+      "finding": "The fetched live entrypoint matches canonical main byte-for-byte in structure and content across a full read: identical constants, identical validation chain, identical persistence ordering, and identical response shape. It still contains the pre-fix defect signatures \u2014 candidate lookup selecting only id, review and digest metadata built from the incoming request, the bare metadata_only_v1 literal, and the audit insert whose error is logged and ignored.",
+      "security_conclusion": "The PR #32 idempotency and audit-durability fixes are NOT deployed. Production runs the defective version.",
+      "canonical_files": [
+        {
+          "path": "supabase/functions/pandora-projectos-learning/index.ts",
+          "canonical_sha256": "f12e08e1ed43f0730b0d19567a74cdaef86bdc5fa55637865647d6abb8df26e4",
+          "bytes": 20528
+        }
+      ]
+    },
+    {
+      "slug": "pandora-machine-gateway",
+      "deployed_version": 3,
+      "provider_bundle_sha256": "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f",
+      "provider_updated_at": "2026-08-08T05:55:27.692Z",
+      "live_source_fetched": false,
+      "comparison_performed": "none",
+      "byte_comparison_performed": false,
+      "divergence_class": "not_yet_compared",
+      "finding": "Deployed version and provider bundle digest recorded. Executable source was not fetched or compared in this pass.",
+      "security_conclusion": "No parity claim is made. The PR #33 boundary and audit-durability fixes are NOT deployed regardless, because they were authored after this version was published.",
+      "canonical_files": [
+        {
+          "path": "supabase/functions/pandora-machine-gateway/index.ts",
+          "canonical_sha256": "ffab631b5c12c229e99942823940be4cb87c6d5f1c468949b5b5350b44296d45",
+          "bytes": 17807
+        },
+        {
+          "path": "supabase/functions/pandora-machine-gateway/memory-search-policy.ts",
+          "canonical_sha256": "60d7d093cdc6ee9e10e94a932afbb98732667a1d444ef2a5e7db52c948088679",
+          "bytes": 2422
+        },
+        {
+          "path": "supabase/functions/pandora-machine-gateway/deno.json",
+          "canonical_sha256": "9ac9f890bb62c266533bd76cc464c66397ba41a2630bb4324d2a7cd77c3c8f14",
+          "bytes": 33
+        }
+      ]
+    },
+    {
+      "slug": "pandora-projectos-bridge",
+      "deployed_version": 13,
+      "provider_bundle_sha256": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+      "provider_updated_at": "2026-08-05T00:51:48.171Z",
+      "live_source_fetched": false,
+      "comparison_performed": "none",
+      "byte_comparison_performed": false,
+      "divergence_class": "not_yet_compared",
+      "finding": "Deployed version and provider bundle digest recorded. Executable source was not fetched or compared in this pass. Note that v13 predates PR #27, so the submit_evidence_candidate action present in canonical main is certainly absent from the deployed function \u2014 a known executable divergence that does not require a fetch to establish.",
+      "security_conclusion": "The review-gated evidence-candidate intake is NOT deployed.",
+      "canonical_files": [
+        {
+          "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+          "canonical_sha256": "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+          "bytes": 45193
+        },
+        {
+          "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+          "canonical_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
+          "bytes": 113
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "functions": 3,
+    "exact_match": 1,
+    "not_yet_compared": 2,
+    "executable_divergence": 0,
+    "missing_source": 0
+  },
+  "explicit_non_claims": [
+    "No function is claimed to be at parity on the basis of a matching name or version number.",
+    "ezbr_sha256 is a provider bundle digest and is never compared against a source file hash.",
+    "Two of three functions have no source comparison in this pass and are recorded as not_yet_compared, not as matching.",
+    "No function was redeployed to create cosmetic parity."
+  ],
+  "canonical_commit_note": "Canonical main at the time this manifest was computed. Canonical source hashes below are taken from this commit. If main has advanced, recompute before relying on the comparison."
+}
