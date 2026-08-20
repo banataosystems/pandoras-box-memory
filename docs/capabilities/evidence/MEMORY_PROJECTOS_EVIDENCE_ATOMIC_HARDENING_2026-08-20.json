@@ -1,0 +1,97 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-projectos-evidence-atomic-hardening-2026-08-20",
+  "observed_at": "2026-08-20T08:21:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "authoritative_master_memory_record": "86997f11-1df9-488b-bd41-58e9ce5ce215",
+  "phase": "Phase 0 - Recovery and Truth Baseline",
+  "governed_parent": {
+    "pull_request": 48,
+    "head_sha": "4d0075a2e79db504a80feec914ed379fdf87cf0d",
+    "tree_sha": "3b64d3f72ed63a5c08e73ac44ed422d84ab99156",
+    "state": "draft"
+  },
+  "verified_source_lineage": {
+    "experimental_pull_request": 50,
+    "exact_head": "22aeb4efd753509245f49c39a6111389c4c12f45",
+    "purpose": "repair and verification history preserved before clean content-addressed reconstruction"
+  },
+  "change_contract": {
+    "approved_canon_only": true,
+    "atomic_candidate_and_review_queue_transaction": true,
+    "privacy_response_contract": "metadata_only_v2_fail_closed",
+    "principal_scope": "memory:evidence-candidate:submit",
+    "canonical_memory_write_allowed": false,
+    "production_mutation": false,
+    "migration_applied": false,
+    "edge_deployed": false,
+    "scope_granted": false
+  },
+  "changed_paths": [
+    ".github/workflows/memory-evidence-atomic-hardening.yml",
+    "docs/capabilities/evidence/MEMORY_PROJECTOS_EVIDENCE_ATOMIC_HARDENING_2026-08-20.json",
+    "scripts/check_memory_evidence_atomic_hardening.mjs",
+    "scripts/test_memory_evidence_atomic_migration.sql",
+    "supabase/functions/pandora-projectos-bridge/index.ts",
+    "supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql"
+  ],
+  "exact_head_verification": {
+    "head_sha": "22aeb4efd753509245f49c39a6111389c4c12f45",
+    "capability_registry_gate": {
+      "run_id": 32348309731,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "memory_evidence_intake_contract": {
+      "run_id": 32348309723,
+      "status": "completed",
+      "conclusion": "success"
+    },
+    "memory_evidence_atomic_hardening": {
+      "run_id": 32348309729,
+      "status": "completed",
+      "conclusion": "success",
+      "source_contract": "passed",
+      "isolated_postgres_transaction": "passed",
+      "rollback_exercised": true
+    },
+    "pandora_source_security_gate": {
+      "run_id": 32348309732,
+      "status": "completed",
+      "conclusion": "success"
+    }
+  },
+  "isolated_postgres_proof": {
+    "postgres_image": "postgres:17.6-bookworm",
+    "valid_candidate_and_review_commit_together": true,
+    "non_service_role_rejected": true,
+    "revoked_grant_rejected": true,
+    "review_insert_failure_rolls_candidate_back": true,
+    "mismatched_existing_review_rejected": true,
+    "canonical_memory_untouched": true,
+    "trigger_and_function_rollback_exercised": true
+  },
+  "proof_state": {
+    "documented": true,
+    "implemented": true,
+    "tested": true,
+    "independently_reviewed": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "remaining_gates": [
+    "clean reconstructed exact head passes all workflows",
+    "different-vendor independent review approves that exact head",
+    "PR 48 and the stacked hardening candidate are reconciled without invalidating review evidence",
+    "separate governed migration execution",
+    "separate governed Edge deployment",
+    "exact deployment and rollback verification",
+    "fresh review-gated Memory evidence candidate submission and readback"
+  ],
+  "rollback": {
+    "source": "revert the clean candidate before merge",
+    "database": "drop memory_projectos_evidence_candidate_review_atomic and memory_enqueue_projectos_evidence_review()",
+    "production_exercised": false,
+    "isolated_postgres_exercised": true
+  }
+}
