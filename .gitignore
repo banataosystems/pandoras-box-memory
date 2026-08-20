@@ -4,3 +4,10 @@ node_modules/
 .env
 .env.local
 .env.*.local
+
+# Build output and dependency trees must never become source.
+# .github/workflows/pandora-verify.yml fails if any of these are tracked.
+out/
+dist/
+build/
+supabase/functions/*/node_modules/

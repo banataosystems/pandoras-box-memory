@@ -1,6 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.110.9";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5.10.0";
+import {
+  declaredLengthExceeds,
+  readBoundedBody,
+} from "../_shared/request-limits.ts";
 
 const PRINCIPAL_KEY = "projectos-mcpmaster-production";
 const MAX_BODY_BYTES = 64 * 1024;
@@ -518,6 +522,12 @@ const EVIDENCE_PROOF_STAGES = new Set([
 const EVIDENCE_SOURCE = "projectos-post-task";
 const EVIDENCE_CANDIDATE_TYPE = "projectos_outcome";
 const EVIDENCE_INTAKE_KIND = "projectos_evidence_candidate_v1";
+// Single canonical privacy-policy identifier for the evidence intake. Stored
+// candidate metadata and the API response previously disagreed
+// ("metadata_only_v2_fail_closed" vs "metadata_only_v1"), so a caller could not
+// tell which policy actually applied. The v2 label is the accurate one: this
+// intake runs a privacy scan and fails closed.
+const EVIDENCE_PRIVACY_POLICY = "metadata_only_v2_fail_closed";
 const EVIDENCE_IDEMPOTENCY_PATTERN = /^[A-Za-z0-9._:-]{16,160}$/;
 const EVIDENCE_PROJECT_KEY_PATTERN = /^[a-z0-9][a-z0-9._-]{1,95}$/;
 const EVIDENCE_UUID_PATTERN =
@@ -1122,7 +1132,7 @@ const submitEvidenceCandidate = async (
         provenance,
         idempotency_key: idempotencyKey,
         fingerprint,
-        privacy_policy: "metadata_only_v2_fail_closed",
+        privacy_policy: EVIDENCE_PRIVACY_POLICY,
         privacy_scan_version: EVIDENCE_PRIVACY_SCAN_VERSION,
         privacy_scan_passed: true,
         privacy_scan_scope: "canonicalized_candidate_payload",
@@ -1213,7 +1223,7 @@ const submitEvidenceCandidate = async (
     deduplicated: !(candidateCreated || reviewCreated),
     created_at: candidateCreated || reviewCreated ? now : null,
     canonical_memory_written: false,
-    privacy_policy: "metadata_only_v1",
+    privacy_policy: EVIDENCE_PRIVACY_POLICY,
   }, candidateCreated || reviewCreated ? 202 : 200);
 };
 
@@ -1221,8 +1231,10 @@ Deno.serve(async (request: Request) => {
   if (request.method !== "POST") {
     return respond({ ok: false, error: "method_not_allowed" }, 405);
   }
-  const declaredLength = Number(request.headers.get("content-length") || 0);
-  if (Number.isFinite(declaredLength) && declaredLength > MAX_BODY_BYTES) {
+  // Fast rejection on a declared length only. A missing or understated
+  // Content-Length must not be treated as evidence that the body is small, so
+  // the real limit is enforced byte-by-byte below.
+  if (declaredLengthExceeds(request.headers.get("content-length"), MAX_BODY_BYTES)) {
     return respond({ ok: false, error: "payload_too_large" }, 413);
   }
 
@@ -1238,8 +1250,22 @@ Deno.serve(async (request: Request) => {
   const authorization = await authorize(request, supabase);
   if (!authorization.ok) return authorization.error;
 
-  const body = await request.json().catch(() => null) as JsonRecord | null;
-  if (!body) return respond({ ok: false, error: "invalid_json" }, 400);
+  const bounded = await readBoundedBody(request, MAX_BODY_BYTES);
+  if (!bounded.ok) {
+    if (bounded.reason === "read_failed") {
+      return respond({ ok: false, error: "request_read_failed" }, 400);
+    }
+    return respond({ ok: false, error: "payload_too_large" }, 413);
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(bounded.text);
+  } catch {
+    return respond({ ok: false, error: "invalid_json" }, 400);
+  }
+  if (!isRecord(parsed)) return respond({ ok: false, error: "invalid_json" }, 400);
+  const body = parsed as JsonRecord;
 
   if (body.action === "health") {
     if (!authorization.principal.scopes.includes("memory:health")) {

@@ -1,0 +1,238 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "hardening-gateway-api-boundaries-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "bounded-request-response-boundaries-and-governed-audit",
+  "source": {
+    "pull_request": 33,
+    "branch": "hardening/gateway-api-boundaries",
+    "candidate_head": "2f0606fb2944705da7e78d21d98a1fbc80ab583d",
+    "candidate_tree": "c9f05adee5766bfb551c6d3c3dedabdd996b0575",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "binding_note": "candidate_head names the parent of the commit that carries this artifact; an artifact cannot contain its own hash. scripts/check_capability_evidence_binding.mjs enforces this on every run.",
+    "describes_commits": [
+      "2f0606fb2944705da7e78d21d98a1fbc80ab583d",
+      "8704a96f16d006c9c8cf2add494800894b76fcef",
+      "f17f9576194a9879fddbc840ab4db5fd16bea141",
+      "54b225b430c77bb5ed51372451d19fc4663c1fbf",
+      "e733203223f27ad92bd580f7af436e5f587edda1",
+      "a65962c9b057e629430b27632dfc9b3f5f6b46fa",
+      "9de9f19be7196ca386e409cebcaa870e8a2e7ae0",
+      "1d1bfa5164d8f2df11646f840b667ac7c0b6c7bd",
+      "d0ba61ab78031d7f1789be7fc4d80bd2e49ca17d",
+      "e98a3f5462a32f211ff0dfe1fa23dde5e2301fd3",
+      "e4d559bb7655f33d39ee037ddea7a9b8e62c91eb",
+      "836ab23d53b7dc88b36d6cd8168308db9ca5c911",
+      "06c2c21609f2b5becca7bc5702dd96144f210d98",
+      "730b2dd642a14172fc428bb513c0e192c603426b",
+      "dcfbbe65c73921871bce63a54344d8b789f22248",
+      "d5c076762bc618dc16f246a2873bd23222f97b59",
+      "cc9c91d4bc9341d330aa5f3763138186fe657d2b",
+      "9a119814fa6d23d516baa8231d3caa0eee593324",
+      "827780f2a5466edcf6a0c2319f84c468ffed7079"
+    ],
+    "superseded_candidates": [
+      {
+        "candidate_head": "8704a96f16d006c9c8cf2add494800894b76fcef",
+        "candidate_tree": "4e9ab69e1d060c8c4d3bfb489ad91bba99bce646",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-4 review: deleting a merged lane invalidated the immutable historical evidence that lane produced",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55"
+      },
+      {
+        "candidate_head": "f17f9576194a9879fddbc840ab4db5fd16bea141",
+        "candidate_tree": "c8f29c8478a8fbd047d83cba5625ddee392f7147",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-3 review: the evidence-binding guard still let a changed artifact choose which lane it was validated against",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55"
+      },
+      {
+        "candidate_head": "e733203223f27ad92bd580f7af436e5f587edda1",
+        "candidate_tree": "765eb53f64241064441606b2c5dd85eb5373acd0",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-2 review: deleted-branch exception narrowed to untouched merged history",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55"
+      },
+      {
+        "candidate_head": "689513f6ec019b68df20d380a8668f9399df8920",
+        "candidate_tree": "9e9955f9a78c588162ef97be01c287a99a9a889a",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto repaired governance base and canonical main 27a3db9; duplicated governance commits dropped in favour of the shared rebased base",
+        "recovery_ref": "recovery/review-20260818/pr-33-f0f76d55",
+        "recovery_head": "f0f76d555be8b4404fc7feac54bfe2d07c5af8c7",
+        "superseded_describes_commits": [
+          "689513f6ec019b68df20d380a8668f9399df8920",
+          "ddf61a5bc5bed7bb7ebffe90cac1d8acec0e4389",
+          "6b4ed643f9d8692f5bf37bb4335c8d79a4496b78",
+          "9f27e355589f0856020b53a392a430f2486a2fad",
+          "0b52110d30262e768bd5889736a93d23dcf72361",
+          "a50fffa6954490aca1316ef81dfc80113dcad4a3",
+          "d31ed60290f3e65b1cf95f739828b110955d39ef",
+          "1a8f5cc1df6e75213b3f628dcd8a5456501a6df9",
+          "78aa167e768edfaa67d5469be620b693beb3c823",
+          "f94c14b95ea7f4afaa1bf14251ed8dd370057623",
+          "d3f37080cfe27113713b678fff53aeb86b2ba7b9",
+          "6c7033bf384fedc24a86904b3e3184a966558191",
+          "826418e18890bb41c055b8733e3aa182bb0bffb9",
+          "e7666300c41c07de28e2c273a610cd28fb162e30",
+          "f225678ab595078cd865420580d22283d719cf86"
+        ]
+      }
+    ]
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "request/response boundary limits, numeric validation, gateway audit durability, and API contract consistency across the machine gateway, the ProjectOS bridge, and the Next.js boundary. No schema change, no deployment, no production data mutation.",
+  "defects_closed": [
+    {
+      "boundary": "size limits trusted only the declared Content-Length",
+      "detail": "Number(header || \"0\") yields 0 for a missing header, so chunked, unlabelled, and understated requests reached JSON parsing with no limit"
+    },
+    {
+      "boundary": "public /api/mcp proxy was unbounded in both directions",
+      "detail": "request read with text() and upstream reply with arrayBuffer(), neither bounded, with no timeout"
+    },
+    {
+      "boundary": "machine search limit propagated NaN",
+      "detail": "Math.max(1, Math.min(MAX_LIMIT, Number(args.limit || 10))) is NaN for non-numeric input and reached the downstream query"
+    },
+    {
+      "boundary": "gateway audit inserts discarded the returned Supabase error",
+      "detail": "a failed audit write was indistinguishable from a successful one"
+    },
+    {
+      "boundary": "capability-evidence binding let a changed artifact select its own candidate lane",
+      "detail": "source.branch is artifact-controlled, and resolving it against git only stopped fabricated lanes and stale values. Because a recovery/review-* branch is retained at every superseded head, an artifact edited on this lane could name one, bind to it with a head, tree and base that were all internally consistent, and pass while the candidate it shipped with went unverified.",
+      "fix": "redirecting to another lane is no longer an assertion the artifact makes but a fact git confirms: the artifact's blob at HEAD must be identical to that lane's copy, which proves this lane inherited it rather than wrote it. Cross-lane integration is unaffected; editing the file forfeits the redirect. Not a branch-name blocklist."
+    },
+    {
+      "boundary": "deleting a merged lane retroactively invalidated the historical evidence it produced",
+      "detail": "an artifact naming its lane was hard-failed the moment that branch was deleted, because identity was taken from the ref alone. After a lane merged and its branch was cleaned up, the pandora-verify run on the exact main commit would have failed on evidence that was correct and untouched \u2014 governance breaking itself through routine housekeeping.",
+      "fix": "when the declared lane no longer resolves and the artifact is untouched here, identity is re-proven from the commit graph, which outlives the ref: candidate_head must be a real commit AND an ancestor of HEAD, and candidate_tree must be its actual tree, which pins every blob under it. Byte-equality at candidate_head is deliberately not required, because an artifact names its parent and the commit carrying it is the one that rewrote it. A changed artifact gets none of this: ownership is checked first, so a vanished branch can never launder current evidence out of its head/tree/base/lane binding."
+    }
+  ],
+  "boundary_contract": {
+    "declared_length_is_fast_reject_only": true,
+    "actual_bytes_metered_while_reading": true,
+    "oversized_body_rejected_before_json_parse": true,
+    "oversized_body_never_fully_buffered": true,
+    "upstream_response_bounded_before_buffering": true,
+    "upstream_body_reflected_on_error": false,
+    "abort_timeout_ms": 10000,
+    "body_read_only_after_authentication_material_present": true
+  },
+  "validation_contract": {
+    "numeric_inputs_rejected_not_clamped": true,
+    "nan_infinity_non_integer_rejected": true,
+    "over_length_strings_rejected_not_truncated": true,
+    "unknown_top_level_fields_rejected_on_memory_search": true
+  },
+  "audit_durability": {
+    "allow_decision": "fail closed when audit is not durable",
+    "deny_decision": "never blocked on audit success, so an audit outage cannot weaken authorization",
+    "policy_module": "supabase/functions/_shared/audit-policy.ts",
+    "raw_error_message_logged": false
+  },
+  "contract_consistency": {
+    "canonical_privacy_policy_identifier": "metadata_only_v2_fail_closed",
+    "previous_inconsistency": "stored candidate metadata said metadata_only_v2_fail_closed while the API response said metadata_only_v1",
+    "bare_literal_rejected_by_source_contract_check": true,
+    "dependency_pin": "bridge floating jsr:@supabase/supabase-js@2 pinned to npm:@supabase/supabase-js@2.110.9"
+  },
+  "test_evidence": {
+    "node_tests": 67,
+    "deno_tests": 20,
+    "mirrored_cases_across_runtimes": true,
+    "cases": [
+      "no content length",
+      "valid body",
+      "exactly at limit",
+      "one byte over limit",
+      "understated content length",
+      "chunked unknown length",
+      "multibyte byte counting",
+      "stream failure",
+      "oversized upstream",
+      "malformed JSON",
+      "full NaN matrix",
+      "audit fail-closed and deny-proceeds",
+      "changed artifact redirecting to a retained recovery branch",
+      "changed artifact redirecting to a superseded candidate branch",
+      "changed artifact redirecting to another live branch",
+      "changed artifact with empty or missing lane metadata",
+      "artifact inherited byte-for-byte from an integrated lane",
+      "deleted lane + untouched artifact whose commit is still provable",
+      "deleted lane + changed artifact (escape must stay shut)",
+      "deleted lane + candidate_head outside this history",
+      "deleted lane + historical canonical_base older than today's merge-base"
+    ],
+    "limitation": "Deno suites were not run in the authoring environment (Deno unavailable); they are proven by CI only. No load or adversarial testing was performed against a running service."
+  },
+  "behavior_changes_requiring_review": [
+    "Memory search now rejects unknown top-level fields instead of silently dropping them",
+    "out-of-range limit is rejected rather than clamped",
+    "evidence intake response now reports metadata_only_v2_fail_closed"
+  ],
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false,
+    "deployed_provider_versions": "pandora-machine-gateway v3 and pandora-projectos-bridge v13, neither of which contains these changes"
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "merge into canonical main with the exact-merge-result gates green",
+    "source-provenanced preview deployment verification",
+    "separate production deployment authorization and rollback rehearsal"
+  ],
+  "review_remediation": {
+    "second_review_findings_closed": [
+      "durable evidence binding was stale: candidate_head, candidate_tree, and canonical_base predated the second-author commits and the governance reconciliation. Refreshing only the pull-request body did not repair it.",
+      "the approved-canon contract leaked internal hard_canon/soft_canon labels because the response normalizer spread canonical_records through unchanged."
+    ],
+    "binding_guard": "scripts/check_capability_evidence_binding.mjs, wired into npm run verify, fails when this lane's candidate_head is not the current head or its parent, when candidate_tree is not the tree of candidate_head, when canonical_base is not the merge-base with the default branch, when a recorded historical commit does not exist, when an artifact declares a lane other than the one under test without being byte-identical to that lane's copy, and when an artifact changed here names a lane that no longer resolves. A deleted lane keeps its history only for untouched artifacts whose candidate_head is a real ancestor of HEAD. 67 self-test cases, including the reproduced lane-redirection exploit and the deleted-lane escape, both asserted to fail for their own reason rather than incidentally.",
+    "canon_label_fix": "canonical_records are rebuilt rather than spread; canon-label fields are rewritten to the stable approved alias at any depth, keyed on field name so free text discussing canon status is never corrupted.",
+    "third_review_findings_closed": [
+      "a changed evidence artifact could escape current-candidate binding by declaring another existing branch \u2014 demonstrated against the retained recovery ref recovery/review-20260818/pr-33-f0f76d55 at the superseded head f0f76d555be8b4404fc7feac54bfe2d07c5af8c7, which the pre-fix validator ACCEPTED with owned=true."
+    ],
+    "lane_resolution": "resolveLane prefers an explicit --lane argument, then GITHUB_HEAD_REF (pull_request), then GITHUB_REF_NAME when GITHUB_REF_TYPE is branch (push), and only then a symbolic ref, rejecting the literal HEAD. When the lane cannot be resolved and an artifact declares one, the gate FAILS CLOSED instead of skipping.",
+    "tree_binding": "candidate_tree is compared against git rev-parse <candidate_head>^{tree}",
+    "regressions_added": [
+      "detached HEAD fails closed instead of skipping",
+      "detached HEAD fails closed even for a correct binding",
+      "mismatched candidate_tree is rejected",
+      "lane resolution precedence, including that a tag ref is not a lane"
+    ],
+    "self_tests": 35,
+    "fourth_review_findings_closed": [
+      "deleting a merged branch invalidated the immutable evidence that lane produced. Proven against the real repository: with 'hardening/gateway-api-boundaries' simulated as deleted, the round-3 validator REJECTED this untouched artifact on main; the round-4 validator accepts it while still rejecting the same artifact when changed."
+    ],
+    "binding_model": "source.branch is now RESOLVED against git rather than trusted or ignored. An artifact naming a lane must bind to that lane real head or its parent, and the named lane must exist. Binding fields are mandatory for any artifact that names a lane or was changed in this lane diff.",
+    "why_not_diff_ownership_alone": "deriving ownership only from the lane diff wrongly required an artifact merged in from another lane to bind to THIS head. Resolving the declared lane against git handles integration correctly while still closing the bypass.",
+    "evasion_routes_verified_closed": [
+      "delete the binding fields",
+      "rename own lane to a fabricated lane",
+      "point at a real other lane to escape",
+      "drop the whole source block"
+    ],
+    "final_pull_request_head_fail_open": {
+      "finding": "the unresolvable-object exception was applied unconditionally, so a new or edited artifact could cite an arbitrary 40-hex value and be merely noted rather than rejected",
+      "resolution": "absence is tolerated only for an artifact unchanged on this lane that classifies itself as merged history and whose sha is not also cited as candidate_head or canonical_base; every other shape fails closed",
+      "regressions_added": 8,
+      "total_self_test_cases": 45,
+      "defect_reintroduction_demonstrated": true
+    }
+  }
+}

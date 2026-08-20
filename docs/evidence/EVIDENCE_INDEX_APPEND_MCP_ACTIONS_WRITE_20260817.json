@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "fragment_id": "mcp-github-actions-write-2026-08-17",
+  "purpose": "Classify the provider-verified MCP Actions write evidence merged by PR #35 without rewriting the immutable base evidence index.",
+  "entries": [
+    {
+      "evidence_id": "mcp-github-actions-write-2026-08-17",
+      "path": "docs/capabilities/evidence/MCP_GITHUB_ACTIONS_WRITE_2026-08-17.md",
+      "observed_at": "2026-08-17T11:33:25Z",
+      "source_commit": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+      "source_tree": "852c6a4df8b9c20176c9b9aa701782dc23d5eddf",
+      "environment": "source",
+      "provider": "github",
+      "provider_resource_id": "banataosystems/pandoras-box-memory/actions/runs/32023103208",
+      "proof_stage": "merged",
+      "current": true,
+      "supersedes": [],
+      "superseded_by": null,
+      "evidence_sha256": "eb567b548f1d6f8b932baf1d2cd62748e80bb38db5c35722179918b3c4039ebe",
+      "review_status": "not_submitted",
+      "deployment_status": "source_only",
+      "production_verified": false,
+      "rollback_ref": "revert aa228d5bfb59c0e54ed85415d6faaea3340f6c56"
+    }
+  ]
+}
