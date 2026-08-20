@@ -1,0 +1,67 @@
+name: Fix Memory evidence atomic role fixture
+
+on:
+  push:
+    branches:
+      - hardening/memory-evidence-intake-atomic-approved-clean-20260820
+    paths:
+      - '.github/workflows/fix-memory-evidence-atomic-role-fixture.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact candidate branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          ref: hardening/memory-evidence-intake-atomic-approved-clean-20260820
+
+      - name: Reach the production trigger in the isolated role test
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/test_memory_evidence_atomic_migration.sql')
+          source = path.read_text(encoding='utf-8')
+          old = """grant insert on public.memory_capture_candidates to authenticated;
+
+          \\ir ../supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql"""
+          new = """grant insert on public.memory_capture_candidates to authenticated;
+          grant select (id) on public.memory_capture_candidates to authenticated;
+
+          \\ir ../supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql"""
+          count = source.count(old)
+          if count != 1:
+              raise SystemExit(
+                  f'expected one authenticated fixture grant anchor, found {count}'
+              )
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          git rm .github/workflows/fix-memory-evidence-atomic-role-fixture.yml
+          git add scripts/test_memory_evidence_atomic_migration.sql
+          changed="$(git diff --cached --name-only | sort)"
+          expected="$(printf '%s\n' \
+            .github/workflows/fix-memory-evidence-atomic-role-fixture.yml \
+            scripts/test_memory_evidence_atomic_migration.sql | sort)"
+          test "$changed" = "$expected"
+          git diff --cached --check
+          node scripts/check_memory_evidence_atomic_hardening.mjs
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'test(memory): reach role guard in isolated fixture'
+          git push origin HEAD:hardening/memory-evidence-intake-atomic-approved-clean-20260820
+
+          printf '%s\n' \
+            'Isolated fixture permission corrected.' \
+            'Production grants changed: false.' \
+            'Temporary helper removed.'
