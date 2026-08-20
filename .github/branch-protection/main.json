@@ -1,0 +1,50 @@
+{
+  "_comment": [
+    "Prepared branch-protection ruleset for `main`. NOT APPLIED by this change.",
+    "Applying it mutates repository administrative configuration and therefore",
+    "requires the same independent review as any other governed change.",
+    "",
+    "REQUIRED-CONTEXT RULE: every context listed below must come from a workflow",
+    "that runs UNCONDITIONALLY on pull_request. A path-filtered workflow never",
+    "reports on a PR outside its paths, so requiring it would block that PR",
+    "forever. scripts/check_branch_protection_contexts.mjs enforces this by",
+    "parsing the workflow files, and runs in `npm run verify`.",
+    "",
+    "web-recovery-build and memory-evidence-intake are deliberately NOT required:",
+    "they are path-filtered, and pandora-verify already runs typecheck, the",
+    "production build, and the governed Memory evidence intake contract on every",
+    "pull request. They remain valuable as targeted signal.",
+    "",
+    "Apply with:",
+    "  gh api -X PUT repos/banataosystems/pandoras-box-memory/branches/main/protection \\",
+    "    --input .github/branch-protection/main.json",
+    "",
+    "Verify afterwards with a provider readback:",
+    "  gh api repos/banataosystems/pandoras-box-memory/branches/main/protection",
+    "Do not record this as applied until that readback proves it."
+  ],
+  "required_status_checks": {
+    "strict": true,
+    "contexts": [
+      "Verify exact candidate source",
+      "no-literal-secrets",
+      "Validate exact-head evidence registry",
+      "Prove same-owner cross-namespace denial"
+    ]
+  },
+  "enforce_admins": true,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 1,
+    "dismiss_stale_reviews": true,
+    "require_code_owner_reviews": false,
+    "require_last_push_approval": true
+  },
+  "restrictions": null,
+  "required_linear_history": true,
+  "allow_force_pushes": false,
+  "allow_deletions": false,
+  "block_creations": false,
+  "required_conversation_resolution": true,
+  "lock_branch": false,
+  "allow_fork_syncing": false
+}
