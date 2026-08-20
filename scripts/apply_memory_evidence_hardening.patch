@@ -1,5 +1,4 @@
 diff --git a/supabase/functions/pandora-projectos-bridge/index.ts b/supabase/functions/pandora-projectos-bridge/index.ts
-index 608c237..0000000 100644
 --- a/supabase/functions/pandora-projectos-bridge/index.ts
 +++ b/supabase/functions/pandora-projectos-bridge/index.ts
 @@ -9,7 +9,7 @@ const MAX_SEARCH_TERMS = 12;
@@ -20,7 +19,6 @@ index 608c237..0000000 100644
  };
  
 diff --git a/scripts/check_memory_evidence_intake.mjs b/scripts/check_memory_evidence_intake.mjs
-index 6c8d94c..0000000 100644
 --- a/scripts/check_memory_evidence_intake.mjs
 +++ b/scripts/check_memory_evidence_intake.mjs
 @@ -4,11 +4,13 @@ import ts from "typescript";
@@ -83,7 +81,6 @@ index 6c8d94c..0000000 100644
  const serveStart = bridge.search(/Deno\.serve\(/);
  assert.ok(helperStart >= 0 && serveStart > helperStart, "evidence helper boundary missing");
 diff --git a/supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql b/supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
-index 0000000..0000000 100644
 --- a/supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
 +++ b/supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
 @@ -104,10 +104,13 @@ begin
