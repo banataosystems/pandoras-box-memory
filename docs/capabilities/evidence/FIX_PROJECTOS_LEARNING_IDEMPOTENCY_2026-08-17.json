@@ -1,0 +1,161 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "fix-projectos-learning-idempotency-2026-08-17",
+  "observed_at": "2026-08-17T11:00:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "capability": "projectos-learning-idempotent-recovery-and-audit-durability",
+  "source": {
+    "pull_request": 32,
+    "branch": "fix/projectos-learning-idempotency-audit",
+    "candidate_head": "2459d278b4728b1ad706c4aa3b79f98d1e647f24",
+    "candidate_tree": "ae50271ed868eb29a3b623ca1f4e4d821d46bd79",
+    "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "superseded_candidates": [
+      {
+        "candidate_head": "45f7d502aa479ecb2fb426bf1ee62b3a2f3ed7c5",
+        "candidate_tree": "eb5fa560c962403b88cf83e15864a7b7ca81963d",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-3 review: production uniqueness readback checker added",
+        "recovery_ref": "recovery/review-20260818/pr-32-84196353"
+      },
+      {
+        "candidate_head": "485363185de58daad648f8dccd00091aef8edae8",
+        "candidate_tree": "549c568251d190b609465db399da5dd287cdf480",
+        "canonical_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+        "superseded_reason": "round-2 review: concurrent Postgres idempotency proof added",
+        "recovery_ref": "recovery/review-20260818/pr-32-84196353"
+      },
+      {
+        "candidate_head": "6bc2aadd4dee2699aaf60573c939c14bd513aa99",
+        "candidate_tree": "64664b0cc43bdb7c8d67e21a6b96ae35a0482c8e",
+        "canonical_base": "aa228d5bfb59c0e54ed85415d6faaea3340f6c56",
+        "superseded_reason": "lane rebased onto repaired governance base and canonical main 27a3db9",
+        "recovery_ref": "recovery/review-20260818/pr-32-84196353",
+        "recovery_head": "84196353abb5f5f00bbe2d5ff665c1c6eab74870"
+      }
+    ]
+  },
+  "lifecycle": {
+    "documented": true,
+    "implemented": true,
+    "source_tested": true,
+    "merged": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "change_scope": "pandora-projectos-learning Edge Function source and its behavioral test suite. No schema change, no deployment, no production data mutation.",
+  "review_remediation": {
+    "finding": "the changed-content 409 was returned before audit reconciliation",
+    "consequence": "after an earlier audit-write failure, a changed-content retry reconciled review and digest and then returned 409 without ever writing the audit row, stranding persisted candidate/review/digest state permanently without mandatory audit evidence",
+    "fix": "audit reconciliation now runs before the conflict decision, on the same principle already applied to the review item and digest: the audit row is evidence about the persisted candidate, not about the request in flight",
+    "regression_tests_added": 3,
+    "tests_verified_to_fail_under_old_ordering": true,
+    "database_idempotency_concurrency": {
+      "finding": "idempotency correctness depended on database uniqueness constraints that the fake-client suite could not exercise; concurrent Postgres behaviour was unproven",
+      "resolution": "scripts/test_learning_idempotency_postgres.mjs races five concurrent backends through the handler's read-then-insert shape per key, with and without each UNIQUE constraint, and is run in CI against a throwaway postgres:16 service",
+      "keys_proven": [
+        {
+          "table": "memory_capture_candidates",
+          "key": [
+            "user_id",
+            "namespace",
+            "source",
+            "source_ref"
+          ]
+        },
+        {
+          "table": "memory_review_queue_items",
+          "key": [
+            "user_id",
+            "namespace",
+            "candidate_type",
+            "source_ref"
+          ]
+        },
+        {
+          "table": "memory_session_digests",
+          "key": [
+            "user_id",
+            "namespace",
+            "source",
+            "source_ref"
+          ]
+        }
+      ],
+      "with_constraint": "exactly one row; 4 of 5 racers rejected with SQLSTATE 23505 and heal by re-reading",
+      "without_constraint": "five duplicate rows; nothing raises 23505; .maybeSingle() then fails closed on a request that should have replayed",
+      "audit_logs_requires_uniqueness": false,
+      "production_constraints_confirmed": false,
+      "production_mutation": false
+    },
+    "production_schema_readback_verifier": {
+      "finding": "the concurrency proof establishes the three UNIQUE constraints are required but cannot establish that production carries them; without a verifier any eventual readback would land as prose",
+      "resolution": "docs/verification/introspection/PRODUCTION_UNIQUENESS_INTROSPECTION.sql captures live index and column-nullability state through an authenticated read-only path; scripts/check_production_idempotency_constraints.mjs validates it offline against the three exact key sets",
+      "verdicts_required": [
+        "constraints_satisfied",
+        "capture_authoritative"
+      ],
+      "authoritative_project_ref": "ivmvufhcsezyhczzondn",
+      "fixture_can_close_gate": false,
+      "fails_closed_on": [
+        "wrong columns",
+        "superset key",
+        "subset key",
+        "non-unique index",
+        "partial unique index",
+        "table absent from capture",
+        "is_unique omitted",
+        "conflicting duplicate index rows",
+        "column nullability not captured",
+        "nullable key column under default NULLS DISTINCT"
+      ],
+      "column_order_material": false,
+      "bare_unique_index_accepted": true,
+      "regressions_added": 22,
+      "gate_closed_by_this_change": false,
+      "production_state_read_or_mutated": false
+    }
+  },
+  "behavior_contract": {
+    "recovery_source_of_truth": "persisted candidate row, never the retry content",
+    "unreadable_persisted_state": "fail closed",
+    "identical_replay": "idempotent",
+    "changed_content_replay": "409 conflict, persisted candidate never overwritten",
+    "reconciliation_order": "candidate, review item, digest, audit, THEN conflict decision",
+    "persisted_state_without_audit_evidence_possible": false,
+    "canonical_promotion_from_intake": false
+  },
+  "audit_durability": {
+    "classification": "audit_required_fail_closed",
+    "supabase_error_checked": true,
+    "audit_lookup_failure": "fail closed",
+    "audit_failure_on_changed_retry": "surfaces as audit_persistence_failed, not masked behind 409",
+    "retry_heals_audit_exactly_once": true,
+    "raw_error_message_logged": false
+  },
+  "test_evidence": {
+    "suite": "scripts/test_projectos_learning_behavior.mjs",
+    "tests_passed": 21,
+    "tests_total": 21,
+    "bound_to_production_source": true,
+    "limitation": "a fake Supabase client is used; PostgREST and Postgres constraint behavior, including the 23505 path, is not exercised against a real database"
+  },
+  "activation_state": {
+    "live_principal_can_propose": false,
+    "live_principal_can_approve": false,
+    "database_migration_added": false,
+    "provider_scope_activated": false,
+    "edge_function_deployed": false,
+    "vercel_deployed": false,
+    "production_data_mutated": false,
+    "production_release_authorized": false,
+    "deployed_provider_version": "pandora-projectos-learning v1, which does not contain these changes"
+  },
+  "remaining_gates": [
+    "independent review of this exact candidate head",
+    "merge into canonical main with the exact-merge-result gates green",
+    "source-provenanced preview deployment verification",
+    "separate production deployment authorization and rollback rehearsal",
+    "an authenticated read-only introspection capture from project ivmvufhcsezyhczzondn that scripts/check_production_idempotency_constraints.mjs accepts on BOTH verdicts \u2014 the verifier now exists, the capture does not; Supabase list_projects currently succeeds but returns an empty array, so that connection holds zero projects in scope"
+  ]
+}

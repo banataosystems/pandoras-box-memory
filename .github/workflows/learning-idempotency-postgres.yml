@@ -1,0 +1,68 @@
+name: Learning Idempotency (PostgreSQL)
+
+# Deliberately NOT path-filtered, so it reports on every pull request and the
+# result is never ambiguous. It is NOT in the branch-protection ruleset: it is
+# additional proof, and adding a required context is a separate governed change.
+#
+# This races real concurrent backends against a throwaway PostgreSQL. It touches
+# no provider, no production database, and no Supabase project.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  idempotency-db:
+    name: Prove concurrent duplicate rejection
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Check out exact candidate head
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.EXPECTED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual_head="$(git rev-parse HEAD)"
+          if [[ "$actual_head" != "$EXPECTED_HEAD" ]]; then
+            echo "Expected $EXPECTED_HEAD but checked out $actual_head" >&2
+            exit 1
+          fi
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: "22"
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends postgresql-client
+      - name: Prove concurrent duplicate rejection per idempotency key
+        env:
+          PANDORA_PGHOST: 127.0.0.1
+          PANDORA_PGPORT: "5432"
+          PANDORA_PGUSER: postgres
+          PANDORA_PGDATABASE: postgres
+          PGPASSWORD: postgres
+        run: node scripts/test_learning_idempotency_postgres.mjs
