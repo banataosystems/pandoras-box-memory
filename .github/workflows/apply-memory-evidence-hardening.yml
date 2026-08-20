@@ -34,7 +34,7 @@ jobs:
           git merge-base --is-ancestor "$expected_base" HEAD
           unexpected="$({
             git diff --name-only "$expected_base"...HEAD
-          } | grep -Ev '^(.github/workflows/apply-memory-evidence-hardening.yml|scripts/apply_memory_evidence_hardening.patch|supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql)$' || true)"
+          } | grep -Ev '^(.github/workflows/apply-memory-evidence-hardening.yml|scripts/apply_memory_evidence_hardening.patch|scripts/check_memory_evidence_atomic_hardening.mjs|supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql)$' || true)"
           test -z "$unexpected" || {
             printf 'Unexpected pre-apply paths:\n%s\n' "$unexpected" >&2
             exit 1
