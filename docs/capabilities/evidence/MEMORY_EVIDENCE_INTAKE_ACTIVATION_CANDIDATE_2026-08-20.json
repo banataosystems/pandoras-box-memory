@@ -1,0 +1,78 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-evidence-intake-activation-candidate-2026-08-20",
+  "observed_at": "2026-08-20T13:56:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "pull_request": 52,
+  "capability": "governed-projectos-evidence-candidate-activation",
+  "source": {
+    "base_commit": "63d133f6e865a2cf6f4a874c6304ce351df9ac4a",
+    "candidate_parent_head": "1ec3bc7bb365530339755665c8a17aea9e1c3452",
+    "candidate_parent_tree": "594122d1ea7b75a1675c2bdbc8e5855cf2a79b30",
+    "public_route_blob": "ab7170cd214b598b81e016900b9486d41dd713da",
+    "canonical_bridge_blob": "54a5e6429fea4e26a6717bdc8cdf8d09ef450d9d",
+    "activation_migration_sha256": "04cf14864a2f53e9d577281ad01002a95688608f53eac5290133ad14578653ea",
+    "rollback_sha256": "bd8250f19ba32640d5211727ec9bf6d9d31c594c97adb8b3549cc48dd85af779",
+    "activation_validator_sha256": "80f648a43667fb98d143c5cc49e828e0a932ecc5fe029a1c27e70d6785bb5d7b"
+  },
+  "verified_runtime": {
+    "memory_supabase_project_ref": "ivmvufhcsezyhczzondn",
+    "live_bridge_slug": "pandora-projectos-bridge",
+    "live_bridge_version": 13,
+    "live_bridge_ezbr_sha256": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+    "live_bridge_updated_at": "2026-08-07T08:51:48.171Z",
+    "live_bundle_bytes": 8018268,
+    "live_bundle_markers": {
+      "submit_evidence_candidate": false,
+      "EVIDENCE_PROOF_STAGES": false,
+      "projectos_evidence": false,
+      "memory_write": false,
+      "pending_review": false,
+      "unsupported_action": true
+    },
+    "memory_vercel_project_id": "prj_brg3BJDcHfSftHH84NhnFtDJAnDO",
+    "memory_vercel_deployment": "dpl_6gn8vjxcGPso6g2jHRa6r5u3mBpS",
+    "memory_vercel_source_sha": "63d133f6e865a2cf6f4a874c6304ce351df9ac4a",
+    "memory_vercel_state": "READY",
+    "memory_vercel_target": "production"
+  },
+  "root_cause": {
+    "classification": "source_runtime_activation_gap",
+    "finding": "The production Vercel evidence-candidate route sends action submit_evidence_candidate, but live Supabase pandora-projectos-bridge@13 predates the capability and lacks that action while retaining the unsupported_action fallback.",
+    "observed_failure": "Pandora Memory HTTP 400 surfaced externally as connector HTTP 502",
+    "payload_schema_rejected_as_root_cause": false,
+    "project_identity_rejected_as_root_cause": false,
+    "oidc_transport_rejected_as_root_cause": false
+  },
+  "proof_state": {
+    "documented": true,
+    "implemented_in_canonical_source": true,
+    "source_tested": true,
+    "activation_candidate_prepared": true,
+    "final_exact_head_ci": false,
+    "independent_review": false,
+    "transaction_only_live_apply_rollback_proof": false,
+    "merged": false,
+    "edge_function_deployed": false,
+    "production_verified": false
+  },
+  "safety": {
+    "production_database_mutation": false,
+    "production_data_mutation": false,
+    "edge_function_deployment": false,
+    "memory_candidate_created": false,
+    "canonical_memory_written": false,
+    "production_release": false,
+    "secret_values_exposed": false
+  },
+  "remaining_gates": [
+    "rerun exact-head capability-registry, source-security, and evidence-intake checks after this evidence co-change",
+    "obtain distinct qualified review bound to the final exact head",
+    "execute transaaction-only live migration apply/readback/rollback proof with zero persistent state change",
+    "freshly read back principal scope, project grant, and live bridge baseline immediately before activation",
+    "obtain explicit owner production authorization",
+    "apply the reviewed memory:write activation migration and deploy the reviewed bridge source",
+    "submit one harmless candidate and prove pending-review, identical replay, changed-content conflict, and no canonical Memory write",
+    "exercise rollback and complete production observation before marking production-verified"
+  ]
+}
