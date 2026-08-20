@@ -1,0 +1,93 @@
+name: Memory evidence atomic hardening
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'supabase/functions/pandora-projectos-bridge/index.ts'
+      - 'supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql'
+      - 'scripts/check_memory_evidence_atomic_hardening.mjs'
+      - 'scripts/test_memory_evidence_atomic_migration.sql'
+      - '.github/workflows/memory-evidence-atomic-hardening.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: memory-evidence-atomic-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+
+      - name: Verify exact source checkout
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Set up Node 24
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+
+      - name: Verify approved-only, privacy, authority, and rollback source contract
+        run: node scripts/check_memory_evidence_atomic_hardening.mjs
+
+      - name: Reject literal secrets
+        run: bash scripts/check_no_literal_secrets.sh
+
+  isolated-postgres-transaction:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      PGPASSWORD: postgres
+    services:
+      postgres:
+        image: postgres:17.6-bookworm
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: memory_atomic_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d memory_atomic_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ env.EXPECTED_SHA }}
+
+      - name: Verify exact source checkout
+        run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Ensure PostgreSQL client is available
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install --yes postgresql-client
+          fi
+          psql --version
+
+      - name: Prove atomic candidate and review behavior in isolated PostgreSQL
+        run: >-
+          psql
+          --host=127.0.0.1
+          --port=5432
+          --username=postgres
+          --dbname=memory_atomic_test
+          --set=ON_ERROR_STOP=1
+          --file=scripts/test_memory_evidence_atomic_migration.sql
