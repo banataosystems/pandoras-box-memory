@@ -9,8 +9,10 @@ on:
       - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
       - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
       - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
+      - 'docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json'
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/check_memory_evidence_activation.mjs'
+      - 'scripts/check_memory_bridge_repair_candidate.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
   push:
@@ -23,8 +25,10 @@ on:
       - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
       - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
       - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
+      - 'docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json'
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/check_memory_evidence_activation.mjs'
+      - 'scripts/check_memory_bridge_repair_candidate.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
 
@@ -42,6 +46,8 @@ jobs:
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
         with:
           ref: ${{ env.EXPECTED_SHA }}
+          fetch-depth: 0
+          persist-credentials: false
 
       - name: Verify exact source checkout
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
@@ -67,6 +73,9 @@ jobs:
 
       - name: Verify activation and rollback contract
         run: node scripts/check_memory_evidence_activation.mjs
+
+      - name: Verify exact-source bridge repair candidate
+        run: node scripts/check_memory_bridge_repair_candidate.mjs --self-test
 
       - name: Exercise evidence intake behavior
         run: node scripts/test_memory_evidence_intake_behavior.mjs

@@ -7,6 +7,10 @@ const rollbackPath =
   "supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql";
 const manifestPath =
   "recovery/evidence/memory-evidence-intake-activation-release-manifest.md";
+const bridgeCandidateEvidencePath =
+  "docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json";
+const bridgeCandidateCheckPath =
+  "scripts/check_memory_bridge_repair_candidate.mjs";
 const workflowPath = ".github/workflows/memory-evidence-intake.yml";
 
 const migration = fs.readFileSync(migrationPath, "utf8");
@@ -86,16 +90,27 @@ assert.deepEqual(deactivate(deactivate(["memory:health", "memory:read"])), [
 ]);
 assert.throws(() => activate(["memory:health", "memory:read", "memory:admin"]));
 
-for (const path of [migrationPath, rollbackPath, manifestPath]) {
+for (const path of [
+  migrationPath,
+  rollbackPath,
+  manifestPath,
+  bridgeCandidateEvidencePath,
+  bridgeCandidateCheckPath,
+]) {
   assert.ok(workflow.includes(path), `workflow path filter missing: ${path}`);
 }
 assert.ok(workflow.includes("node scripts/check_memory_evidence_activation.mjs"));
+assert.ok(workflow.includes("node scripts/check_memory_bridge_repair_candidate.mjs --self-test"));
 
 for (const marker of [
-  "LIVE / BLOCKED",
-  "63d133f6e865a2cf6f4a874c6304ce351df9ac4a",
-  "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+  "EXACT-SOURCE CANDIDATE / BLOCKED",
+  "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
+  "54a5e6429fea4e26a6717bdc8cdf8d09ef450d9d",
   "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+  "pandora-projectos-bridge@15",
+  "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a",
+  "07ebf082e15867faae27c74ce9c1074d466e7f08",
+  "dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk",
   "0fcacb20c0ff46ca224ca1769098ac3db14bb83d9bb264b755c23a58f2382e78",
   "No automatic canonical Memory promotion",
   "Explicit owner production authorization",
