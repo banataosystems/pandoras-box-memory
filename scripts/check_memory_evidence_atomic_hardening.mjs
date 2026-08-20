@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 
+// This exact-head contract anchors verification after the transaction fixture repair.
 const bridgePath = "supabase/functions/pandora-projectos-bridge/index.ts";
 const migrationPath =
   "supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql";
