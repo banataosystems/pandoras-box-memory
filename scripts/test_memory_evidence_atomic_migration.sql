@@ -235,7 +235,7 @@ begin
     'projectos-post-task',
     format('projectos-evidence:%s:%s', v_project_id, p_idempotency),
     null,
-    'Atomic evidence candidate fixture',
+    'Atomic evidence candidate fixture summary',
     'business_fact',
     'Atomic evidence candidate fixture',
     'Atomic evidence candidate fixture summary',
