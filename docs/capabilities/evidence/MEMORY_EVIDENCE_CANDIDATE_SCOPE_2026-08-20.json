@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-evidence-candidate-submit-scope-20260820",
+  "observed_at": "2026-08-19T22:18:54Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "base_commit_sha": "63d133f6e865a2cf6f4a874c6304ce351df9ac4a",
+  "source_candidate_before_evidence_commit": "ef469a584189380ef5bba814ed4eefefdbc99510",
+  "change_contract": {
+    "operation": "submit_evidence_candidate",
+    "required_scope": "memory:evidence-candidate:submit",
+    "broad_memory_write_authorizes": false,
+    "candidate_only": true,
+    "canonical_memory_written": false,
+    "human_review_required": true
+  },
+  "source_contract": {
+    "bridge_scope_guard_changed": true,
+    "behavior_test_denies_memory_write_before_db_io": true,
+    "forward_only_migration_present": true,
+    "source_contract_check_bound_to_migration": true
+  },
+  "live_provider_baseline": {
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "migration_count": 68,
+    "latest_migration_version": "20260813114649",
+    "principal_key": "projectos-mcpmaster-production",
+    "principal_scopes": [
+      "memory:health",
+      "memory:read"
+    ],
+    "scope_constraint": "scopes <@ ARRAY['memory:health','memory:read']",
+    "narrow_scope_applied": false,
+    "memory_write_present": false
+  },
+  "gates": {
+    "source_implemented": true,
+    "exact_head_tests_passed": false,
+    "independent_review_passed": false,
+    "provider_applied": false,
+    "edge_function_deployed": false,
+    "production_verified": false
+  },
+  "limitations": [
+    "This artifact records source and provider baseline evidence only.",
+    "It does not authorize migration application, scope grant, deployment, merge, or production release.",
+    "Exact-head CI and independent different-vendor review remain required."
+  ]
+}

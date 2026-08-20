@@ -4,9 +4,11 @@ import ts from "typescript";
 
 const routePath = "app/api/projectos/memory/evidence-candidates/route.ts";
 const bridgePath = "supabase/functions/pandora-projectos-bridge/index.ts";
+const scopeMigrationPath = "supabase/migrations/20260820060000_add_projectos_memory_evidence_candidate_scope.sql";
 
 const route = fs.readFileSync(routePath, "utf8");
 const bridge = fs.readFileSync(bridgePath, "utf8");
+const scopeMigration = fs.readFileSync(scopeMigrationPath, "utf8");
 
 for (const [name, source] of [["route", route], ["bridge", bridge]]) {
   const result = ts.transpileModule(source, {
@@ -33,7 +35,7 @@ for (const marker of [
 }
 
 for (const marker of [
-  'principal.scopes.includes("memory:write")',
+  'principal.scopes.includes("memory:evidence-candidate:submit")',
   "principal.allowed_namespaces.includes(namespace)",
   "EVIDENCE_PROOF_STAGES",
   "EVIDENCE_ISO_TIMESTAMP_PATTERN",
@@ -68,6 +70,25 @@ for (const marker of [
 ]) {
   assert.ok(bridge.includes(marker), `bridge marker missing: ${marker}`);
 }
+
+for (const marker of [
+  "pandora_service_principals_scopes_check",
+  "memory:evidence-candidate:submit",
+  "projectos_memory_principal_baseline_scope_missing",
+  "projectos_memory_principal_unexpected_scope",
+  "projectos_memory_candidate_scope_verification_failed",
+  "broad memory:write remains disallowed",
+]) {
+  assert.ok(scopeMigration.includes(marker), `scope migration marker missing: ${marker}`);
+}
+assert.ok(
+  scopeMigration.includes("'memory:write' = any(v_scopes)"),
+  "scope migration must explicitly fail if broad memory:write is present",
+);
+assert.ok(
+  !scopeMigration.includes("array_append(scopes, 'memory:write')"),
+  "scope migration must never grant broad memory:write",
+);
 
 const helperStart = bridge.indexOf("const EVIDENCE_PROOF_STAGES");
 const serveStart = bridge.search(/Deno\.serve\(/);
