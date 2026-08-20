@@ -1,0 +1,67 @@
+name: Fix Memory evidence atomic fixture
+
+on:
+  push:
+    branches:
+      - hardening/memory-evidence-intake-atomic-approved-clean-20260820
+    paths:
+      - '.github/workflows/fix-memory-evidence-atomic-fixture.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out exact candidate branch
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+          ref: hardening/memory-evidence-intake-atomic-approved-clean-20260820
+
+      - name: Correct the exact redacted-summary fixture and remove helper
+        shell: bash
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+
+          path = Path('scripts/test_memory_evidence_atomic_migration.sql')
+          source = path.read_text(encoding='utf-8')
+          old = """    null,
+              'Atomic evidence candidate fixture',
+              'business_fact',"""
+          new = """    null,
+              'Atomic evidence candidate fixture summary',
+              'business_fact',"""
+          count = source.count(old)
+          if count != 1:
+              raise SystemExit(
+                  f'expected one redacted-summary fixture match, found {count}'
+              )
+          path.write_text(source.replace(old, new, 1), encoding='utf-8')
+          PY
+
+          git rm .github/workflows/fix-memory-evidence-atomic-fixture.yml
+          changed="$(git diff --name-only | sort)"
+          expected="$(printf '%s\n' \
+            .github/workflows/fix-memory-evidence-atomic-fixture.yml \
+            scripts/test_memory_evidence_atomic_migration.sql | sort)"
+          test "$changed" = "$expected"
+          git diff --check
+          node scripts/check_memory_evidence_atomic_hardening.mjs
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scripts/test_memory_evidence_atomic_migration.sql
+          git diff --cached --check
+          git commit -m 'test(memory): align atomic fixture with persisted summary'
+          git push origin HEAD:hardening/memory-evidence-intake-atomic-approved-clean-20260820
+
+          printf '%s\n' \
+            'Fixture corrected.' \
+            'Temporary helper removed.' \
+            'Production mutation: false.'
