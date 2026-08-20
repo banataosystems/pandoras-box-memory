@@ -6,16 +6,25 @@ on:
     paths:
       - 'app/api/projectos/memory/evidence-candidates/**'
       - 'supabase/functions/pandora-projectos-bridge/**'
+      - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
+      - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
+      - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
       - 'scripts/check_memory_evidence_intake.mjs'
+      - 'scripts/check_memory_evidence_activation.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
   push:
     branches:
       - feature/projectos-memory-evidence-intake
+      - fix/memory-evidence-intake-activation-20260820
     paths:
       - 'app/api/projectos/memory/evidence-candidates/**'
       - 'supabase/functions/pandora-projectos-bridge/**'
+      - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
+      - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
+      - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
       - 'scripts/check_memory_evidence_intake.mjs'
+      - 'scripts/check_memory_evidence_activation.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
 
@@ -55,6 +64,9 @@ jobs:
 
       - name: Verify governed evidence source contract
         run: node scripts/check_memory_evidence_intake.mjs
+
+      - name: Verify activation and rollback contract
+        run: node scripts/check_memory_evidence_activation.mjs
 
       - name: Exercise evidence intake behavior
         run: node scripts/test_memory_evidence_intake_behavior.mjs
