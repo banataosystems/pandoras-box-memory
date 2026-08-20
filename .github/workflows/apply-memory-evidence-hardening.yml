@@ -92,11 +92,13 @@ jobs:
                   "label": "approved_only_canon_retrieval",
                   "old": 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);',
                   "new": 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);',
+                  "expected_new_count_before": 0,
               },
               {
                   "label": "privacy_response_contract_v2",
                   "old": '    privacy_policy: "metadata_only_v1",',
                   "new": '    privacy_policy: "metadata_only_v2_fail_closed",',
+                  "expected_new_count_before": 1,
               },
           ]
           observations = []
@@ -107,8 +109,14 @@ jobs:
                   "label": replacement["label"],
                   "old_count": old_count,
                   "new_count_before": new_count,
+                  "expected_new_count_before": replacement[
+                      "expected_new_count_before"
+                  ],
               })
-              if old_count != 1 or new_count != 0:
+              if (
+                  old_count != 1
+                  or new_count != replacement["expected_new_count_before"]
+              ):
                   result["errors"].append(
                       f"{replacement['label']}_unexpected_source_state"
                   )
@@ -135,20 +143,24 @@ jobs:
           git diff --check
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/evidence/phase0-memory-evidence-hardening-action.json
           if [ "$status" = 'source_edit_prepared' ]; then
-            test "$(git diff --name-only | sort)" = "$(printf '%s\n' \
+            changed="$(git diff --name-only | sort)"
+            expected="$(printf '%s\n' \
               docs/evidence/phase0-memory-evidence-hardening-action.json \
               supabase/functions/pandora-projectos-bridge/index.ts | sort)"
+            test "$changed" = "$expected"
             grep -F 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);' \
               supabase/functions/pandora-projectos-bridge/index.ts
             grep -F 'privacy_policy: "metadata_only_v2_fail_closed"' \
               supabase/functions/pandora-projectos-bridge/index.ts
-            git add supabase/functions/pandora-projectos-bridge/index.ts
+            git add \
+              docs/evidence/phase0-memory-evidence-hardening-action.json \
+              supabase/functions/pandora-projectos-bridge/index.ts
             commit_message='fix(memory): enforce approved-only atomic evidence intake'
           else
             test "$(git diff --name-only)" = \
               'docs/evidence/phase0-memory-evidence-hardening-action.json'
+            git add docs/evidence/phase0-memory-evidence-hardening-action.json
             commit_message='docs(memory): preserve blocked hardening source evidence'
           fi
           git diff --cached --check
