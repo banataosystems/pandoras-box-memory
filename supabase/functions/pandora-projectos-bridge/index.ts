@@ -10,7 +10,7 @@ const MAX_SEARCH_TERMS = 12;
 const MIN_TERM_LENGTH = 3;
 const MAX_TERM_LENGTH = 64;
 const DEFAULT_CANON_STATUSES = ["hard_canon", "soft_canon"];
-const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);
+const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);
 const APPROVED_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);
 const STOP_TERMS = new Set([
   "and", "are", "for", "from", "has", "have", "its", "not", "our", "that",
@@ -1213,7 +1213,7 @@ const submitEvidenceCandidate = async (
     deduplicated: !(candidateCreated || reviewCreated),
     created_at: candidateCreated || reviewCreated ? now : null,
     canonical_memory_written: false,
-    privacy_policy: "metadata_only_v1",
+    privacy_policy: "metadata_only_v2_fail_closed",
   }, candidateCreated || reviewCreated ? 202 : 200);
 };
 
