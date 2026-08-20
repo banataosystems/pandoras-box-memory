@@ -26,75 +26,132 @@ jobs:
           fetch-depth: 0
           ref: hardening/memory-evidence-intake-atomic-approved-20260820
 
-      - name: Verify bounded source lane
+      - name: Apply bounded edit and preserve diagnostics
+        id: apply
         shell: bash
+        env:
+          EXPECTED_BASE: 4d0075a2e79db504a80feec914ed379fdf87cf0d
+          TRIGGER_SHA: ${{ github.sha }}
         run: |
-          set -euo pipefail
-          expected_base='4d0075a2e79db504a80feec914ed379fdf87cf0d'
-          git merge-base --is-ancestor "$expected_base" HEAD
-          unexpected="$({
-            git diff --name-only "$expected_base"...HEAD
-          } | grep -Ev '^(.github/workflows/apply-memory-evidence-hardening.yml|scripts/apply_memory_evidence_hardening.patch|scripts/check_memory_evidence_atomic_hardening.mjs|supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql)$' || true)"
-          test -z "$unexpected" || {
-            printf 'Unexpected pre-apply paths:\n%s\n' "$unexpected" >&2
-            exit 1
-          }
-
-      - name: Apply exact bridge replacements
-        shell: bash
-        run: |
-          set -euo pipefail
+          set -u
+          mkdir -p docs/evidence
           python - <<'PY'
+          import json
+          import os
+          import subprocess
           from pathlib import Path
 
-          path = Path("supabase/functions/pandora-projectos-bridge/index.ts")
-          source = path.read_text(encoding="utf-8")
+          expected_base = os.environ["EXPECTED_BASE"]
+          trigger_sha = os.environ["TRIGGER_SHA"]
+          branch = "hardening/memory-evidence-intake-atomic-approved-20260820"
+          bridge_path = Path("supabase/functions/pandora-projectos-bridge/index.ts")
+          evidence_path = Path(
+              "docs/evidence/phase0-memory-evidence-hardening-action.json"
+          )
+          allowed = {
+              ".github/workflows/apply-memory-evidence-hardening.yml",
+              "scripts/apply_memory_evidence_hardening.patch",
+              "scripts/check_memory_evidence_atomic_hardening.mjs",
+              "supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql",
+          }
+          result = {
+              "schema_version": "1.0.0",
+              "branch": branch,
+              "trigger_sha": trigger_sha,
+              "expected_base": expected_base,
+              "source_mutation_scope": [
+                  "supabase/functions/pandora-projectos-bridge/index.ts"
+              ],
+              "production_mutation": False,
+              "migration_applied": False,
+              "deployment_performed": False,
+              "errors": [],
+          }
+
+          ancestor = subprocess.run(
+              ["git", "merge-base", "--is-ancestor", expected_base, "HEAD"],
+              check=False,
+          ).returncode == 0
+          result["expected_base_is_ancestor"] = ancestor
+          if not ancestor:
+              result["errors"].append("expected_base_not_ancestor")
+
+          changed = subprocess.check_output(
+              ["git", "diff", "--name-only", f"{expected_base}...HEAD"],
+              text=True,
+          ).splitlines()
+          result["pre_edit_changed_paths"] = sorted(changed)
+          unexpected = sorted(set(changed) - allowed)
+          result["unexpected_pre_edit_paths"] = unexpected
+          if unexpected:
+              result["errors"].append("unexpected_pre_edit_paths")
+
+          source = bridge_path.read_text(encoding="utf-8")
           replacements = [
-              (
-                  'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);',
-                  'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);',
-                  "approved-only canon retrieval",
-              ),
-              (
-                  '    privacy_policy: "metadata_only_v1",',
-                  '    privacy_policy: "metadata_only_v2_fail_closed",',
-                  "privacy response contract",
-              ),
+              {
+                  "label": "approved_only_canon_retrieval",
+                  "old": 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);',
+                  "new": 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);',
+              },
+              {
+                  "label": "privacy_response_contract_v2",
+                  "old": '    privacy_policy: "metadata_only_v1",',
+                  "new": '    privacy_policy: "metadata_only_v2_fail_closed",',
+              },
           ]
-          for old, new, label in replacements:
-              count = source.count(old)
-              if count != 1:
-                  raise SystemExit(f"{label}: expected one source match, found {count}")
-              if source.count(new) != 0:
-                  raise SystemExit(f"{label}: replacement already present")
-              source = source.replace(old, new, 1)
-          path.write_text(source, encoding="utf-8")
+          observations = []
+          for replacement in replacements:
+              old_count = source.count(replacement["old"])
+              new_count = source.count(replacement["new"])
+              observations.append({
+                  "label": replacement["label"],
+                  "old_count": old_count,
+                  "new_count_before": new_count,
+              })
+              if old_count != 1 or new_count != 0:
+                  result["errors"].append(
+                      f"{replacement['label']}_unexpected_source_state"
+                  )
+          result["replacement_observations"] = observations
+
+          if not result["errors"]:
+              for replacement in replacements:
+                  source = source.replace(
+                      replacement["old"], replacement["new"], 1
+                  )
+              bridge_path.write_text(source, encoding="utf-8")
+              result["status"] = "source_edit_prepared"
+          else:
+              result["status"] = "source_edit_blocked"
+
+          evidence_path.write_text(
+              json.dumps(result, indent=2, sort_keys=True) + "\n",
+              encoding="utf-8",
+          )
+          print(json.dumps(result, sort_keys=True))
           PY
 
-      - name: Verify and commit source-only bridge change
-        shell: bash
-        run: |
-          set -euo pipefail
+          status="$(python -c 'import json; print(json.load(open("docs/evidence/phase0-memory-evidence-hardening-action.json"))["status"])')"
           git diff --check
-          test "$(git diff --name-only)" = \
-            'supabase/functions/pandora-projectos-bridge/index.ts'
-          grep -F 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);' \
-            supabase/functions/pandora-projectos-bridge/index.ts
-          if grep -F 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);' \
-            supabase/functions/pandora-projectos-bridge/index.ts; then
-            echo 'Draft retrieval remains exposed' >&2
-            exit 1
-          fi
-          grep -F 'privacy_policy: "metadata_only_v2_fail_closed"' \
-            supabase/functions/pandora-projectos-bridge/index.ts
-          if grep -F 'privacy_policy: "metadata_only_v1"' \
-            supabase/functions/pandora-projectos-bridge/index.ts; then
-            echo 'Legacy privacy response remains' >&2
-            exit 1
-          fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add supabase/functions/pandora-projectos-bridge/index.ts
+          git add docs/evidence/phase0-memory-evidence-hardening-action.json
+          if [ "$status" = 'source_edit_prepared' ]; then
+            test "$(git diff --name-only | sort)" = "$(printf '%s\n' \
+              docs/evidence/phase0-memory-evidence-hardening-action.json \
+              supabase/functions/pandora-projectos-bridge/index.ts | sort)"
+            grep -F 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);' \
+              supabase/functions/pandora-projectos-bridge/index.ts
+            grep -F 'privacy_policy: "metadata_only_v2_fail_closed"' \
+              supabase/functions/pandora-projectos-bridge/index.ts
+            git add supabase/functions/pandora-projectos-bridge/index.ts
+            commit_message='fix(memory): enforce approved-only atomic evidence intake'
+          else
+            test "$(git diff --name-only)" = \
+              'docs/evidence/phase0-memory-evidence-hardening-action.json'
+            commit_message='docs(memory): preserve blocked hardening source evidence'
+          fi
           git diff --cached --check
-          git commit -m 'fix(memory): enforce approved-only atomic evidence intake'
+          git commit -m "$commit_message"
           git push origin HEAD:hardening/memory-evidence-intake-atomic-approved-20260820
+          test "$status" = 'source_edit_prepared'
