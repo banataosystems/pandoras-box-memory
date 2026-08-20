@@ -181,6 +181,7 @@ grant select, insert, update, delete
      public.pandora_project_grants
   to service_role;
 grant insert on public.memory_capture_candidates to authenticated;
+grant select (id) on public.memory_capture_candidates to authenticated;
 
 \ir ../supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
 
