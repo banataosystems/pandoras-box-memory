@@ -46,18 +46,17 @@ jobs:
           PY
 
           git rm .github/workflows/fix-memory-evidence-atomic-fixture.yml
-          changed="$(git diff --name-only | sort)"
+          git add scripts/test_memory_evidence_atomic_migration.sql
+          changed="$(git diff --cached --name-only | sort)"
           expected="$(printf '%s\n' \
             .github/workflows/fix-memory-evidence-atomic-fixture.yml \
             scripts/test_memory_evidence_atomic_migration.sql | sort)"
           test "$changed" = "$expected"
-          git diff --check
+          git diff --cached --check
           node scripts/check_memory_evidence_atomic_hardening.mjs
 
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add scripts/test_memory_evidence_atomic_migration.sql
-          git diff --cached --check
           git commit -m 'test(memory): align atomic fixture with persisted summary'
           git push origin HEAD:hardening/memory-evidence-intake-atomic-approved-clean-20260820
 
