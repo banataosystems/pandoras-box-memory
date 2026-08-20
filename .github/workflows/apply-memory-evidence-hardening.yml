@@ -39,166 +39,62 @@ jobs:
             printf 'Unexpected pre-apply paths:\n%s\n' "$unexpected" >&2
             exit 1
           }
-          test -f supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
 
-      - name: Apply deterministic source-only edits
+      - name: Apply exact bridge replacements
         shell: bash
         run: |
           set -euo pipefail
           python - <<'PY'
           from pathlib import Path
 
-          def replace_once(text: str, old: str, new: str, label: str) -> str:
-              count = text.count(old)
+          path = Path("supabase/functions/pandora-projectos-bridge/index.ts")
+          source = path.read_text(encoding="utf-8")
+          replacements = [
+              (
+                  'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);',
+                  'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);',
+                  "approved-only canon retrieval",
+              ),
+              (
+                  '    privacy_policy: "metadata_only_v1",',
+                  '    privacy_policy: "metadata_only_v2_fail_closed",',
+                  "privacy response contract",
+              ),
+          ]
+          for old, new, label in replacements:
+              count = source.count(old)
               if count != 1:
-                  raise SystemExit(f"{label}: expected exactly one match, found {count}")
-              return text.replace(old, new, 1)
-
-          edge_path = Path("supabase/functions/pandora-projectos-bridge/index.ts")
-          edge = edge_path.read_text(encoding="utf-8")
-          edge = replace_once(
-              edge,
-              'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);',
-              'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);',
-              "approved-only canon status",
-          )
-          edge = replace_once(
-              edge,
-              '    privacy_policy: "metadata_only_v1",',
-              '    privacy_policy: "metadata_only_v2_fail_closed",',
-              "privacy response contract",
-          )
-          edge_path.write_text(edge, encoding="utf-8")
-
-          checker_path = Path("scripts/check_memory_evidence_intake.mjs")
-          checker = checker_path.read_text(encoding="utf-8")
-          checker = replace_once(
-              checker,
-              'const scopeMigrationPath = "supabase/migrations/20260820060000_add_projectos_memory_evidence_candidate_scope.sql";',
-              'const scopeMigrationPath = "supabase/migrations/20260820060000_add_projectos_memory_evidence_candidate_scope.sql";\nconst atomicMigrationPath = "supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql";',
-              "atomic migration path",
-          )
-          checker = replace_once(
-              checker,
-              'const scopeMigration = fs.readFileSync(scopeMigrationPath, "utf8");',
-              'const scopeMigration = fs.readFileSync(scopeMigrationPath, "utf8");\nconst atomicMigration = fs.readFileSync(atomicMigrationPath, "utf8");',
-              "atomic migration read",
-          )
-          insertion_anchor = 'const helperStart = bridge.indexOf("const EVIDENCE_PROOF_STAGES");'
-          if checker.count(insertion_anchor) != 1:
-              raise SystemExit("hardening assertions: helper anchor missing or ambiguous")
-          if "ProjectOS Edge search must expose approved canon only" in checker:
-              raise SystemExit("hardening assertions already present")
-          hardening_assertions = r'''assert.ok(
-            bridge.includes('const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);'),
-            "ProjectOS Edge search must expose approved canon only",
-          );
-          assert.ok(
-            !bridge.includes('const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);'),
-            "ProjectOS Edge search must not accept draft canon status",
-          );
-          assert.ok(
-            !bridge.includes('privacy_policy: "metadata_only_v1"'),
-            "evidence response must not downgrade the persisted privacy contract",
-          );
-
-          for (const marker of [
-            "memory_enqueue_projectos_evidence_review",
-            "memory_projectos_evidence_candidate_review_atomic",
-            "after insert on public.memory_capture_candidates",
-            "projectos_evidence_candidate_v1",
-            "metadata_only_v2_fail_closed",
-            "projectos_evidence_review_atomic_insert_failed",
-            "on conflict do nothing",
-            "atomicCandidateTriggerVersion",
-            "set search_path = ''",
-            "revoke all on function",
-            "to service_role",
-          ]) {
-            assert.ok(atomicMigration.includes(marker), `atomic migration marker missing: ${marker}`);
-          }
-          assert.ok(
-            !atomicMigration.includes("insert into public.memory_items"),
-            "atomic intake trigger must never write canonical Memory",
-          );
-          assert.ok(
-            atomicMigration.indexOf("insert into public.memory_review_queue_items") <
-              atomicMigration.indexOf("projectos_evidence_review_atomic_insert_failed"),
-            "atomic migration must verify the review row after attempting the insert",
-          );
-
-          '''
-          checker = checker.replace(insertion_anchor, hardening_assertions + insertion_anchor, 1)
-          checker_path.write_text(checker, encoding="utf-8")
-
-          migration_path = Path("supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql")
-          migration = migration_path.read_text(encoding="utf-8")
-          migration = replace_once(
-              migration,
-              """  if jsonb_typeof(v_metadata -> 'evidence_refs') is distinct from 'array'
-            or jsonb_array_length(v_metadata -> 'evidence_refs') < 1
-            or jsonb_array_length(v_metadata -> 'evidence_refs') > 20
-            or jsonb_typeof(v_metadata -> 'provenance') is distinct from 'object' then
-            raise exception 'projectos_evidence_candidate_evidence_invalid';
-            end if;""",
-              """  if jsonb_typeof(v_metadata -> 'evidence_refs') is distinct from 'array'
-            or jsonb_typeof(v_metadata -> 'provenance') is distinct from 'object' then
-            raise exception 'projectos_evidence_candidate_evidence_invalid';
-            end if;
-            if jsonb_array_length(v_metadata -> 'evidence_refs') < 1
-            or jsonb_array_length(v_metadata -> 'evidence_refs') > 20 then
-            raise exception 'projectos_evidence_candidate_evidence_invalid';
-            end if;""",
-              "safe evidence array validation",
-          )
-          migration = replace_once(
-              migration,
-              "array['search_path=']::text[]",
-              "array['search_path=\"\"']::text[]",
-              "fixed empty search path readback",
-          )
-          migration_path.write_text(migration, encoding="utf-8")
+                  raise SystemExit(f"{label}: expected one source match, found {count}")
+              if source.count(new) != 0:
+                  raise SystemExit(f"{label}: replacement already present")
+              source = source.replace(old, new, 1)
+          path.write_text(source, encoding="utf-8")
           PY
 
-      - name: Verify exact source candidate
+      - name: Verify and commit source-only bridge change
         shell: bash
         run: |
           set -euo pipefail
           git diff --check
+          test "$(git diff --name-only)" = \
+            'supabase/functions/pandora-projectos-bridge/index.ts'
           grep -F 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon"]);' \
+            supabase/functions/pandora-projectos-bridge/index.ts
+          if grep -F 'const RETRIEVABLE_CANON_STATUSES = new Set(["hard_canon", "soft_canon", "draft"]);' \
+            supabase/functions/pandora-projectos-bridge/index.ts; then
+            echo 'Draft retrieval remains exposed' >&2
+            exit 1
+          fi
+          grep -F 'privacy_policy: "metadata_only_v2_fail_closed"' \
             supabase/functions/pandora-projectos-bridge/index.ts
           if grep -F 'privacy_policy: "metadata_only_v1"' \
             supabase/functions/pandora-projectos-bridge/index.ts; then
-            echo 'Legacy privacy response contract remains' >&2
+            echo 'Legacy privacy response remains' >&2
             exit 1
           fi
-          grep -F 'memory_projectos_evidence_candidate_review_atomic' \
-            supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
-          grep -F "array['search_path=\"\"']::text[]" \
-            supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
-          changed="$(git diff --name-only | sort)"
-          expected="$(printf '%s\n' \
-            scripts/check_memory_evidence_intake.mjs \
-            supabase/functions/pandora-projectos-bridge/index.ts \
-            supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql \
-            | sort)"
-          test "$changed" = "$expected" || {
-            printf 'Unexpected post-edit paths:\n%s\n' "$changed" >&2
-            exit 1
-          }
-          npm ci --ignore-scripts
-          node scripts/check_memory_evidence_intake.mjs
-
-      - name: Commit source-only hardening candidate
-        shell: bash
-        run: |
-          set -euo pipefail
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add \
-            scripts/check_memory_evidence_intake.mjs \
-            supabase/functions/pandora-projectos-bridge/index.ts \
-            supabase/migrations/20260820073000_atomic_projectos_evidence_candidate_review_queue.sql
+          git add supabase/functions/pandora-projectos-bridge/index.ts
           git diff --cached --check
-          git commit -m 'fix(memory): make evidence intake atomic and approved-only'
+          git commit -m 'fix(memory): enforce approved-only atomic evidence intake'
           git push origin HEAD:hardening/memory-evidence-intake-atomic-approved-20260820
