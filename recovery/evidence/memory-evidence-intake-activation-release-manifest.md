@@ -1,123 +1,126 @@
 # Pandora Memory evidence-candidate activation release manifest
 
-Status: **ATOMIC SUCCESSOR / BLOCKED** — successor source is prepared, live Supabase parity is RED, and production activation is not authorized by this manifest.
+Status: **ATOMIC SUCCESSOR / BLOCKED**. This is a source-only, draft successor.
+It does not authorize merge, database migration, Edge deployment, evidence
+submission, canonical promotion, production verification, or PXE-0008 closure.
 
-Issue #56 records predecessor authorization bound to PR #55 bridge SHA-256 `09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656`. **Issue #56 does not authorize this successor** or its bridge SHA-256 `63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555`. Fresh owner authorization must bind the final successor head/tree, atomic and scope migrations, bridge/import map, and rollback before any production plan exists. No production mutation is made by this source candidate.
+## Exact boundary and current production state
 
-Fresh provider readback: 2026-08-20T18:51:00Z. This section supersedes the bridge@13 and older Vercel identities preserved in the historical PR #52 evidence record.
+- Repository/base: `banataosystems/pandoras-box-memory` at
+  `478105057c1ca5fb5b356750ba1fa1fb58b1f42c`.
+- Production Supabase project, unchanged: `ivmvufhcsezyhczzondn`.
+- Live function, unchanged: `pandora-projectos-bridge@15`, function ID
+  `0e7e24e6-7cb7-46d0-b474-3d626898d7e6`, package SHA-256
+  `7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a`.
+- Recoverable live v15 source: commit
+  `523fec111bfb2c327f69c2abdf0784775ab49a90`, Git blob
+  `07ebf082e15867faae27c74ce9c1074d466e7f08`, raw SHA-256
+  `7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf`.
+- Memory Vercel production, unchanged: deployment
+  `dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk`, exact base Git SHA above.
+- Principal/scopes, unchanged: `projectos-mcpmaster-production` with only
+  `memory:health` and `memory:read`.
+- Governed test-candidate hash:
+  `0fcacb20c0ff46ca224ca1769098ac3db14bb83d9bb264b755c23a58f2382e78`.
 
-## Incident and root cause
+Issue `banataosystems/pandoras-box-memory#56` records predecessor-only
+authorization. **Issue #56 does not authorize this successor.** Fresh owner
+authorization must use
+`memory-evidence-atomic-successor-exact-artifact-authorization`, bind the final
+head/tree, exact artifacts, and an independent PASS, and record
+`issue_56_authorizes_successor=false`.
 
-`memory.submitEvidenceCandidate` repeatedly returned HTTP 400 for structurally valid, privacy-safe payloads. The public Memory route serializes the exact expected request, but fresh authenticated readback proves live Supabase Edge Function `pandora-projectos-bridge@15` contains no `submit_evidence_candidate` action. The live v15 files are byte-identical to recovered source commit `523fec111bfb2c327f69c2abdf0784775ab49a90`; the function therefore falls through to `unsupported_action`.
+The separately authorized production activation must use the exact activation
+ID `memory-evidence-atomic-successor-prod-activation-20260821`.
 
-Deploying bridge source alone is insufficient. Production principal `projectos-mcpmaster-production` currently has only `memory:health` and `memory:read`, and the live table constraint rejects any other scope. The new handler requires `memory:write`. Existing project and proposal-grant bindings are already correct and must not be broadened.
+## Exact successor artifacts
 
-## Exact evidence baseline
+| Artifact | SHA-256 | Git blob | Bytes |
+|---|---|---|---:|
+| Bridge `supabase/functions/pandora-projectos-bridge/index.ts` | `383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83` | `2a056ec4997d7daeeed797a2eb89e9c75c25b8f3` | 39,055 |
+| Import map `supabase/functions/pandora-projectos-bridge/deno.json` | `5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b` | `a4c2351c4bc2d8f41937fe05690f6fd72f3ebbf7` | 119 |
+| Historical read-only marker `20260820113000_enable_projectos_evidence_candidate_write_scope.sql` | `9e48d386d445e0cda489893a7667968404fef8da7c64c22aaf6639aa047fc515` | `d236434d384914a5af0d73ff73745ad6bc1dd217` | 4,563 |
+| Atomic boundary `20260821160000_submit_projectos_evidence_candidate_atomic.sql` | `ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81` | `d83e77608c4e6c2dbd2fa59e9dd778c5852a8d1e` | 47,878 |
+| Sole scope activation `20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql` | `f40060e7bb5a7e79cbb8122369d1cd8da6d68f2b68bedbe298b6fbd888ae49c6` | `ee5debe1544a962aee33780a6567f81aad3a7611` | 22,970 |
+| Scope rollback `supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql` | `a9ab3376e1dca1b795c5a2d9184ae4626e4e30e554a3c70c6a829276da34d773` | `7933c37e47e96e60173d01afd8772b68a90b3809` | 15,011 |
 
-- Canonical repository: `banataosystems/pandoras-box-memory`
-- Canonical base head: `478105057c1ca5fb5b356750ba1fa1fb58b1f42c`
-- Canonical base tree: `fb4909bd962ddf32df3a63fbd46c136d7b3d9d88`
-- Atomic successor bridge raw SHA-256: `63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555`
-- Atomic successor bridge size: 34,998 bytes / 970 lines
-- Atomic successor bridge Git blob: `9adabe26f62205b0f94adc5744151c2d68c2c46e`
-- Live Edge Function: `pandora-projectos-bridge@15`, function ID `0e7e24e6-7cb7-46d0-b474-3d626898d7e6`, status `ACTIVE`
-- Live provider package SHA-256: `7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a`
-- Live provider source readback: 18,758 bytes, raw SHA-256 `7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf`
-- Recovered live source commit: `523fec111bfb2c327f69c2abdf0784775ab49a90`
-- Recovered live source Git blob: `07ebf082e15867faae27c74ce9c1074d466e7f08`
-- Recovered live source raw SHA-256: `7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf`
-- Recovered live import-map Git blob: `915cbeb478c0c52cc8be8f03cb307f4f72fed7d3`
-- Evidence-intake merge commit: `d0e689556cc01428500b796cade87032ea5c0ad8`
-- Canonical project key: `mcpmaster-pandoras-box`
-- Canonical Memory project UUID: `7c686cbd-d968-49d5-86cc-918f5e777bd2`
-- Production principal: `projectos-mcpmaster-production`
-- Exact test candidate hash: `0fcacb20c0ff46ca224ca1769098ac3db14bb83d9bb264b755c23a58f2382e78`
-- Partial candidate/review rows before repair: zero
-- Hosted historical activation ledger row: version `20260820150902`, name `20260820113000_enable_projectos_evidence_candidate_write_scope`, one statement
-- Live runtime state after the historical transaction-only rollback: exact scopes `memory:health` and `memory:read`; the historical ledger row remains intact
-- Governed activation task: `banataosystems/pandoras-box-memory#56`, activation ID `memory-evidence-candidate-bridge-prod-activation-20260821`
-- Memory Vercel production deployment: `dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk`, project `prj_brg3BJDcHfSftHH84NhnFtDJAnDO`, state `READY`, exact Git SHA `478105057c1ca5fb5b356750ba1fa1fb58b1f42c`
+The Edge runtime type import is pinned to
+`jsr:@supabase/functions-js@2.110.9/edge-runtime.d.ts`; the Supabase client is
+pinned to `npm:@supabase/supabase-js@2.110.9`; JOSE is pinned to
+`npm:jose@5.10.0`. No floating bridge dependency is claimed.
 
-PR #52 supplied the activation migration, database rollback, source tests, and one review-only approval reproduced by PR #53. The focused parity candidate must still pass exact-head CI and receive a qualified review bound to its own final head. PRs #34, #48, and #51 are separate, non-selected lanes and must not be mixed into this repair.
+## Repair contract
 
-## Source-only repair
+The historical `20260820113000` source migration is deliberately read-only: it
+does not widen the scope constraint, grant `memory:write`, or synthesize an
+activation audit. The `20260821160000` migration installs the service-role-only
+transactional RPC, exact-key index, reserved-row provenance triggers, immutable
+governance-audit triggers, exhaustive ACL reset, and durable privacy boundary
+while the principal remains read-only. The `20260821163000` migration is the
+sole truthful read-to-write transition and requires an exact successor
+authorization plus exact owner/ACL/index/trigger/principal/project/grant/hash
+readback.
 
-1. Historical migration `supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql`
-   - Fails closed on principal, namespace, project, environment, and grant drift.
-   - Permits only `memory:health`, `memory:read`, and review-gated `memory:write`.
-   - Adds no project, grant, namespace, approval permission, candidate, review decision, or canonical Memory row.
-   - Refuses activation if any additional active proposal grant exists.
-   - Its hosted ledger row is preserved as truthful evidence of the earlier apply/readback/rollback proof; it must not be repaired, deleted, renamed, or replayed for production activation.
-2. Atomic lifecycle migration `supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql`
-   - Creates the service-role-only RPC that writes candidate, append-only pending review, and immutable metadata-only audit in one transaction.
-   - SHA-256 `22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908`; Git blob `2cd3fa2e63cad104b1efcd1af84ca310d1a17c68`.
-   - Adds no write scope and is inert while the production principal remains read-only.
-3. Forward migration `supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql`
-   - Has a unique source identity, checks the exact hosted historical ledger row, and requires the exact rolled-back scope constraint before changing it.
-   - Refuses scope activation unless the atomic RPC, service-role-only privilege boundary, exact `record_id` audit index, and immutable-audit trigger already exist.
-   - Fails closed on principal, namespace, project, environment, grant, additional proposal grants, any other write-scoped principal, prior activation audit, and constraint drift.
-   - Expands only the scope allowlist, assigns `memory:write` only to the exact ProjectOS production principal, and proves the postcondition is exactly one write-scoped principal.
-   - Inserts and reads back a same-transaction `public.audit_logs` row bound to the server-derived principal user, `real_life`, issue #56, activation ID, prior ledger migration, exact bridge/import-map hashes, and `review_required=true`.
-   - Records no candidate content, direct identifier, secret, approval, or canonical Memory mutation.
-   - Also accepts the exact clean-replay ledger/constraint state produced when the historical migration is applied from source; no other baseline is accepted.
-4. Historical proof rollback `supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql`
-   - Removes only `memory:write`.
-   - Restores the previous scope constraint.
-   - Preserves health/read and the existing project/grant records.
-5. Forward-activation rollback `supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql`
-   - Requires the exact activated scopes, constraint, principal, project, grant, sole write-scoped principal, and activation audit.
-   - Removes only `memory:write`, restores the exact read-only constraint, preserves the activation audit and pending candidates, and appends a separate rollback audit in the same transaction.
-6. Static/behavior check `scripts/check_memory_evidence_activation.mjs`.
-7. CI path and execution binding in `.github/workflows/memory-evidence-intake.yml`.
-8. Exact provider/source/forward-recovery binding in `docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json`.
-9. Fail-closed parity and rollback regression in `scripts/check_memory_bridge_repair_candidate.mjs`.
-10. Literal-secret scanner fix in `scripts/check_no_literal_secrets.sh`: `grep` options now terminate before option-like patterns such as the private-key signature.
+The RPC creates exactly one candidate, one `pending_review` item, and one
+immutable audit in the same transaction. It rejects forged pre-seeds, changed
+idempotent content, direct reserved writes, mutation/truncation, percent,
+HTML/numeric-entity, Unicode/hex-escape, and zero-width obfuscation; recursive
+whole, embedded, whitespace/punctuation-split base64/data-URL payloads; bounded
+person-name, labelled birth-date/phone/government/financial identifier corpora;
+and secrets/credentials. Three exact safe technical phrases remain usable. It
+never writes canonical Memory.
 
-Prepared source artifact SHA-256 values:
+Predecessor activation/deactivation audits are preserved as untrusted history
+because hosted records may already exist. They are made prospectively immutable
+and are never consulted for deduplication, successor authorization, or successor
+activation. Any pre-existing row claiming the successor activation or rollback
+ID blocks boundary installation for explicit reconciliation.
 
-- Migration: `04cf14864a2f53e9d577281ad01002a95688608f53eac5290133ad14578653ea`
-- Rollback: `bd8250f19ba32640d5211727ec9bf6d9d31c594c97adb8b3549cc48dd85af779`
-- Atomic migration: `22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908`
-- Forward migration: `8eda6e1a4a57bbb6c545eac3fe3b075aa3f5b14279e91da4a41c96fe924c85ab`
-- Forward rollback: `2a5c33a8e5108d0082d5f6241a8112770873ee1865c15ba489bc89810bec0955`
-- Activation check: `2dc77e86c53a6c87ec115c0af3d9b71b930d6e5692dfa4c03731e09950f458bf`
-- Workflow: `2ded433a96bb4e771e729c4bebb77803d7d8d88709e6b96f89c5c5eb08c5e534`
-- Exact-source evidence: `59012a8d60b68fdb9ab39c7a03e883a282a7a986a2a3aeda46b2225b5d729134`
-- Exact-source/atomic verifier: `474e3cc2ddab0ed303ff96377abb4c43dbf17101fecdd12118012e2d3a3b34ac`
-- Atomic-successor evidence: `d2738b02fcd0c751af7a0a544fce87cad2a20bac85419eddd493ee5e12c12e53`
-- Atomic PostgreSQL runner: `8b05551c40635ffd8faa7d5a62270e5a6f2586a3b81d7601e2d3f348d2dcebf3`
-- Atomic-successor manifest: `adaea13825c4dfbab066d5d85b66997a4088724a0310d21fbdbb36dcec384353`
-- Literal-secret scanner: `a8705ad3259ce1a6a49ebe1fb5f679ce8d4fae30285ef8871b6d60c8e6e015dd`
-- Behavior regression: `a42d6bccc6427841ec1d588469d1cac1f0ab5562c429bbfc3d7bda40dfca5a64`
+## Evidence-artifact bindings
 
-## Production activation gate
+| Evidence/check artifact | SHA-256 |
+|---|---|
+| `scripts/check_memory_evidence_activation.mjs` | `bfa883a77fc95d86e8fd2aab4cc366e86c114ea8bafd212dbc6cbbdbb31f8892` |
+| `.github/workflows/memory-evidence-intake.yml` | `d18efe0fedc89d25b9fd421f034bd51701e587fcbb64b430178276236a2254f5` |
+| `docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json` | `ca768a497f758a147960e9ee943bbff84f5e1d8cbc99c912b85d1b20b6ac2f8f` |
+| `scripts/check_memory_bridge_repair_candidate.mjs` | `a59a9d08b069ad4f1a0486d3e213ba17169c93d6cf9c8c00bb6c8d17c5453cc6` |
+| `docs/capabilities/evidence/MEMORY_BRIDGE_ATOMIC_INTAKE_SUCCESSOR_CANDIDATE_2026-08-21.json` | `d10307f30e8e0c96b2c4b6d1dd0e437d34d617bfab27e4bf871cf0bd74c71e67` |
+| `scripts/test_memory_evidence_atomic_rpc.sh` | `c3897e58f1a6c775bae0f56ab8ee9cf701021eb6d4829bc7eed67c10988ac30d` |
+| `recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md` | `ca0861a64a6fdcdc9484fcf66840fe0fda674724b2a99af86d2e3027e666bac4` |
 
-Production activation requires all of the following:
+## Hard release gates
 
-1. Exact-head CI success for the repair PR, including existing evidence-intake behavior, secret scan, dependency audit, typecheck, build, and activation/rollback checks.
-2. Different qualified reviewer approval bound to the exact repair head.
-3. Transaction-only apply/readback/rollback proof against the live Memory database, with zero persistent state change.
-4. Obtain fresh owner authorization because issue #56 binds the superseded PR #55 bridge and does not approve the atomic successor.
-5. Re-read live bridge version/hash and principal/project/grant state immediately before execution.
-6. Apply `supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql` first and verify the RPC, exact-key immutable audit index/trigger, and service-role-only execute boundary while the principal remains read-only.
-7. Apply `supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql` second. Read back its new hosted ledger row, exact scopes/constraint/grant, sole write-scoped principal, and activation audit bound to the atomic migration and successor bridge. The old live bridge remains fail-closed during this temporary scope-only interval.
-8. Deploy only successor bridge blob `9adabe26f62205b0f94adc5744151c2d68c2c46e` / SHA-256 `63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555` with import-map blob `915cbeb478c0c52cc8be8f03cb307f4f72fed7d3`. Read back the provider-assigned version, package hash, raw files, configuration, and health/search behavior; do not predict the provider version or package hash.
-9. Submit the Systems Mastery candidate exactly once. Verify one pending candidate plus one pending-review item and immutable audit, idempotency binding, privacy metadata, and `canonical_memory_written=false`.
-10. Observe the public route and Memory health; do not infer success from deployment status alone.
+Migration parity remains RED: 69 hosted versions, 19 successor source versions,
+15 matches, 54 hosted-only, and four local-only. No hosted migration-history
+mutation is authorized. Release remains blocked until all of the following are
+bound to the same final head/tree:
 
-No automatic canonical Memory promotion is authorized. Candidate approval/persistence remains a separate authenticated human-review action.
+1. exact-head PostgreSQL, Deno, source/behavior, secret, dependency, typecheck,
+   and build CI success under the unique `memory-evidence-intake` job;
+2. fresh independent qualified review with no unresolved blocker;
+3. fresh exact-artifact owner authorization distinct from issue #56;
+4. hosted/local migration reconciliation and a transaction-only nonproduction
+   rehearsal with exact rollback/readback;
+5. fresh provider-native readback immediately before any separately authorized
+   execution; and
+6. rehearsed content-addressed v15 restoration plus qualified scope rollback.
 
-## Rollback gate and order
+## Separately authorized activation order
 
-Supabase does not provide a native version rollback for this deployment path. The current live v15 bytes are content-addressed and exactly recoverable, but restoration has not been rehearsed and is not qualified for automatic rollback.
+Only after every hard gate:
 
-1. Redeploy the recovered live bridge source from commit `523fec111bfb2c327f69c2abdf0784775ab49a90` as a new function version and verify the raw provider files match blob `07ebf082e15867faae27c74ce9c1074d466e7f08` / SHA-256 `7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf`.
-2. Run `supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql` exactly once and read back its rollback audit. Do not delete or repair the historical or forward migration ledger rows.
-3. Verify exact principal scopes are `memory:health` and `memory:read` only.
-4. Verify the canonical project and proposal grant are unchanged.
-5. Verify Memory health/search remain functional and evidence submission fails closed.
-6. Preserve any pending review-gated candidate created before rollback; do not promote, overwrite, or delete it automatically.
+1. Apply `supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql` first and read back the exact owner, ACL, index, triggers, and read-only scopes.
+2. Insert/read back the immutable exact successor authorization bound to the final head/tree, review, and artifact hashes.
+3. Apply `supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql` second and read back the sole truthful activation and exact write-scoped principal.
+4. Deploy/read back only bridge SHA-256 `383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83` with the exact import map.
+5. Submit at most the separately authorized governed candidate and verify one pending candidate, one pending review item, one immutable audit, and `canonical_memory_written=false`.
 
-## Authorization boundary
+No automatic canonical Memory promotion is authorized.
 
-This manifest does not itself authorize merge, production migration, Edge Function deployment, Vercel production effects, candidate retry, review approval, or canonical promotion. Issue #56 authorizes only the superseded predecessor artifact; the exact atomic successor is unapproved. Execution remains blocked until fresh owner authorization binds the exact final head/artifacts and that head passes migration parity, exact-head CI, qualified independent review, non-production migration proof, fresh provider preflight, and recovery checks. The governed Systems Mastery candidate with idempotency key `master-pandora-systems-v1-installed-20260821` may be resubmitted and read back only after the separately governed bridge activation passes provider source-parity verification.
+## Rollback order
+
+1. Restore the content-addressed live v15 source and verify exact raw files.
+2. Run the successor scope rollback exactly once; preserve activation and pending-candidate history.
+3. Verify only `memory:health` and `memory:read`, health/search continuity, and fail-closed evidence submission.
+
+PXE-0008 remains **FAIL/HOLD**. This manifest does not close it.

@@ -60,6 +60,7 @@ const context = vm.createContext({
   Set,
   console,
   crypto: globalThis.crypto,
+  atob,
 });
 vm.runInContext(transpiled.outputText, context);
 const submitEvidenceCandidate = context.__submitEvidenceCandidate;
@@ -383,24 +384,107 @@ async function json(response) {
 {
   const attacks = [
     [validBody(undefined, { summary: "contact +63 917 123 4567" }), "direct_identifier_phone"],
+    [validBody(undefined, { summary: "Phone: 4155552671" }), "direct_identifier_phone"],
+    [validBody(undefined, { summary: "Phone number: +14155552671" }), "direct_identifier_phone"],
+    [validBody(undefined, { summary: "Telephone: 4155552671" }), "direct_identifier_phone"],
     [validBody(undefined, { summary: "name: Jane Doe" }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Jane Doe" }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "JANE DOE" }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "José García" }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Jane Doe completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Reviewed Jane Doe output." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Met Jane Doe yesterday." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Evidence owner is Jane Doe." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "MARY ANN SMITH completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "José García completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Jane Q. Doe completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "J. Doe completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Candidate J Doe supplied evidence." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Jane O'Connor completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "José de la Cruz completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Juan dela Cruz completed validation." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Candidate Jane Doe supplied evidence." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Candidate JANE DOE supplied evidence." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Contact JUAN DELA CRUZ for proof." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Candidate Atomic Jane Doe supplied evidence." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Atomic Jane Doe" }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Contact Memory Jane Doe for proof." }), "direct_identifier_name"],
+    [validBody(undefined, { summary: "Born 1990-01-31" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "Candidate DOB is 1990-01-31." }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "DOB: 31/01/1990" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "DOB is 01-31-1990" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "Born January 31, 1990" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "Birth date: 1990-01-31" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "Birthdate: 1990-01-31" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "Birthday: January 31, 1990" }), "direct_identifier_birth_date"],
+    [validBody(undefined, { summary: "Born on 1990-01-31" }), "direct_identifier_birth_date"],
     [validBody(undefined, { summary: "office 123 Rizal Street, Makati" }), "direct_identifier_address"],
+    [validBody(undefined, { summary: "Passport number: P1234567" }), "direct_identifier_government"],
+    [validBody(undefined, { summary: "Card number: 4111111111111111" }), "direct_identifier_financial"],
+    [validBody(undefined, { summary: "Bank account: 123456789012" }), "direct_identifier_financial"],
     [validBody(undefined, { claim: "password=hunter2-super-secret" }), "secret_assignment"],
+    [validBody(undefined, { claim: "password: redacted" }), "secret_assignment"],
+    [validBody(undefined, { claim: "password=masked" }), "secret_assignment"],
+    [validBody(undefined, { claim: "password: none" }), "secret_assignment"],
+    [validBody(undefined, { claim: "password: true" }), "secret_assignment"],
+    [validBody(undefined, { claim: "pin=1234" }), "secret_assignment"],
+    [validBody(undefined, { claim: "cGFzc3dvcmQ9aHVudGVyMi1zdXBlci1zZWNyZXQ=" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "SmFuZSBEb2U=" }), "base64_direct_identifier_name"],
+    [validBody(undefined, { claim: "Sm9obiBTbWl0aA==" }), "base64_direct_identifier_name"],
+    [validBody(undefined, { claim: "data:text/plain;base64,cGFzc3dvcmQ9aHVudGVyMi1zdXBlci1zZWNyZXQ=" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "Encoded credential: cGFzc3dvcmQ9aHVudGVyMi1zdXBlci1zZWNyZXQ=" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "'cGFzc3dvcmQ9aHVudGVyMi1zdXBlci1zZWNyZXQ='" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "base64:cGFzc3dvcmQ9aHVudGVyMi1zdXBlci1zZWNyZXQ=" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "c G F z c 3 d v c m Q 9 a H V u d G V y M i 1 z d X B l c i 1 z Z W N y Z X Q =" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "cG Fz c3 dv cm Q9 aH Vu dG Vy Mi 1z dX Bl ci 1z ZW Ny ZX Q=" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "cGF zc3 dvc mQ9 aHV udG VyM i1z dXB lci 1zZ WNy ZXQ =" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "cGFz,c3dv,cmQ9,aHVu,dGVy,Mg==" }), "base64_secret_assignment"],
+    [validBody(undefined, { claim: "glpat-abcdefghijklmnopqrst" }), "credential_signature"],
+    [validBody(undefined, { claim: "xoxb-" + "123456789012-123456789012-abcdefghijklmnopqrstuvwx" }), "credential_signature"],
+    [validBody(undefined, { claim: "sk-" + "proj-abcdefghijklmnopqrstuvwxyz1234567890" }), "credential_signature"],
+    [validBody(undefined, { claim: "Authorization: Bearer abcdefghijklmnopqrstuvwxyz123456" }), "credential_signature"],
+    [validBody(undefined, { claim: "Authorization: Basic abcdefghijklmnopqrstuvwxyz123456" }), "credential_signature"],
     [validBody(undefined, { claim: "AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" }), "secret_assignment"],
     [validBody(undefined, { claim: "AKIA" + "IOSFODNN7EXAMPLE" }), "cloud_credential_signature"],
     [validBody(undefined, { claim: "-----BEGIN " + "PRIVATE KEY-----" }), "private_key_material"],
-    [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner%40example.com" } }), "direct_identifier_email"],
+    [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner%40example.com" } }), "percent_encoded_text"],
     [validBody(undefined, { provenance: { ...validBody().provenance, source_locator: "owner＠example.com" } }), "direct_identifier_email"],
-    [validBody(undefined, { evidence_refs: [{ type: "github_source", ref: "phone%3A%20%2B63%20917%20123%204567" }] }), "direct_identifier_phone"],
+    [validBody(undefined, { evidence_refs: [{ type: "github_source", ref: "phone%3A%20%2B63%20917%20123%204567" }] }), "percent_encoded_text"],
+    [validBody(undefined, { evidence_refs: [{ type: "github_source", ref: "https://example.test/a%20b" }] }), "percent_encoded_text"],
   ];
   for (const [body, reason] of attacks) {
     const db = new FakeAdmin();
     const response = await json(await submitEvidenceCandidate(body, principal, db));
-    assert.equal(response.status, 400);
+    assert.equal(
+      response.status,
+      400,
+      `${reason} attack reached DB: ${JSON.stringify(body)}`,
+    );
     assert.equal(response.body.error, "sensitive_candidate_rejected");
-    assert.equal(response.body.reason, reason);
+    assert.equal(
+      response.body.reason,
+      reason,
+      `privacy reason drift for ${JSON.stringify(body)}`,
+    );
     assert.equal(db.calls.length, 0, `${reason} must fail before DB I/O`);
   }
+}
+
+// Capitalized project and artifact names are not person identifiers. Keep a
+// small operational corpus so the fail-closed name boundary does not make the
+// ProjectOS evidence path unusable for its intended technical metadata.
+for (const body of [
+  validBody(undefined, { title: "Atomic Migration" }),
+  validBody(undefined, { claim: "Systems Mastery" }),
+  validBody(undefined, { summary: "Candidate Atomic Migration passed." }),
+]) {
+  const db = new FakeAdmin();
+  const response = await json(await submitEvidenceCandidate(body, principal, db));
+  assert.equal(response.status, 202, `safe artifact name rejected: ${JSON.stringify(body)}`);
+  assert.ok(
+    db.calls.includes("rpc:submit_projectos_evidence_candidate_atomic"),
+    "safe artifact name must reach the atomic RPC",
+  );
 }
 
 {

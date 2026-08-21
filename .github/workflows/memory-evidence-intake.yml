@@ -3,27 +3,6 @@ name: Memory evidence intake contract
 on:
   workflow_dispatch:
   pull_request:
-    paths:
-      - 'app/api/projectos/memory/evidence-candidates/**'
-      - 'supabase/functions/pandora-projectos-bridge/**'
-      - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
-      - 'supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql'
-      - 'supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql'
-      - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
-      - 'supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql'
-      - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
-      - 'recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md'
-      - 'docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json'
-      - 'docs/capabilities/evidence/MEMORY_BRIDGE_ATOMIC_INTAKE_SUCCESSOR_CANDIDATE_2026-08-21.json'
-      - 'scripts/check_memory_evidence_intake.mjs'
-      - 'scripts/check_memory_evidence_activation.mjs'
-      - 'scripts/check_memory_bridge_repair_candidate.mjs'
-      - 'scripts/check_no_literal_secrets.sh'
-      - 'scripts/test_memory_evidence_intake_behavior.mjs'
-      - 'scripts/test_memory_evidence_atomic_rpc.sh'
-      - 'scripts/fixtures/memory_evidence_atomic_rpc_schema.sql'
-      - 'scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql'
-      - '.github/workflows/memory-evidence-intake.yml'
   push:
     branches:
       - feature/projectos-memory-evidence-intake
@@ -49,6 +28,7 @@ on:
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
       - 'scripts/test_memory_evidence_atomic_rpc.sh'
       - 'scripts/fixtures/memory_evidence_atomic_rpc_schema.sql'
+      - 'scripts/fixtures/memory_evidence_atomic_rpc_authorization.sql'
       - 'scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql'
       - '.github/workflows/memory-evidence-intake.yml'
 
@@ -57,6 +37,7 @@ permissions:
 
 jobs:
   verify:
+    name: memory-evidence-intake
     runs-on: ubuntu-latest
     timeout-minutes: 20
     services:
@@ -73,6 +54,7 @@ jobs:
           --health-retries 12
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      MEMORY_ATOMIC_TEST_ALLOW_DISPOSABLE_DATABASE: '1'
     steps:
       - name: Check out exact source
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -83,6 +65,11 @@ jobs:
 
       - name: Verify exact source checkout
         run: test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+      - name: Set up exact Deno runtime
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.4.3
 
       - name: Set up Node 24
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -102,6 +89,12 @@ jobs:
 
       - name: Verify governed evidence source contract
         run: node scripts/check_memory_evidence_intake.mjs
+
+      - name: Check complete Edge Function module
+        run: >-
+          deno check
+          --config supabase/functions/pandora-projectos-bridge/deno.json
+          supabase/functions/pandora-projectos-bridge/index.ts
 
       - name: Verify activation and rollback contract
         run: node scripts/check_memory_evidence_activation.mjs

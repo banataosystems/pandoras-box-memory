@@ -23,6 +23,8 @@ const atomicSuccessorEvidencePath =
 const atomicRpcTestPath = "scripts/test_memory_evidence_atomic_rpc.sh";
 const atomicRpcSchemaPath =
   "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql";
+const atomicRpcAuthorizationPath =
+  "scripts/fixtures/memory_evidence_atomic_rpc_authorization.sql";
 const atomicRpcAssertionsPath =
   "scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql";
 const bridgeCandidateCheckPath =
@@ -81,16 +83,29 @@ for (const [name, source] of [
 }
 
 for (const marker of [
-  "drop constraint if exists pandora_service_principals_scopes_check",
-  "add constraint pandora_service_principals_scopes_check",
-  "'memory:health'::text",
-  "'memory:read'::text",
-  "'memory:write'::text",
-  "set scopes = array['memory:health', 'memory:read', 'memory:write']::text[]",
-  "review-gated candidate proposal only",
+  "Superseded ProjectOS evidence-candidate activation",
+  "deliberately fail-closed",
+  "exact read-only principal drift",
+  "read-only constraint drift",
+  "write scope already present",
+  "Legacy ProjectOS evidence activation is superseded and remains read-only",
 ]) {
   assert.ok(migration.includes(marker), `migration marker missing: ${marker}`);
 }
+assert.ok(
+  !/alter\s+table\s+public\.pandora_service_principals[\s\S]*add\s+constraint[\s\S]*memory:write/i.test(
+    migration,
+  ),
+  "historical migration must not widen the scope constraint",
+);
+assert.ok(
+  !/update\s+public\.pandora_service_principals/i.test(migration),
+  "historical migration must not grant write",
+);
+assert.ok(
+  !/insert\s+into\s+public\.audit_logs/i.test(migration),
+  "historical migration must not synthesize activation evidence",
+);
 
 for (const marker of [
   "set scopes = array_remove(scopes, 'memory:write'::text)",
@@ -105,21 +120,25 @@ assert.ok(!rollback.includes("set scopes = array['memory:health', 'memory:read',
 for (const marker of [
   "20260820150902",
   "20260820113000_enable_projectos_evidence_candidate_write_scope",
-  "hosted_rolled_back",
-  "clean_replay_active",
-  "rolled-back scope constraint definition drift",
-  "another principal has write scope",
-  "atomic RPC migration missing",
+  "historical ledger drift",
+  "exact read-only principal drift",
+  "write scope already present",
+  "atomic RPC missing",
   "atomic RPC privilege drift",
+  "atomic RPC ACL drift",
+  "DB boundary owner drift",
   "atomic audit index drift",
-  "atomic audit trigger drift",
+  "immutable audit trigger drift",
+  "reserved-row trigger drift",
+  "workload table privilege drift",
   "20260821160000_submit_projectos_evidence_candidate_atomic",
-  "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
   "insert into public.audit_logs",
-  "memory-evidence-candidate-bridge-prod-activation-20260821",
-  "banataosystems/pandoras-box-memory#56",
-  "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
-  "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
+  "memory-evidence-atomic-successor-prod-activation-20260821",
+  "memory-evidence-atomic-successor-exact-artifact-authorization",
+  "issue_56_predecessor_only",
+  "issue_56_authorizes_successor",
+  "historical_migration_superseded_read_only",
+  "transition', 'read_to_write",
   "'review_required', true",
   "'canonical_memory_written', false",
 ]) {
@@ -148,6 +167,16 @@ assert.ok(
   atomicMigrationPath.localeCompare(forwardMigrationPath) < 0,
   "migration filenames must apply the atomic RPC before scope activation",
 );
+assert.ok(
+  migrationPath.localeCompare(atomicMigrationPath) < 0,
+  "historical read-only marker must replay before the atomic RPC",
+);
+assert.ok(forwardMigration.includes(sha256(atomicMigrationPath)));
+assert.ok(
+  forwardMigration.includes(
+    bridgeCandidateEvidence.target_deployment.source.index_raw_sha256,
+  ),
+);
 
 for (const marker of [
   "Restore and verify the recovered live bridge source",
@@ -156,12 +185,12 @@ for (const marker of [
   "activated scope constraint drift",
   "write scope escaped target principal",
   "insert into public.audit_logs",
-  "memory-evidence-candidate-bridge-prod-rollback-20260821",
-  "memory-evidence-candidate-bridge-prod-activation-20260821",
+  "memory-evidence-atomic-successor-prod-rollback-20260821",
+  "memory-evidence-atomic-successor-prod-activation-20260821",
+  "memory-evidence-atomic-successor-exact-artifact-authorization",
+  "issue_56_authorizes_successor",
   "20260821160000_submit_projectos_evidence_candidate_atomic",
-  "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
   "20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope",
-  "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
   "preserve_pending_candidates",
   "canonical_memory_deleted",
 ]) {
@@ -172,6 +201,12 @@ for (const marker of [
 }
 assert.ok(!/delete\s+from\s+public\.audit_logs/i.test(forwardRollback));
 assert.ok(!/delete\s+from\s+public\.memory_/i.test(forwardRollback));
+assert.ok(forwardRollback.includes(sha256(atomicMigrationPath)));
+assert.ok(
+  forwardRollback.includes(
+    bridgeCandidateEvidence.target_deployment.source.index_raw_sha256,
+  ),
+);
 assert.ok(
   !forwardRollback.includes(
     "20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope",
@@ -184,6 +219,12 @@ for (const marker of [
   "submit_projectos_evidence_candidate_atomic",
   "projectos_evidence_candidate_atomic_created",
   "prevent_projectos_evidence_intake_audit_mutation",
+  "protect_projectos_evidence_reserved_rows",
+  "projectos_evidence_privacy_base64_reason",
+  "projectos_evidence_privacy_rejection_reason",
+  "projectos_evidence_iso_timestamp_valid",
+  "revoke truncate, trigger",
+  "atomic_rpc_acl_reset",
   "insert into public.memory_capture_candidates",
   "insert into public.memory_review_queue_items",
   "insert into public.audit_logs",
@@ -239,6 +280,7 @@ for (const path of [
   atomicSuccessorEvidencePath,
   atomicRpcTestPath,
   atomicRpcSchemaPath,
+  atomicRpcAuthorizationPath,
   atomicRpcAssertionsPath,
   bridgeCandidateCheckPath,
   secretCheckPath,
@@ -247,6 +289,9 @@ for (const path of [
 }
 assert.ok(workflow.includes("node scripts/check_memory_evidence_activation.mjs"));
 assert.ok(workflow.includes("node scripts/check_memory_bridge_repair_candidate.mjs --self-test"));
+assert.ok(workflow.includes("name: memory-evidence-intake"));
+assert.ok(workflow.includes("MEMORY_ATOMIC_TEST_ALLOW_DISPOSABLE_DATABASE: '1'"));
+assert.ok(workflow.includes("deno check"));
 
 const targetSource = bridgeCandidateEvidence.target_deployment.source;
 const atomicSource = atomicSuccessorEvidence.candidate_source;
@@ -285,15 +330,15 @@ for (const [artifact, path] of [
 for (const marker of [
   "ATOMIC SUCCESSOR / BLOCKED",
   "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
-  "9adabe26f62205b0f94adc5744151c2d68c2c46e",
-  "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
+  bridgeCandidateEvidence.target_deployment.source.index_blob_sha1,
+  bridgeCandidateEvidence.target_deployment.source.index_raw_sha256,
   "pandora-projectos-bridge@15",
   "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a",
   "07ebf082e15867faae27c74ce9c1074d466e7f08",
   "dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk",
   "0fcacb20c0ff46ca224ca1769098ac3db14bb83d9bb264b755c23a58f2382e78",
   "No automatic canonical Memory promotion",
-  "memory-evidence-candidate-bridge-prod-activation-20260821",
+  "memory-evidence-atomic-successor-prod-activation-20260821",
   "banataosystems/pandoras-box-memory#56",
   "Issue #56 does not authorize this successor",
 ]) {

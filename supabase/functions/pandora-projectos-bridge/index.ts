@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js@2.110.9/edge-runtime.d.ts";
+import { createClient } from "@supabase/supabase-js";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5.10.0";
 
 const PRINCIPAL_KEY = "projectos-mcpmaster-production";
@@ -541,10 +541,11 @@ const evidenceIsoTimestamp = (value: unknown): string | null => {
   return Number.isFinite(parsed) ? normalized : null;
 };
 
-const EVIDENCE_PRIVACY_SCAN_VERSION = "evidence_privacy_v2";
+const EVIDENCE_PRIVACY_SCAN_VERSION = "evidence_privacy_v3";
 const EVIDENCE_PRIVACY_TEXT_LIMIT = 20_000;
+const EVIDENCE_SAFE_ARTIFACT_NAME_PATTERN = /^(?:Atomic Migration|Systems Mastery|Candidate Atomic Migration passed\.)$/;
 const EVIDENCE_SECRET_FIELD_PATTERN = /^(?:password|passwd|passphrase|pwd|pin|secret|client_secret|secret_key|secret_access_key|aws_secret_access_key|aws_access_key_id|access_key_id|api_key|access_token|refresh_token|service_role|private_key|accountkey|sharedaccesssignature)$/i;
-const EVIDENCE_DIRECT_IDENTIFIER_FIELD_PATTERN = /^(?:phone|phone_number|mobile|mobile_number|telephone|address|street_address|home_address|mailing_address|full_name|first_name|last_name|given_name|family_name|ssn|social_security_number|passport|passport_number|tax_id|bank_account|iban|card_number)$/i;
+const EVIDENCE_DIRECT_IDENTIFIER_FIELD_PATTERN = /^(?:phone|phone_number|mobile|mobile_number|telephone|address|street_address|home_address|mailing_address|full_name|first_name|last_name|given_name|family_name|date_of_birth|birth_date|dob|ssn|social_security_number|passport|passport_number|tax_id|bank_account|iban|card_number)$/i;
 
 const normalizeEvidencePrivacyKey = (value: string): string =>
   value
@@ -587,23 +588,88 @@ const decodeEvidencePrivacyText = (value: string): string => {
   return text.slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT);
 };
 
-const evidencePrivacyTextReason = (value: string): string | null => {
+const decodeEvidencePrivacyBase64 = (value: string): string[] => {
+  const text = decodeEvidencePrivacyText(value).trim();
+  const candidates: string[] = [];
+  const dataUrl = text.match(
+    /^data:[^,]{0,128};base64,([A-Za-z0-9+/_=-]{8,})$/i,
+  );
+  if (dataUrl) candidates.push(dataUrl[1]);
+  if (/^[A-Za-z0-9+/_-]{8,}={0,2}$/.test(text)) candidates.push(text);
+  for (const match of text.matchAll(/[A-Za-z0-9+/_-]{8,}={0,2}/g)) {
+    candidates.push(match[0]);
+  }
+  for (const match of text.matchAll(
+    /(?:[A-Za-z0-9+/_-][\t\r\n ,.;|]*){8,}={0,2}/g,
+  )) {
+    candidates.push(match[0].replace(/[\s,.;|]+/g, ""));
+  }
+
+  const decoded: string[] = [];
+  for (const candidate of new Set(candidates)) {
+    const standard = candidate.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = standard + "=".repeat((4 - (standard.length % 4)) % 4);
+    try {
+      const result = atob(padded).slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT);
+      const printable = Array.from(result).filter((character) => {
+        const code = character.charCodeAt(0);
+        return code === 9 || code === 10 || code === 13 || code >= 32;
+      }).length;
+      if (result && printable / result.length >= 0.8) decoded.push(result);
+    } catch {
+      // Invalid base64 is not privacy evidence; structural validation handles it.
+    }
+  }
+  return decoded;
+};
+
+const evidencePrivacyTextReason = (
+  value: string,
+  decodeDepth = 0,
+): string | null => {
+  const normalized = value
+    .slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT)
+    .normalize("NFKC");
+  if (/[\u200B-\u200F\u2060\uFEFF]/u.test(normalized)) {
+    return "obfuscated_text";
+  }
+  if (/%[0-9a-f]{2}/i.test(normalized)) return "percent_encoded_text";
+  if (/\\u\{?[0-9a-f]{4,6}\}?|\\x[0-9a-f]{2}|&#x[0-9a-f]{2,6};?|&#[0-9]{2,7};?|&commat;|&colon;/i.test(normalized)) {
+    return "encoded_escape_text";
+  }
   const text = decodeEvidencePrivacyText(value);
+  if (EVIDENCE_SAFE_ARTIFACT_NAME_PATTERN.test(text.trim())) return null;
+  if (decodeDepth < 2) {
+    for (const decoded of decodeEvidencePrivacyBase64(text)) {
+      const reason = evidencePrivacyTextReason(decoded, decodeDepth + 1);
+      if (reason) return `base64_${reason}`;
+    }
+  }
   const checks: Array<[RegExp, string]> = [
     [/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, "direct_identifier_email"],
     [/(?:\+\d{1,3}[\s().-]*)?(?:\(?\d{2,4}\)?[\s.-]+)\d{3,4}[\s.-]+\d{3,4}\b/, "direct_identifier_phone"],
     [/\b(?:\+?63|0)9\d{9}\b/, "direct_identifier_phone"],
-    [/\b(?:full[ _-]?name|first[ _-]?name|last[ _-]?name|given[ _-]?name|family[ _-]?name|name)\s*[:=]\s*["']?[A-Z][A-Z .'-]{2,80}/i, "direct_identifier_name"],
+    [/\b(?:phone(?:[ _-]?number)?|telephone|mobile(?:[ _-]?number)?)\s*[:=]\s*\+?[0-9][0-9 ()-]{7,20}\b/i, "direct_identifier_phone"],
+    [/\b(?:born(?:\s+on)?|date[ _-]?of[ _-]?birth|birth[ _-]?date|birthday|dob)\s*(?:is\s+|[:= -]*)(?:[12]\d{3}[-/.][0-3]?\d[-/.][0-3]?\d|[0-3]?\d[-/.][0-3]?\d[-/.][12]\d{3}|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+[0-3]?\d,?\s+[12]\d{3})\b/i, "direct_identifier_birth_date"],
     [/\b(?:address|street[ _-]?address|home[ _-]?address|mailing[ _-]?address)\s*[:=]\s*[^,;\n]{5,160}/i, "direct_identifier_address"],
     [/\b\d{1,5}\s+[A-Z0-9.'-]+(?:\s+[A-Z0-9.'-]+){0,5}\s+(?:street|st|road|rd|avenue|ave|boulevard|blvd|drive|dr|lane|ln|court|ct|highway|hwy|barangay|brgy)\b/i, "direct_identifier_address"],
+    [/\b(?:passport(?:[ _-]?number)?|government[ _-]?id|national[ _-]?id|tax[ _-]?id|tin|ssn|umid|philhealth|pag[ _-]?ibig)\s*[:=]\s*["']?[A-Z0-9][A-Z0-9 -]{4,40}\b/i, "direct_identifier_government"],
+    [/\b(?:card[ _-]?number|credit[ _-]?card|debit[ _-]?card|bank[ _-]?account|account[ _-]?number|iban)\s*[:=]\s*["']?[A-Z0-9][A-Z0-9 -]{4,40}\b/i, "direct_identifier_financial"],
     [/\b\d{3}-\d{2}-\d{4}\b/, "direct_identifier_government"],
     [/\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/, "direct_identifier_financial"],
     [/-----BEGIN (?:[A-Z0-9 -]+ )?PRIVATE KEY-----/i, "private_key_material"],
     [/\b(?:AKIA|ASIA|AIDA|AROA|AIPA|ANPA|ANVA)[A-Z0-9]{16}\b/, "cloud_credential_signature"],
     [/\bAIza[0-9A-Za-z_-]{35}\b/, "cloud_credential_signature"],
-    [/\b(?:ghp|github_pat|glpat|sk|sbp|xox[baprs])_[A-Za-z0-9_-]{12,}\b/i, "credential_signature"],
+    [/\b(?:ghp|github_pat|glpat|sk|sbp|xox[baprs])[-_][A-Za-z0-9_-]{12,}\b/i, "credential_signature"],
+    [/\b(?:authorization\s*:\s*(?:bearer|basic)|bearer|basic|api[_ -]?token\s*[:=])\s+[A-Za-z0-9._~+/-]{16,}\b/i, "credential_signature"],
     [/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/, "jwt_signature"],
-    [/\b(?:password|passwd|passphrase|pwd|client[_ -]?secret|secret[_ -]?(?:key|access[_ -]?key)|aws[_ -]?(?:secret[_ -]?access[_ -]?key|access[_ -]?key[_ -]?id)|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|service[_ -]?role|private[_ -]?key|accountkey|sharedaccesssignature)\s*[:=]\s*["']?(?!(?:true|false|null|none|redacted|masked)\b)[^\s"',;}{]{4,}/i, "secret_assignment"],
+    [/\b(?:password|passwd|passphrase|pwd|pin|client[_ -]?secret|secret[_ -]?(?:key|access[_ -]?key)|aws[_ -]?(?:secret[_ -]?access[_ -]?key|access[_ -]?key[_ -]?id)|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|service[_ -]?role|private[_ -]?key|accountkey|sharedaccesssignature)\s*[:=]\s*["']?[^\s"',;}{]{4,}/i, "secret_assignment"],
+    [/\b(?:full[ _-]?name|first[ _-]?name|last[ _-]?name|given[ _-]?name|family[ _-]?name|name)\s*[:=]\s*["']?[A-Z][A-Z .'-]{2,80}/i, "direct_identifier_name"],
+    [/(?<![\p{L}\p{M}])\p{Lu}[\p{L}\p{M}]{1,30}(?:[ '-](?:\p{Lu}[\p{L}\p{M}]{1,30}|\p{Lu}\.?)){1,3}(?![\p{L}\p{M}])/u, "direct_identifier_name"],
+    [/(?<![\p{L}\p{M}])\p{Lu}\.?(?:[ '-]\p{Lu}\.?){0,2}[ '-]\p{Lu}[\p{L}\p{M}]{1,30}(?![\p{L}\p{M}])/u, "direct_identifier_name"],
+    [/(?<![\p{L}\p{M}])\p{Lu}[\p{L}\p{M}]{1,30}\s+(?:(?:[Dd]e|[Dd]el|[Dd]ela|[Dd]e\s+la|[Ll]a|[Dd]a|[Dd]os|[Vv]an|[Vv]on)\s+)+\p{Lu}[\p{L}\p{M}]{1,30}(?![\p{L}\p{M}])/u, "direct_identifier_name"],
+    [/\b(?:[Cc]andidate|[Pp]erson|[Uu]ser|[Cc]ustomer|[Cc]lient|[Ee]mployee|[Oo]wner|[Cc]ontact|[Aa]uthor)\s+(?:[Nn]amed\s+)?(?:\p{Lu}[\p{L}\p{M}]{1,30}[ '-]){1,3}\p{Lu}[\p{L}\p{M}]{1,30}\b/u, "direct_identifier_name"],
+    [/\b(?:[Bb]y|[Ff]rom|[Ff]or|[Cc]ontact)\s+(?:\p{Lu}[\p{L}\p{M}]{1,30}[ '-]){1,3}\p{Lu}[\p{L}\p{M}]{1,30}\b/u, "direct_identifier_name"],
     [/https?:\/\/[^/\s:@]+:[^/\s@]{4,}@/i, "credential_in_url"],
   ];
   for (const [pattern, reason] of checks) {

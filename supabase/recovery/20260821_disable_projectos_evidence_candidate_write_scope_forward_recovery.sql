@@ -15,6 +15,7 @@ select pg_advisory_xact_lock(20260821, 113000);
 lock table public.pandora_service_principals in share row exclusive mode;
 lock table public.pandora_projects in share mode;
 lock table public.pandora_project_grants in share mode;
+lock table public.audit_logs in share row exclusive mode;
 
 do $forward_rollback_guard$
 declare
@@ -27,7 +28,44 @@ declare
   v_existing_rollback_audit_count integer;
   v_scope_constraint_count integer;
   v_scope_constraint_definition text;
+  v_atomic_audit_trigger_count integer;
+  v_reserved_trigger_count integer;
 begin
+  select count(*)::integer
+    into v_atomic_audit_trigger_count
+  from pg_catalog.pg_trigger t
+  where t.tgrelid = 'public.audit_logs'::regclass
+    and t.tgname = 'prevent_projectos_evidence_intake_audit_mutation'
+    and t.tgfoid =
+      'public.prevent_projectos_evidence_intake_audit_mutation()'::regprocedure
+    and t.tgtype = 27
+    and not t.tgisinternal
+    and t.tgenabled = 'O';
+
+  select count(*)::integer
+    into v_reserved_trigger_count
+  from pg_catalog.pg_trigger t
+  where t.tgfoid = 'public.protect_projectos_evidence_reserved_rows()'::regprocedure
+    and t.tgtype = 31
+    and not t.tgisinternal
+    and t.tgenabled = 'O'
+    and (
+      (
+        t.tgrelid = 'public.memory_capture_candidates'::regclass
+        and t.tgname = 'protect_projectos_evidence_reserved_candidate'
+      ) or (
+        t.tgrelid = 'public.memory_review_queue_items'::regclass
+        and t.tgname = 'protect_projectos_evidence_reserved_review'
+      ) or (
+        t.tgrelid = 'public.audit_logs'::regclass
+        and t.tgname = 'protect_projectos_evidence_reserved_audit'
+      )
+    );
+
+  if v_atomic_audit_trigger_count <> 1 or v_reserved_trigger_count <> 3 then
+    raise exception 'projectos evidence forward rollback blocked: atomic audit boundary drift';
+  end if;
+
   select *
     into v_principal
   from public.pandora_service_principals
@@ -133,13 +171,27 @@ begin
     and action = 'projectos_evidence_candidate_write_scope_activated'
     and table_name = 'pandora_service_principals'
     and record_id = v_principal.id
-    and metadata ->> 'activation_id' = 'memory-evidence-candidate-bridge-prod-activation-20260821'
-    and metadata ->> 'governance_issue' = 'banataosystems/pandoras-box-memory#56'
+    and metadata ->> 'activation_id' =
+      'memory-evidence-atomic-successor-prod-activation-20260821'
+    and metadata ->> 'authorization_id' =
+      'memory-evidence-atomic-successor-exact-artifact-authorization'
+    and metadata ->> 'authorized_head' ~ '^[0-9a-f]{40}$'
+    and metadata ->> 'authorized_tree' ~ '^[0-9a-f]{40}$'
+    and metadata ->> 'independent_review_id' <> ''
+    and metadata ->> 'independent_review_verdict' = 'PASS'
+    and metadata ->> 'issue_56_predecessor_only' = 'true'
+    and before_snapshot = jsonb_build_object(
+      'scopes', to_jsonb(array['memory:health', 'memory:read']::text[])
+    )
+    and after_snapshot = jsonb_build_object(
+      'scopes', to_jsonb(array['memory:health', 'memory:read', 'memory:write']::text[])
+    )
+    and metadata ->> 'issue_56_authorizes_successor' = 'false'
     and metadata ->> 'atomic_migration' = '20260821160000_submit_projectos_evidence_candidate_atomic'
-    and metadata ->> 'atomic_migration_sha256' = '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908'
+    and metadata ->> 'atomic_migration_sha256' = 'ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81'
     and metadata ->> 'forward_migration' = '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope'
-    and metadata ->> 'bridge_index_sha256' = '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555'
-    and metadata ->> 'import_map_sha256' = 'ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf';
+    and metadata ->> 'bridge_index_sha256' = '383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83'
+    and metadata ->> 'import_map_sha256' = '5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b';
 
   if v_activation_audit_count <> 1 then
     raise exception 'projectos evidence forward rollback blocked: activation audit mismatch';
@@ -149,7 +201,8 @@ begin
     into v_existing_rollback_audit_count
   from public.audit_logs
   where namespace = 'real_life'
-    and metadata ->> 'rollback_id' = 'memory-evidence-candidate-bridge-prod-rollback-20260821';
+    and metadata ->> 'rollback_id' =
+      'memory-evidence-atomic-successor-prod-rollback-20260821';
 
   if v_existing_rollback_audit_count <> 0 then
     raise exception 'projectos evidence forward rollback blocked: rollback audit already exists';
@@ -181,6 +234,7 @@ declare
   v_exact_audit_count integer;
   v_write_principal_count integer;
   v_scope_constraint_count integer;
+  v_activation_metadata jsonb;
 begin
   select *
     into v_principal
@@ -218,6 +272,18 @@ begin
     raise exception 'projectos evidence forward rollback failed: write scope remains';
   end if;
 
+  select metadata
+    into v_activation_metadata
+  from public.audit_logs
+  where action = 'projectos_evidence_candidate_write_scope_activated'
+    and table_name = 'pandora_service_principals'
+    and metadata ->> 'activation_id' =
+      'memory-evidence-atomic-successor-prod-activation-20260821';
+
+  if not found then
+    raise exception 'projectos evidence forward rollback failed: activation authorization missing';
+  end if;
+
   insert into public.audit_logs (
     user_id,
     namespace,
@@ -240,19 +306,25 @@ begin
       'scopes', to_jsonb(array['memory:health', 'memory:read']::text[])
     ),
     jsonb_build_object(
-      'rollback_id', 'memory-evidence-candidate-bridge-prod-rollback-20260821',
-      'activation_id', 'memory-evidence-candidate-bridge-prod-activation-20260821',
-      'governance_issue', 'banataosystems/pandoras-box-memory#56',
+      'rollback_id', 'memory-evidence-atomic-successor-prod-rollback-20260821',
+      'activation_id', 'memory-evidence-atomic-successor-prod-activation-20260821',
+      'authorization_id', v_activation_metadata ->> 'authorization_id',
+      'authorized_head', v_activation_metadata ->> 'authorized_head',
+      'authorized_tree', v_activation_metadata ->> 'authorized_tree',
+      'independent_review_id', v_activation_metadata ->> 'independent_review_id',
+      'independent_review_verdict', v_activation_metadata ->> 'independent_review_verdict',
+      'issue_56_predecessor_only', true,
+      'issue_56_authorizes_successor', false,
       'atomic_migration', '20260821160000_submit_projectos_evidence_candidate_atomic',
-      'atomic_migration_sha256', '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908',
+      'atomic_migration_sha256', 'ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81',
       'forward_migration', '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope',
-      'bridge_index_sha256', '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555',
-      'import_map_sha256', 'ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf',
+      'bridge_index_sha256', '383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83',
+      'import_map_sha256', '5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b',
       'rollback_source_commit', '523fec111bfb2c327f69c2abdf0784775ab49a90',
       'canonical_project_key', 'mcpmaster-pandoras-box',
       'preserve_pending_candidates', true,
       'canonical_memory_deleted', false,
-      'privacy_policy', 'metadata_only_v1'
+      'privacy_policy', 'metadata_only_v2_fail_closed'
     )
   )
   returning id into v_audit_id;
@@ -276,11 +348,21 @@ begin
     and after_snapshot = jsonb_build_object(
       'scopes', to_jsonb(array['memory:health', 'memory:read']::text[])
     )
-    and metadata ->> 'rollback_id' = 'memory-evidence-candidate-bridge-prod-rollback-20260821'
-    and metadata ->> 'activation_id' = 'memory-evidence-candidate-bridge-prod-activation-20260821'
-    and metadata ->> 'atomic_migration_sha256' = '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908'
+    and metadata ->> 'rollback_id' =
+      'memory-evidence-atomic-successor-prod-rollback-20260821'
+    and metadata ->> 'activation_id' =
+      'memory-evidence-atomic-successor-prod-activation-20260821'
+    and metadata ->> 'authorization_id' =
+      'memory-evidence-atomic-successor-exact-artifact-authorization'
+    and metadata ->> 'authorized_head' = v_activation_metadata ->> 'authorized_head'
+    and metadata ->> 'authorized_tree' = v_activation_metadata ->> 'authorized_tree'
+    and metadata ->> 'independent_review_id' = v_activation_metadata ->> 'independent_review_id'
+    and metadata ->> 'independent_review_verdict' = 'PASS'
+    and metadata ->> 'issue_56_predecessor_only' = 'true'
+    and metadata ->> 'issue_56_authorizes_successor' = 'false'
+    and metadata ->> 'atomic_migration_sha256' = 'ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81'
     and metadata ->> 'forward_migration' = '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope'
-    and metadata ->> 'bridge_index_sha256' = '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555';
+    and metadata ->> 'bridge_index_sha256' = '383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83';
 
   if v_exact_audit_count <> 1 then
     raise exception 'projectos evidence forward rollback failed: exact audit readback mismatch';

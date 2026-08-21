@@ -17,9 +17,9 @@
   "candidate_source": {
     "bridge": {
       "path": "supabase/functions/pandora-projectos-bridge/index.ts",
-      "raw_sha256": "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
-      "blob_sha1": "9adabe26f62205b0f94adc5744151c2d68c2c46e",
-      "bytes": 34998,
+      "raw_sha256": "383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83",
+      "blob_sha1": "2a056ec4997d7daeeed797a2eb89e9c75c25b8f3",
+      "bytes": 39055,
       "required_markers": {
         "submit_evidence_candidate": true,
         "atomic_rpc": "submit_projectos_evidence_candidate_atomic",
@@ -30,49 +30,57 @@
     },
     "import_map": {
       "path": "supabase/functions/pandora-projectos-bridge/deno.json",
-      "raw_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
-      "blob_sha1": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
-      "bytes": 113
+      "raw_sha256": "5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b",
+      "blob_sha1": "a4c2351c4bc2d8f41937fe05690f6fd72f3ebbf7",
+      "bytes": 119
     },
     "atomic_migration": {
       "path": "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
-      "raw_sha256": "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
-      "blob_sha1": "2cd3fa2e63cad104b1efcd1af84ca310d1a17c68",
-      "bytes": 17635,
+      "raw_sha256": "ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81",
+      "blob_sha1": "d83e77608c4e6c2dbd2fa59e9dd778c5852a8d1e",
+      "bytes": 47878,
       "transactional": true,
       "modifies_hosted_migration_history": false,
       "rpc": "public.submit_projectos_evidence_candidate_atomic",
       "audit_action": "projectos_evidence_candidate_atomic_created",
       "immutable_audit_trigger": "prevent_projectos_evidence_intake_audit_mutation",
+      "reserved_row_trigger": "protect_projectos_evidence_reserved_rows",
+      "durable_privacy_boundary": true,
       "execute_roles": [
         "service_role"
       ]
     },
     "scope_activation_migration": {
       "path": "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
-      "raw_sha256": "8eda6e1a4a57bbb6c545eac3fe3b075aa3f5b14279e91da4a41c96fe924c85ab",
-      "blob_sha1": "b5579175163fe8d5d914701bcf3bdc8e56863fcc",
-      "bytes": 16352,
+      "raw_sha256": "f40060e7bb5a7e79cbb8122369d1cd8da6d68f2b68bedbe298b6fbd888ae49c6",
+      "blob_sha1": "ee5debe1544a962aee33780a6567f81aad3a7611",
+      "bytes": 22970,
       "requires_atomic_rpc_precondition": true,
-      "successor_bridge_sha256": "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555"
+      "successor_bridge_sha256": "383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83",
+      "sole_scope_activation": true,
+      "historical_migration_read_only": true
     }
   },
   "test_artifacts": {
     "behavior": {
       "path": "scripts/test_memory_evidence_intake_behavior.mjs",
-      "raw_sha256": "b8ff137aed85406b4a38a3aa3291b0cf34e5b2f7da04920b47148961ee2b6b88"
+      "raw_sha256": "d3a7e693a936e18f8aa441e2f641fdcfc82b50ae97aef479d02147aaead55ed7"
     },
     "postgres_runner": {
       "path": "scripts/test_memory_evidence_atomic_rpc.sh",
-      "raw_sha256": "8b05551c40635ffd8faa7d5a62270e5a6f2586a3b81d7601e2d3f348d2dcebf3"
+      "raw_sha256": "c3897e58f1a6c775bae0f56ab8ee9cf701021eb6d4829bc7eed67c10988ac30d"
     },
     "postgres_schema": {
       "path": "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql",
-      "raw_sha256": "ca9ddb72422a69a8a1a38422007bc4ed235b67bebee0c002ec96110ed4df16d9"
+      "raw_sha256": "0a87f4cef079185262405112f6dc05675d7208cd8c7b2be16ef88deab3baecf4"
     },
     "postgres_assertions": {
       "path": "scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql",
-      "raw_sha256": "d8ea1c076c3397d85b4cb707ec4235035de690ffc1f3434554ccb4a61a74559d"
+      "raw_sha256": "998f7afb45512ef291547515deaca619dd0652cbf1e61e162af7466dfb9e8ed6"
+    },
+    "postgres_authorization": {
+      "path": "scripts/fixtures/memory_evidence_atomic_rpc_authorization.sql",
+      "raw_sha256": "f664ebf94e73b3f92b950f3556208d6aa88e35e91b967a4764904dc25daf8e99"
     },
     "required_cases": {
       "identical_replay": true,
@@ -81,6 +89,30 @@
       "review_failure_rolls_back_all_rows": true,
       "audit_failure_rolls_back_all_rows": true,
       "same_name_wrong_key_audit_index_rejected": true,
+      "same_name_wrong_predicate_audit_index_rejected": true,
+      "authenticated_reserved_preseed_rejected": true,
+      "service_role_reserved_preseed_rejected": true,
+      "service_role_benign_to_reserved_relabel_rejected": true,
+      "service_role_truncate_rejected": true,
+      "service_role_direct_rpc_privacy_bypass_rejected": true,
+      "base64_secret_rejected": true,
+      "embedded_and_split_base64_secret_rejected": true,
+      "plain_contextual_uppercase_and_unicode_name_rejected": true,
+      "artifact_prefix_name_bypass_rejected": true,
+      "labelled_birth_date_formats_rejected": true,
+      "strict_encoded_text_parity": true,
+      "short_and_punctuation_split_base64_rejected": true,
+      "exact_safe_artifact_names_accepted": true,
+      "formatted_phone_rejected": true,
+      "labelled_contiguous_phone_rejected": true,
+      "labelled_government_and_financial_ids_rejected": true,
+      "hyphenated_and_authorization_credentials_rejected": true,
+      "successor_activation_audit_preseed_rejected": true,
+      "unexpected_preexisting_trigger_rejected": true,
+      "disposable_database_identity_required": true,
+      "legacy_migration_remains_read_only": true,
+      "sole_truthful_activation_transition": true,
+      "hosted_predecessor_audits_preserved_but_not_trusted": true,
       "immutable_audit_update_rejected": true,
       "immutable_audit_delete_rejected": true,
       "anonymous_execute_rejected": true,
@@ -123,7 +155,7 @@
     "live_v15_source_recoverable": true,
     "live_v15_restore_rehearsed": false,
     "scope_rollback_path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
-    "scope_rollback_sha256": "2a5c33a8e5108d0082d5f6241a8112770873ee1865c15ba489bc89810bec0955",
+    "scope_rollback_sha256": "a9ab3376e1dca1b795c5a2d9184ae4626e4e30e554a3c70c6a829276da34d773",
     "scope_rollback_qualified": false,
     "atomic_rpc_dormant_without_write_scope": true,
     "order": [

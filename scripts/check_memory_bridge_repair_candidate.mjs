@@ -113,6 +113,10 @@ const validate = (evidence) => {
     "insert into public.audit_logs",
     "projectos_evidence_candidate_atomic_created",
     "prevent_projectos_evidence_intake_audit_mutation",
+    "protect_projectos_evidence_reserved_rows",
+    "projectos_evidence_privacy_base64_reason",
+    "projectos_evidence_privacy_rejection_reason",
+    "revoke truncate, trigger",
     "pg_get_indexdef(i.indexrelid, 1, true)",
     "v_key_definition is distinct from 'record_id'",
     "on conflict (user_id, namespace, source, source_ref)",
@@ -150,8 +154,10 @@ const validate = (evidence) => {
   const scopeMigrationSource = scopeMigrationBytes.toString("utf8");
   assert.ok(scopeMigrationSource.includes(migration.raw_sha256));
   assert.ok(scopeMigrationSource.includes(bridge.raw_sha256));
-  assert.ok(scopeMigrationSource.includes("atomic RPC migration missing"));
+  assert.ok(scopeMigrationSource.includes("atomic RPC missing"));
   assert.ok(scopeMigrationSource.includes("pg_get_indexdef(i.indexrelid, 1, true) = 'record_id'"));
+  assert.ok(scopeMigrationSource.includes("historical_migration_superseded_read_only"));
+  assert.ok(scopeMigrationSource.includes("sole truthful") || scopeMigrationSource.includes("Sole governed activation"));
   assert.equal(scopeMigration.requires_atomic_rpc_precondition, true);
   assert.equal(scopeMigration.successor_bridge_sha256, bridge.raw_sha256);
 
@@ -159,6 +165,7 @@ const validate = (evidence) => {
     evidence.test_artifacts.behavior,
     evidence.test_artifacts.postgres_runner,
     evidence.test_artifacts.postgres_schema,
+    evidence.test_artifacts.postgres_authorization,
     evidence.test_artifacts.postgres_assertions,
   ]) {
     const bytes = read(artifact.path);
@@ -174,6 +181,12 @@ const validate = (evidence) => {
   );
   assert.ok(postgresRunner.includes("on public.audit_logs (user_id)"));
   assert.ok(postgresRunner.includes("wrong-key atomic audit index unexpectedly passed"));
+  assert.ok(postgresRunner.includes("wrong-predicate atomic audit index unexpectedly passed"));
+  assert.ok(postgresRunner.includes("legacy migration granted write before atomic protections"));
+  assert.ok(postgresRunner.includes("predecessor hosted audit history was not preserved"));
+  assert.ok(postgresRunner.includes("MEMORY_ATOMIC_TEST_ALLOW_DISPOSABLE_DATABASE"));
+  assert.ok(postgresRunner.includes("memory_evidence_atomic_rpc_test_"));
+  assert.ok(postgresRunner.includes("successor activation audit preseed passed"));
   for (const value of Object.values(evidence.test_artifacts.required_cases)) {
     assert.equal(value, true);
   }
