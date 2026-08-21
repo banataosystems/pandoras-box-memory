@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { execFileSync } from "node:child_process";
 
 const evidencePath =
-  "docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json";
+  "docs/capabilities/evidence/MEMORY_BRIDGE_ATOMIC_INTAKE_SUCCESSOR_CANDIDATE_2026-08-21.json";
 
 const read = (path) => fs.readFileSync(path);
 const sha256 = (bytes) => crypto.createHash("sha256").update(bytes).digest("hex");
@@ -16,394 +16,225 @@ const gitBlobSha1 = (bytes) =>
     .digest("hex");
 
 const gitShow = (commit, path) => {
-  assert.match(commit, /^[0-9a-f]{40}$/, "invalid commit identity");
-  assert.match(path, /^[A-Za-z0-9._/-]+$/, "invalid repository path");
+  assert.match(commit, /^[0-9a-f]{40}$/);
+  assert.match(path, /^[A-Za-z0-9._/-]+$/);
   return execFileSync("git", ["show", `${commit}:${path}`], {
     encoding: null,
     stdio: ["ignore", "pipe", "pipe"],
   });
 };
 
-const markerState = (bytes) => {
-  const source = bytes.toString("utf8");
-  const serveStart = source.search(/Deno\.serve\(/);
-  const dispatch = serveStart >= 0 ? source.slice(serveStart) : source;
-  const submitBranch = dispatch.indexOf('body.action === "submit_evidence_candidate"');
-  const searchBranch = dispatch.indexOf('body.action === "search"');
-  const unsupported = dispatch.indexOf('error: "unsupported_action"');
-  return {
-    submitEvidenceCandidate: source.includes("submitEvidenceCandidate"),
-    submit_evidence_candidate: submitBranch >= 0,
-    unsupported_action: unsupported >= 0,
-    dispatch_before_search:
-      submitBranch >= 0 && searchBranch >= 0 && submitBranch < searchBranch,
-    dispatch_before_unsupported_fallback:
-      submitBranch >= 0 && unsupported >= 0 && submitBranch < unsupported,
-    dispatch_calls_handler:
-      /body\.action === "submit_evidence_candidate"[\s\S]{0,180}return submitEvidenceCandidate\(body, authorization\.principal, supabase\)/.test(
-        dispatch,
-      ),
-  };
-};
-
-const assertIdentity = (bytes, expected, label) => {
-  assert.equal(bytes.length, expected.bytes, `${label} byte length drift`);
-  assert.equal(sha256(bytes), expected.raw_sha256, `${label} raw SHA-256 drift`);
-  assert.equal(gitBlobSha1(bytes), expected.blob_sha1, `${label} Git blob drift`);
-};
-
-const assertTargetDispatch = (bytes, requiredMarkers) => {
-  const markers = markerState(bytes);
-  for (const [marker, expected] of Object.entries(requiredMarkers)) {
-    assert.equal(markers[marker], expected, `target marker drift: ${marker}`);
+const assertArtifact = (artifact, label) => {
+  const bytes = read(artifact.path);
+  assert.equal(bytes.length, artifact.bytes, `${label} byte length drift`);
+  assert.equal(sha256(bytes), artifact.raw_sha256, `${label} SHA-256 drift`);
+  if (artifact.blob_sha1) {
+    assert.equal(gitBlobSha1(bytes), artifact.blob_sha1, `${label} Git blob drift`);
   }
-  assert.equal(markers.dispatch_calls_handler, true, "dispatch must call the governed handler");
+  return bytes;
 };
 
 const validate = (evidence) => {
   assert.equal(evidence.schema_version, "1.0.0");
   assert.equal(evidence.proof_stage, "implemented");
+  assert.equal(evidence.repository.full_name, "banataosystems/pandoras-box-memory");
+  assert.equal(evidence.repository.repository_id, 1327294429);
   assert.equal(
-    evidence.coordination.delivery_envelope_write_status,
-    "blocked",
-    "the failed governed issue write must not be represented as persisted",
-  );
-  assert.equal(evidence.coordination.delivery_envelope_plan_id, "692e4599-8976-4cbc-926b-153371accfd1");
-  assert.equal(
-    evidence.coordination.activation_issue,
-    "banataosystems/pandoras-box-memory#56",
+    evidence.repository.base_commit,
+    "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
   );
   assert.equal(
-    evidence.coordination.activation_id,
-    "memory-evidence-candidate-bridge-prod-activation-20260821",
+    evidence.repository.base_tree,
+    "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88",
+  );
+  assert.equal(evidence.repository.superseded_pr, 55);
+  assert.equal(
+    evidence.repository.successor_parent_commit,
+    "edb82476b2dfefef0e94ced1456b241f79caa889",
+  );
+  assert.equal(
+    evidence.repository.successor_parent_tree,
+    "18740e6a0691067a7c18def2e6623a625ff97b35",
+  );
+  assert.equal(
+    evidence.repository.branch,
+    "fix/memory-evidence-intake-atomic-successor-20260821",
   );
 
-  const repository = evidence.repository;
-  assert.equal(repository.full_name, "banataosystems/pandoras-box-memory");
-  assert.equal(repository.repository_id, 1327294429);
-  assert.equal(repository.base_ref, "main");
-  assert.equal(repository.base_commit, "478105057c1ca5fb5b356750ba1fa1fb58b1f42c");
-  assert.equal(repository.base_tree, "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88");
-  assert.equal(repository.repair_lane_base_commit, "b88633083ac671885e622acc79b336c7840f2bae");
-  assert.equal(repository.repair_lane_base_tree, "b1fad19ce80f803dc5d3d5c086afc846441d9ecf");
-
-  const target = evidence.target_deployment;
-  const targetSource = target.source;
-  assert.equal(target.provider, "supabase");
-  assert.equal(target.project_ref, "ivmvufhcsezyhczzondn");
-  assert.equal(target.function_id, "0e7e24e6-7cb7-46d0-b474-3d626898d7e6");
-  assert.equal(target.function_slug, "pandora-projectos-bridge");
-  assert.equal(target.provider_assigned_next_version, null);
-  assert.equal(target.verify_jwt, false);
-  assert.equal(target.import_map, true);
-  assert.equal(targetSource.commit, evidence.repository.base_commit);
-
-  const currentIndex = read(targetSource.index_path);
-  const currentDeno = read(targetSource.deno_path);
-  assertIdentity(
-    currentIndex,
-    {
-      bytes: targetSource.index_bytes,
-      raw_sha256: targetSource.index_raw_sha256,
-      blob_sha1: targetSource.index_blob_sha1,
-    },
-    "target index",
+  const bridge = evidence.candidate_source.bridge;
+  const bridgeBytes = assertArtifact(bridge, "atomic successor bridge");
+  const bridgeSource = bridgeBytes.toString("utf8");
+  assert.ok(bridgeSource.includes('body.action === "submit_evidence_candidate"'));
+  assert.ok(
+    bridgeSource.includes('EVIDENCE_ATOMIC_RPC = "submit_projectos_evidence_candidate_atomic"'),
   );
-  assertIdentity(
-    currentDeno,
-    {
-      bytes: targetSource.deno_bytes,
-      raw_sha256: targetSource.deno_raw_sha256,
-      blob_sha1: targetSource.deno_blob_sha1,
-    },
-    "target deno config",
+  assert.ok(bridgeSource.includes("admin.rpc("));
+  assert.ok(bridgeSource.includes("audit_id: atomicResult.audit_id"));
+  assert.ok(bridgeSource.includes("atomic_transaction: true"));
+  const helperStart = bridgeSource.indexOf("const EVIDENCE_PROOF_STAGES");
+  const serveStart = bridgeSource.search(/Deno\.serve\(/);
+  assert.ok(helperStart >= 0 && serveStart > helperStart);
+  const helper = bridgeSource.slice(helperStart, serveStart);
+  assert.ok(!helper.includes('.from("memory_capture_candidates")'));
+  assert.ok(!helper.includes('.from("memory_review_queue_items")'));
+  assert.ok(!helper.includes('.from("memory_items")'));
+  assert.equal(bridge.required_markers.submit_evidence_candidate, true);
+  assert.equal(
+    bridge.required_markers.atomic_rpc,
+    "submit_projectos_evidence_candidate_atomic",
   );
+  assert.equal(bridge.required_markers.direct_candidate_write, false);
+  assert.equal(bridge.required_markers.direct_review_write, false);
+  assert.equal(bridge.required_markers.canonical_memory_write, false);
+
+  const baseBridge = gitShow(evidence.repository.base_commit, bridge.path);
+  assert.equal(
+    sha256(baseBridge),
+    "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+  );
+  assert.notEqual(sha256(baseBridge), bridge.raw_sha256);
   assert.deepEqual(
-    gitShow(targetSource.commit, targetSource.index_path),
-    currentIndex,
-    "the exact base commit must contain the target bridge bytes",
-  );
-  assert.deepEqual(
-    gitShow(targetSource.commit, targetSource.deno_path),
-    currentDeno,
-    "the exact base commit must contain the target import-map bytes",
+    gitShow(evidence.repository.successor_parent_commit, bridge.path),
+    baseBridge,
+    "PR #55 must remain the unchanged successor parent",
   );
 
-  assertTargetDispatch(currentIndex, target.required_markers);
-
-  const live = evidence.live_source_readback;
-  assert.equal(live.provider, "supabase");
-  assert.equal(live.project_ref, target.project_ref);
-  assert.equal(live.function_id, target.function_id);
-  assert.equal(live.function_slug, target.function_slug);
-  assert.equal(live.version, 15);
-  assert.equal(live.status, "ACTIVE");
-  assert.equal(live.updated_at, "2026-08-20T16:48:19.081Z");
-  assert.equal(live.ezbr_sha256, "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a");
-  assert.equal(live.verify_jwt, target.verify_jwt);
-  assert.equal(live.import_map, target.import_map);
-  assert.equal(live.source.exact_repository_commit, "523fec111bfb2c327f69c2abdf0784775ab49a90");
-  assert.equal(live.source.exact_repository_tree, "b450709c57c970eef345d4794d13d6026d1b6969");
-
-  const rollbackIndex = gitShow(
-    live.source.exact_repository_commit,
-    targetSource.index_path,
-  );
-  const rollbackDeno = gitShow(
-    live.source.exact_repository_commit,
-    targetSource.deno_path,
-  );
-  assertIdentity(
-    rollbackIndex,
-    {
-      bytes: live.source.index_bytes,
-      raw_sha256: live.source.index_raw_sha256,
-      blob_sha1: live.source.index_blob_sha1,
-    },
-    "live/readback index",
-  );
-  assertIdentity(
-    rollbackDeno,
-    {
-      bytes: live.source.deno_bytes,
-      raw_sha256: live.source.deno_raw_sha256,
-      blob_sha1: live.source.deno_blob_sha1,
-    },
-    "live/readback deno config",
-  );
-  assert.equal(live.source.provider_files_byte_identical_to_repository_commit, true);
-
-  const liveMarkers = markerState(rollbackIndex);
-  assert.equal(liveMarkers.submitEvidenceCandidate, live.markers.submitEvidenceCandidate);
-  assert.equal(liveMarkers.submit_evidence_candidate, live.markers.submit_evidence_candidate);
-  assert.equal(liveMarkers.unsupported_action, live.markers.unsupported_action);
-
-  const parity = evidence.source_parity;
-  const derivedParity = sha256(currentIndex) === sha256(rollbackIndex);
-  assert.equal(derivedParity, false, "fixture must preserve the observed source drift");
-  assert.equal(parity.verdict, "RED");
-  assert.equal(parity.classification, "source_runtime_activation_gap");
-  assert.equal(parity.canonical_and_live_index_sha256_equal, derivedParity);
-  assert.equal(
-    parity.canonical_and_live_index_blob_equal,
-    gitBlobSha1(currentIndex) === gitBlobSha1(rollbackIndex),
-  );
-
-  const forwardRecovery = evidence.forward_recovery;
-  assert.equal(
-    forwardRecovery.governance_issue,
-    "banataosystems/pandoras-box-memory#56",
-  );
-  assert.equal(
-    forwardRecovery.activation_id,
-    "memory-evidence-candidate-bridge-prod-activation-20260821",
-  );
-  assert.equal(forwardRecovery.owner_production_authorization_recorded, true);
-  assert.equal(forwardRecovery.release_gate_satisfied, false);
-  const priorMigration = forwardRecovery.prior_hosted_migration;
-  assert.equal(
-    priorMigration.source_name,
-    "20260820113000_enable_projectos_evidence_candidate_write_scope",
-  );
-  assert.equal(priorMigration.hosted_version, "20260820150902");
-  assert.equal(priorMigration.hosted_statement_count, 1);
-  assert.deepEqual(priorMigration.runtime_scopes_after_transaction_proof_rollback, [
-    "memory:health",
-    "memory:read",
-  ]);
-  assert.equal(priorMigration.ledger_row_preserved, true);
-
-  const forwardMigration = forwardRecovery.migration;
-  const forwardMigrationSource = read(forwardMigration.path);
-  assertIdentity(
-    forwardMigrationSource,
-    {
-      bytes: forwardMigration.bytes,
-      raw_sha256: forwardMigration.raw_sha256,
-      blob_sha1: forwardMigration.blob_sha1,
-    },
-    "forward activation migration",
-  );
-  assert.equal(forwardMigration.transactional, true);
-  assert.equal(forwardMigration.unique_forward_migration, true);
-  assert.equal(forwardMigration.modifies_prior_ledger_row, false);
-  assert.equal(forwardMigration.hosted_baseline_fail_closed, true);
-  assert.equal(forwardMigration.clean_replay_compatible, true);
-
-  const forwardRollback = forwardRecovery.rollback;
-  const forwardRollbackSource = read(forwardRollback.path);
-  assertIdentity(
-    forwardRollbackSource,
-    {
-      bytes: forwardRollback.bytes,
-      raw_sha256: forwardRollback.raw_sha256,
-      blob_sha1: forwardRollback.blob_sha1,
-    },
-    "forward activation rollback",
-  );
-  assert.equal(forwardRollback.transactional, true);
-  assert.equal(forwardRollback.single_execution_fail_closed, true);
-  assert.equal(forwardRollback.preserves_activation_audit, true);
-  assert.equal(forwardRollback.preserves_pending_candidates, true);
-
-  const activationAudit = forwardRecovery.audit;
-  assert.equal(activationAudit.table, "public.audit_logs");
-  assert.equal(activationAudit.same_transaction_as_scope_change, true);
-  assert.equal(activationAudit.principal_user_server_derived, true);
-  assert.equal(activationAudit.namespace, "real_life");
-  assert.equal(activationAudit.before_after_scope_arrays_only, true);
-  assert.equal(activationAudit.review_required, true);
-  assert.equal(activationAudit.candidate_content_recorded, false);
-  assert.equal(activationAudit.direct_identifiers_recorded, false);
-  assert.equal(activationAudit.bridge_index_sha256, targetSource.index_raw_sha256);
-  assert.equal(activationAudit.import_map_sha256, targetSource.deno_raw_sha256);
-
-  const vercel = evidence.vercel_route_readback;
-  assert.equal(vercel.team_id, "team_IcdJUnzLi5wUN1GD8ALHyjF7");
-  assert.equal(vercel.project_id, "prj_brg3BJDcHfSftHH84NhnFtDJAnDO");
-  assert.equal(vercel.deployment_id, "dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk");
-  assert.equal(vercel.state, "READY");
-  assert.equal(vercel.target, "production");
-  assert.equal(vercel.git_repository, repository.full_name);
-  assert.equal(vercel.git_ref, repository.base_ref);
-  assert.equal(vercel.git_commit, evidence.repository.base_commit);
-  assert.equal(vercel.source_parity_verdict, "PASS");
-  assert.equal(vercel.requires_change_for_bridge_repair, false);
-
-  const rollback = evidence.rollback_evidence;
-  assert.equal(rollback.provider_native_version_rollback_available, false);
-  assert.equal(rollback.current_live_source_exactly_recoverable, true);
-  assert.equal(rollback.current_live_source_commit, live.source.exact_repository_commit);
-  assert.equal(rollback.current_live_source_index_blob_sha1, live.source.index_blob_sha1);
-  assert.equal(rollback.current_live_source_index_raw_sha256, live.source.index_raw_sha256);
-  assert.equal(rollback.current_live_source_matches_provider_readback, true);
-  assert.equal(rollback.restoration_rehearsed, false);
-  assert.equal(rollback.automatic_rollback_qualified, false);
-  assert.equal(
-    rollback.classification,
-    "content_addressed_source_recoverable_but_unrehearsed",
-  );
-  const databaseRollback = rollback.database_scope_rollback;
-  const databaseRollbackSource = read(databaseRollback.path);
-  assertIdentity(
-    databaseRollbackSource,
-    {
-      bytes: databaseRollback.bytes,
-      raw_sha256: databaseRollback.raw_sha256,
-      blob_sha1: databaseRollback.blob_sha1,
-    },
-    "database scope rollback",
-  );
-  assert.equal(databaseRollback.transactional, true);
-  assert.equal(databaseRollback.idempotent, false);
-  assert.equal(databaseRollback.single_execution_fail_closed, true);
-  assert.equal(databaseRollback.activation_audit_preserved, true);
-  const historicalRollback = rollback.historical_transaction_proof_rollback;
-  const historicalRollbackSource = read(historicalRollback.path);
-  assertIdentity(
-    historicalRollbackSource,
-    {
-      bytes: historicalRollback.bytes,
-      raw_sha256: historicalRollback.raw_sha256,
-      blob_sha1: historicalRollback.blob_sha1,
-    },
-    "historical transaction-proof rollback",
-  );
-  assert.equal(rollback.rollback_order.length, 3);
-
-  const authorization = evidence.authorization;
-  assert.equal(authorization.source_candidate, true);
-  assert.equal(authorization.regression_tests, true);
-  assert.equal(authorization.draft_pull_request, true);
-  assert.equal(authorization.owner_production_activation_task, true);
-  assert.equal(
-    authorization.owner_authorization_issue,
-    "banataosystems/pandoras-box-memory#56",
-  );
-  assert.equal(authorization.remaining_release_gates_satisfied, false);
-  for (const gate of [
-    "merge",
-    "database_mutation",
-    "edge_function_deployment",
-    "vercel_production_effect",
-    "candidate_resubmission",
-    "canonical_promotion",
-    "production_verification",
+  assertArtifact(evidence.candidate_source.import_map, "import map");
+  const migration = evidence.candidate_source.atomic_migration;
+  const migrationBytes = assertArtifact(migration, "atomic RPC migration");
+  const migrationSource = migrationBytes.toString("utf8");
+  for (const marker of [
+    "begin;",
+    "commit;",
+    "submit_projectos_evidence_candidate_atomic",
+    "security definer",
+    "insert into public.memory_capture_candidates",
+    "insert into public.memory_review_queue_items",
+    "insert into public.audit_logs",
+    "projectos_evidence_candidate_atomic_created",
+    "prevent_projectos_evidence_intake_audit_mutation",
+    "on conflict (user_id, namespace, source, source_ref)",
+    "grant execute on function public.submit_projectos_evidence_candidate_atomic",
+    "'canonical_memory_written', false",
   ]) {
-    assert.equal(authorization[gate], false, `${gate} must remain separately gated`);
+    assert.ok(migrationSource.includes(marker), `migration marker missing: ${marker}`);
+  }
+  assert.ok(
+    migrationSource.indexOf("insert into public.memory_capture_candidates") <
+      migrationSource.indexOf("insert into public.memory_review_queue_items"),
+  );
+  assert.ok(
+    migrationSource.indexOf("insert into public.memory_review_queue_items") <
+      migrationSource.indexOf("insert into public.audit_logs"),
+  );
+  assert.ok(!migrationSource.includes("public.memory_items"));
+  assert.ok(
+    !/(?:insert\s+into|update|delete\s+from)\s+supabase_migrations\.schema_migrations/i.test(
+      migrationSource,
+    ),
+  );
+  assert.ok(!/delete\s+from\s+public\.(?:memory_|audit_logs)/i.test(migrationSource));
+  assert.equal(migration.transactional, true);
+  assert.equal(migration.modifies_hosted_migration_history, false);
+  assert.equal(migration.rpc, "public.submit_projectos_evidence_candidate_atomic");
+  assert.equal(migration.audit_action, "projectos_evidence_candidate_atomic_created");
+  assert.deepEqual(migration.execute_roles, ["service_role"]);
+
+  for (const artifact of [
+    evidence.test_artifacts.behavior,
+    evidence.test_artifacts.postgres_runner,
+    evidence.test_artifacts.postgres_schema,
+    evidence.test_artifacts.postgres_assertions,
+  ]) {
+    const bytes = read(artifact.path);
+    assert.equal(sha256(bytes), artifact.raw_sha256, `${artifact.path} hash drift`);
+  }
+  for (const value of Object.values(evidence.test_artifacts.required_cases)) {
+    assert.equal(value, true);
   }
 
-  const acceptance = evidence.post_activation_acceptance;
+  assert.equal(evidence.live_baseline.supabase_project, "ivmvufhcsezyhczzondn");
+  assert.equal(evidence.live_baseline.bridge_version, 15);
   assert.equal(
-    acceptance.governed_candidate_idempotency_key,
-    "master-pandora-systems-v1-installed-20260821",
+    evidence.live_baseline.bridge_raw_sha256,
+    "7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf",
   );
-  assert.equal(acceptance.required_candidate_status, "pending");
-  assert.equal(acceptance.required_review_status, "pending_review");
-  assert.equal(acceptance.canonical_memory_written, false);
-  assert.equal(acceptance.resubmission_authorized_now, false);
+  const liveBridge = gitShow(evidence.live_baseline.bridge_source_commit, bridge.path);
+  assert.equal(sha256(liveBridge), evidence.live_baseline.bridge_raw_sha256);
+  assert.deepEqual(evidence.live_baseline.scopes, ["memory:health", "memory:read"]);
+  assert.equal(evidence.live_baseline.candidate_action_live, false);
+  assert.equal(evidence.live_baseline.production_changed, false);
 
-  assert.equal(evidence.proof_state.documented, true);
-  assert.equal(evidence.proof_state.implemented_in_canonical_source, true);
-  assert.equal(evidence.proof_state.regression_candidate_prepared, true);
-  assert.equal(evidence.proof_state.forward_recovery_implemented, true);
-  assert.equal(evidence.proof_state.owner_production_authorization_recorded, true);
-  assert.equal(evidence.proof_state.exact_head_tested, false);
+  assert.equal(evidence.migration_parity.verdict, "RED");
+  assert.equal(evidence.migration_parity.hosted_versions, 69);
+  assert.equal(evidence.migration_parity.source_versions_before_successor, 17);
+  assert.equal(evidence.migration_parity.matching_versions, 15);
+  assert.equal(evidence.migration_parity.hosted_only_versions, 54);
+  assert.equal(evidence.migration_parity.local_only_versions_before_successor, 2);
+  assert.equal(evidence.migration_parity.successor_adds_local_only_migration, true);
+  assert.equal(evidence.migration_parity.hosted_history_mutation_authorized, false);
+
+  assert.equal(evidence.rollback.live_v15_source_recoverable, true);
+  assert.equal(evidence.rollback.live_v15_restore_rehearsed, false);
+  assert.equal(evidence.rollback.scope_rollback_qualified, false);
+  assert.equal(evidence.rollback.atomic_rpc_dormant_without_write_scope, true);
+
+  assert.equal(evidence.authority.source_candidate, true);
+  assert.equal(evidence.authority.tests, true);
+  assert.equal(evidence.authority.branch, true);
+  assert.equal(evidence.authority.draft_pull_request, true);
+  for (const gate of [
+    "merge",
+    "database_migration",
+    "edge_deployment",
+    "hosted_migration_history_change",
+    "evidence_submission",
+    "canonical_promotion",
+    "production_verification",
+    "pxe_0008_closure",
+  ]) {
+    assert.equal(evidence.authority[gate], false, `${gate} must remain blocked`);
+  }
+  assert.equal(evidence.authority.refreshed_exact_artifact_owner_authorization_required, true);
+  assert.equal(evidence.authority.different_vendor_review_required, true);
+  assert.equal(evidence.proof_state.exact_head_ci, "pending_at_source_creation");
   assert.equal(evidence.proof_state.independent_review, false);
   assert.equal(evidence.proof_state.deployed, false);
   assert.equal(evidence.proof_state.production_verified, false);
+  assert.equal(evidence.proof_state.pxe_0008_closed, false);
+
+  const manifest = fs.readFileSync(evidence.manifest, "utf8");
+  assert.ok(manifest.includes("SOURCE-ONLY SUCCESSOR / BLOCKED"));
+  assert.ok(manifest.includes(evidence.repository.base_commit));
+  assert.ok(manifest.includes(bridge.raw_sha256));
+  assert.ok(manifest.includes(migration.raw_sha256));
+  assert.ok(manifest.includes("PXE-0008 remains FAIL/HOLD"));
 };
 
 const evidence = JSON.parse(fs.readFileSync(evidencePath, "utf8"));
 validate(evidence);
 
 if (process.argv.includes("--self-test")) {
-  const targetSource = fs.readFileSync(evidence.target_deployment.source.index_path, "utf8");
-  const missingDispatch = Buffer.from(
-    targetSource.replace(
-      '  if (body.action === "submit_evidence_candidate") {\n' +
-        "    return submitEvidenceCandidate(body, authorization.principal, supabase);\n" +
-        "  }\n",
-      "",
-    ),
-  );
-  assert.notEqual(missingDispatch.length, Buffer.byteLength(targetSource), "dispatch fixture did not change");
-  assert.throws(
-    () => assertTargetDispatch(missingDispatch, evidence.target_deployment.required_markers),
-    undefined,
-    "a deployable bridge with the dispatch omitted must fail closed",
-  );
-
   const rejectionCases = [
-    ["target source hash drift", (copy) => {
-      copy.target_deployment.source.index_raw_sha256 = "0".repeat(64);
+    ["bridge hash drift", (copy) => {
+      copy.candidate_source.bridge.raw_sha256 = "0".repeat(64);
     }],
-    ["false live parity", (copy) => {
-      copy.source_parity.canonical_and_live_index_sha256_equal = true;
+    ["direct candidate write", (copy) => {
+      copy.candidate_source.bridge.required_markers.direct_candidate_write = true;
     }],
-    ["fabricated live handler", (copy) => {
-      copy.live_source_readback.markers.submit_evidence_candidate = true;
+    ["history rewrite", (copy) => {
+      copy.candidate_source.atomic_migration.modifies_hosted_migration_history = true;
     }],
-    ["unauthorized production deploy", (copy) => {
-      copy.authorization.edge_function_deployment = true;
+    ["false parity", (copy) => {
+      copy.migration_parity.verdict = "GREEN";
     }],
-    ["unrehearsed automatic rollback", (copy) => {
-      copy.rollback_evidence.automatic_rollback_qualified = true;
+    ["premature migration authority", (copy) => {
+      copy.authority.database_migration = true;
     }],
-    ["premature mastery resubmission", (copy) => {
-      copy.post_activation_acceptance.resubmission_authorized_now = true;
-    }],
-    ["wrong governed activation", (copy) => {
-      copy.forward_recovery.activation_id = "wrong-activation";
-    }],
-    ["ledger history rewrite", (copy) => {
-      copy.forward_recovery.prior_hosted_migration.ledger_row_preserved = false;
-    }],
-    ["premature release gate", (copy) => {
-      copy.forward_recovery.release_gate_satisfied = true;
+    ["premature PXE closure", (copy) => {
+      copy.proof_state.pxe_0008_closed = true;
     }],
   ];
-
   for (const [name, mutate] of rejectionCases) {
     const copy = structuredClone(evidence);
     mutate(copy);
@@ -411,4 +242,4 @@ if (process.argv.includes("--self-test")) {
   }
 }
 
-console.log("Memory bridge exact-source repair candidate: PASS");
+console.log("Memory bridge atomic-intake successor candidate: PASS");

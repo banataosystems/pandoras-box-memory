@@ -9,10 +9,21 @@ const forwardMigrationPath =
   "supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql";
 const forwardRollbackPath =
   "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql";
+const atomicMigrationPath =
+  "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql";
 const manifestPath =
   "recovery/evidence/memory-evidence-intake-activation-release-manifest.md";
 const bridgeCandidateEvidencePath =
   "docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json";
+const atomicSuccessorManifestPath =
+  "recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md";
+const atomicSuccessorEvidencePath =
+  "docs/capabilities/evidence/MEMORY_BRIDGE_ATOMIC_INTAKE_SUCCESSOR_CANDIDATE_2026-08-21.json";
+const atomicRpcTestPath = "scripts/test_memory_evidence_atomic_rpc.sh";
+const atomicRpcSchemaPath =
+  "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql";
+const atomicRpcAssertionsPath =
+  "scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql";
 const bridgeCandidateCheckPath =
   "scripts/check_memory_bridge_repair_candidate.mjs";
 const secretCheckPath = "scripts/check_no_literal_secrets.sh";
@@ -22,6 +33,7 @@ const migration = fs.readFileSync(migrationPath, "utf8");
 const rollback = fs.readFileSync(rollbackPath, "utf8");
 const forwardMigration = fs.readFileSync(forwardMigrationPath, "utf8");
 const forwardRollback = fs.readFileSync(forwardRollbackPath, "utf8");
+const atomicMigration = fs.readFileSync(atomicMigrationPath, "utf8");
 const manifest = fs.readFileSync(manifestPath, "utf8");
 const secretCheck = fs.readFileSync(secretCheckPath, "utf8");
 const workflow = fs.readFileSync(workflowPath, "utf8");
@@ -123,6 +135,22 @@ for (const marker of [
 assert.ok(!/delete\s+from\s+public\.audit_logs/i.test(forwardRollback));
 assert.ok(!/delete\s+from\s+public\.memory_/i.test(forwardRollback));
 
+for (const marker of [
+  "begin;",
+  "commit;",
+  "submit_projectos_evidence_candidate_atomic",
+  "projectos_evidence_candidate_atomic_created",
+  "prevent_projectos_evidence_intake_audit_mutation",
+  "insert into public.memory_capture_candidates",
+  "insert into public.memory_review_queue_items",
+  "insert into public.audit_logs",
+  "canonical_memory_written",
+  "grant execute on function public.submit_projectos_evidence_candidate_atomic",
+]) {
+  assert.ok(atomicMigration.includes(marker), `atomic migration marker missing: ${marker}`);
+}
+assert.ok(!/delete\s+from\s+public\.(?:memory_|audit_logs)/i.test(atomicMigration));
+
 assert.ok(
   secretCheck.includes('grep -nE -- "$pattern"'),
   "secret scan must terminate grep options before an option-like regex",
@@ -161,8 +189,14 @@ for (const path of [
   rollbackPath,
   forwardMigrationPath,
   forwardRollbackPath,
+  atomicMigrationPath,
   manifestPath,
   bridgeCandidateEvidencePath,
+  atomicSuccessorManifestPath,
+  atomicSuccessorEvidencePath,
+  atomicRpcTestPath,
+  atomicRpcSchemaPath,
+  atomicRpcAssertionsPath,
   bridgeCandidateCheckPath,
   secretCheckPath,
 ]) {

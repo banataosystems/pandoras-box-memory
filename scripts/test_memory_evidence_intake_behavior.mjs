@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import vm from "node:vm";
 import ts from "typescript";
@@ -123,17 +124,12 @@ class FakeQuery {
     this.db = db;
     this.table = table;
     this.filters = [];
-    this.inserted = undefined;
   }
   select() { return this; }
   eq(column, value) { this.filters.push([column, value]); return this; }
   is(column, value) { this.filters.push([column, value]); return this; }
-  insert(value) { this.inserted = value; return this; }
   async maybeSingle() {
     await Promise.resolve();
-    if (this.inserted !== undefined) {
-      return this.db.insert(this.table, this.inserted);
-    }
     const row = this.db.rows[this.table].find((candidate) =>
       this.filters.every(([column, value]) => candidate[column] === value)
     );
@@ -141,17 +137,32 @@ class FakeQuery {
   }
 }
 
+function atomicFingerprint(args) {
+  return crypto.createHash("sha256").update(JSON.stringify({
+    namespace: args.p_namespace,
+    project_id: args.p_project_id,
+    project_key: args.p_project_key,
+    title: args.p_title,
+    summary: args.p_summary,
+    proof_stage: args.p_proof_stage,
+    claim: args.p_claim,
+    evidence_refs: args.p_evidence_refs,
+    provenance: args.p_provenance,
+    idempotency_key: args.p_idempotency_key,
+  })).digest("hex");
+}
+
 class FakeAdmin {
-  constructor({ grants = true, failReviewInserts = 0 } = {}) {
+  constructor({ grants = true, failReviewTransactions = 0, failAuditTransactions = 0 } = {}) {
     this.calls = [];
     this.counter = 0;
-    // Simulates the review-queue write failing after the candidate has landed,
-    // which is the partial-failure window this intake must recover from.
-    this.failReviewInserts = failReviewInserts;
+    this.failReviewTransactions = failReviewTransactions;
+    this.failAuditTransactions = failAuditTransactions;
+    this.atomicTail = Promise.resolve();
     this.rows = {
       pandora_projects: projectRows(),
       pandora_project_grants: grants
-        ? projectRows().map((project) => ({
+        ? [projectRows()[0]].map((project) => ({
             principal_key: "projectos-mcpmaster-production",
             project_id: project.id,
             environment: "production",
@@ -162,6 +173,7 @@ class FakeAdmin {
         : [],
       memory_capture_candidates: [],
       memory_review_queue_items: [],
+      audit_logs: [],
     };
   }
   from(table) {
@@ -169,34 +181,179 @@ class FakeAdmin {
     this.calls.push(table);
     return new FakeQuery(this, table);
   }
-  insert(table, input) {
-    if (table === "memory_review_queue_items" && this.failReviewInserts > 0) {
-      this.failReviewInserts -= 1;
-      return { data: null, error: { code: "08006", message: "connection failure" } };
-    }
-    const row = structuredClone(input);
-    const duplicate = table === "memory_capture_candidates"
-      ? this.rows[table].find((candidate) =>
-          candidate.user_id === row.user_id &&
-          candidate.namespace === row.namespace &&
-          candidate.source === row.source &&
-          candidate.source_ref === row.source_ref)
-      : table === "memory_review_queue_items"
-        ? this.rows[table].find((candidate) =>
-            candidate.user_id === row.user_id &&
-            candidate.namespace === row.namespace &&
-            candidate.candidate_type === row.candidate_type &&
-            candidate.source_ref === row.source_ref)
-        : null;
-    if (duplicate) {
-      return {
-        data: null,
-        error: { code: "23505", message: "duplicate key" },
+  nextId() {
+    return `00000000-0000-4000-8000-${String(++this.counter).padStart(12, "0")}`;
+  }
+  async rpc(name, args) {
+    this.calls.push(`rpc:${name}`);
+    assert.equal(name, "submit_projectos_evidence_candidate_atomic");
+
+    let release;
+    const previous = this.atomicTail;
+    this.atomicTail = new Promise((resolve) => {
+      release = resolve;
+    });
+    await previous;
+    try {
+      const sourceRef =
+        `projectos-evidence:${args.p_project_id}:${args.p_idempotency_key}`;
+      const fingerprint = atomicFingerprint(args);
+      const existing = this.rows.memory_capture_candidates.find((candidate) =>
+        candidate.user_id === args.p_user_id &&
+        candidate.namespace === args.p_namespace &&
+        candidate.source === "projectos-post-task" &&
+        candidate.source_ref === sourceRef
+      );
+      if (existing) {
+        const review = this.rows.memory_review_queue_items.find((item) =>
+          item.source_ref === sourceRef &&
+          item.evidence_snapshot.candidateId === existing.id
+        );
+        const audit = this.rows.audit_logs.find((item) =>
+          item.record_id === existing.id && item.metadata.review_item_id === review?.id
+        );
+        if (!review || !audit) {
+          return { data: null, error: { code: "55000", message: "atomic state incomplete" } };
+        }
+        if (existing.metadata.fingerprint !== fingerprint) {
+          return {
+            data: {
+              outcome: "idempotency_conflict",
+              candidate_id: existing.id,
+              review_item_id: review.id,
+              audit_id: audit.id,
+              fingerprint: existing.metadata.fingerprint,
+              canonical_memory_written: false,
+            },
+            error: null,
+          };
+        }
+        return {
+          data: {
+            outcome: "deduplicated",
+            candidate_id: existing.id,
+            review_item_id: review.id,
+            audit_id: audit.id,
+            created_at: existing.created_at,
+            fingerprint,
+            namespace: args.p_namespace,
+            project_id: args.p_project_id,
+            project_key: args.p_project_key,
+            proof_stage: args.p_proof_stage,
+            canonical_memory_written: false,
+          },
+          error: null,
+        };
+      }
+
+      // All three rows are staged against a private snapshot. A simulated
+      // review or audit failure returns before the snapshot is committed.
+      const working = structuredClone({
+        candidates: this.rows.memory_capture_candidates,
+        reviews: this.rows.memory_review_queue_items,
+        audits: this.rows.audit_logs,
+      });
+      const createdAt = new Date().toISOString();
+      const candidate = {
+        id: this.nextId(),
+        user_id: args.p_user_id,
+        namespace: args.p_namespace,
+        source: "projectos-post-task",
+        source_ref: sourceRef,
+        raw_excerpt: null,
+        summary: args.p_summary,
+        status: "pending",
+        requires_review: true,
+        created_at: createdAt,
+        metadata: {
+          project_id: args.p_project_id,
+          project_key: args.p_project_key,
+          proof_stage: args.p_proof_stage,
+          claim: args.p_claim,
+          evidence_refs: args.p_evidence_refs,
+          provenance: args.p_provenance,
+          idempotency_key: args.p_idempotency_key,
+          fingerprint,
+          atomic_rpc: name,
+        },
       };
+      working.candidates.push(candidate);
+
+      if (this.failReviewTransactions > 0) {
+        this.failReviewTransactions -= 1;
+        return { data: null, error: { code: "P0001", message: "review failure" } };
+      }
+      const review = {
+        id: this.nextId(),
+        user_id: args.p_user_id,
+        namespace: args.p_namespace,
+        source_ref: sourceRef,
+        candidate_type: "projectos_outcome",
+        status: "pending_review",
+        requires_review: true,
+        append_only: true,
+        fingerprint,
+        normalized_text: args.p_summary,
+        evidence_snapshot: {
+          candidateId: candidate.id,
+          claim: args.p_claim,
+          evidenceRefs: args.p_evidence_refs,
+          provenance: args.p_provenance,
+        },
+        audit_metadata: {
+          candidateId: candidate.id,
+          idempotencyKey: args.p_idempotency_key,
+          fingerprint,
+          atomicTransaction: true,
+          immutableAuditRequired: true,
+        },
+      };
+      working.reviews.push(review);
+
+      if (this.failAuditTransactions > 0) {
+        this.failAuditTransactions -= 1;
+        return { data: null, error: { code: "P0001", message: "audit failure" } };
+      }
+      const audit = {
+        id: this.nextId(),
+        user_id: args.p_user_id,
+        namespace: args.p_namespace,
+        action: "projectos_evidence_candidate_atomic_created",
+        table_name: "memory_capture_candidates",
+        record_id: candidate.id,
+        metadata: {
+          candidate_id: candidate.id,
+          review_item_id: review.id,
+          idempotency_key: args.p_idempotency_key,
+          fingerprint,
+          atomic_transaction: true,
+          append_only: true,
+        },
+      };
+      working.audits.push(audit);
+
+      this.rows.memory_capture_candidates = working.candidates;
+      this.rows.memory_review_queue_items = working.reviews;
+      this.rows.audit_logs = working.audits;
+      return {
+        data: {
+          outcome: "created",
+          candidate_id: candidate.id,
+          review_item_id: review.id,
+          audit_id: audit.id,
+          created_at: createdAt,
+          fingerprint,
+          namespace: args.p_namespace,
+          project_id: args.p_project_id,
+          project_key: args.p_project_key,
+          proof_stage: args.p_proof_stage,
+          canonical_memory_written: false,
+        },
+        error: null,
+      };
+    } finally {
+      release();
     }
-    row.id = row.id || `00000000-0000-4000-8000-${String(++this.counter).padStart(12, "0")}`;
-    this.rows[table].push(row);
-    return { data: structuredClone(row), error: null };
   }
 }
 
@@ -268,21 +425,38 @@ async function json(response) {
 
 {
   const db = new FakeAdmin();
+  const outsideEnvelope = await json(await submitEvidenceCandidate(
+    validBody("memory"),
+    principal,
+    db,
+  ));
+  assert.equal(outsideEnvelope.status, 403);
+  assert.equal(outsideEnvelope.body.error, "project_not_allowed");
+  assert.equal(db.rows.memory_capture_candidates.length, 0);
+  assert.equal(db.rows.memory_review_queue_items.length, 0);
+  assert.equal(db.rows.audit_logs.length, 0);
+}
+
+{
+  const db = new FakeAdmin();
   const first = await json(await submitEvidenceCandidate(validBody(), principal, db));
-  const second = await json(await submitEvidenceCandidate(validBody("memory"), principal, db));
   assert.equal(first.status, 202);
-  assert.equal(second.status, 202);
-  assert.equal(db.rows.memory_capture_candidates.length, 2);
-  assert.notEqual(
-    db.rows.memory_capture_candidates[0].source_ref,
-    db.rows.memory_capture_candidates[1].source_ref,
-    "same idempotency key in different projects must use different source refs",
-  );
+  assert.equal(first.body.deduplicated, false);
+  assert.equal(first.body.atomic_transaction, true);
+  assert.match(first.body.audit_id, /^[0-9a-f-]{36}$/);
+  assert.equal(db.rows.memory_capture_candidates.length, 1);
+  assert.equal(db.rows.memory_review_queue_items.length, 1);
+  assert.equal(db.rows.audit_logs.length, 1);
 
   const replay = await json(await submitEvidenceCandidate(validBody(), principal, db));
   assert.equal(replay.status, 200);
   assert.equal(replay.body.deduplicated, true);
-  assert.equal(db.rows.memory_capture_candidates.length, 2);
+  assert.equal(replay.body.candidate_id, first.body.candidate_id);
+  assert.equal(replay.body.review_item_id, first.body.review_item_id);
+  assert.equal(replay.body.audit_id, first.body.audit_id);
+  assert.equal(db.rows.memory_capture_candidates.length, 1);
+  assert.equal(db.rows.memory_review_queue_items.length, 1);
+  assert.equal(db.rows.audit_logs.length, 1);
 
   const conflict = await json(await submitEvidenceCandidate(
     validBody("mcpmaster-pandoras-box", { claim: "Different content under the same idempotency key." }),
@@ -291,91 +465,80 @@ async function json(response) {
   ));
   assert.equal(conflict.status, 409);
   assert.equal(conflict.body.error, "idempotency_conflict");
+  assert.equal(db.rows.memory_capture_candidates.length, 1);
+  assert.equal(db.rows.memory_review_queue_items.length, 1);
+  assert.equal(db.rows.audit_logs.length, 1);
+  const [candidate] = db.rows.memory_capture_candidates;
+  const [review] = db.rows.memory_review_queue_items;
+  const [audit] = db.rows.audit_logs;
+  assert.equal(candidate.status, "pending");
+  assert.equal(review.status, "pending_review");
+  assert.equal(review.evidence_snapshot.candidateId, candidate.id);
+  assert.equal(audit.record_id, candidate.id);
+  assert.equal(audit.metadata.review_item_id, review.id);
+  assert.equal(audit.metadata.fingerprint, candidate.metadata.fingerprint);
+  assert.equal(audit.metadata.atomic_transaction, true);
+  assert.equal(candidate.raw_excerpt, null);
   assert.equal(db.calls.includes("memory_items"), false, "intake must not touch canonical memory");
+  assert.equal(db.calls.includes("memory_capture_candidates"), false, "bridge must not write candidate directly");
+  assert.equal(db.calls.includes("memory_review_queue_items"), false, "bridge must not write review directly");
+  assert.ok(
+    db.calls.includes("rpc:submit_projectos_evidence_candidate_atomic"),
+    "bridge must use the atomic RPC",
+  );
 }
 
 {
   const db = new FakeAdmin();
-  const [left, right] = await Promise.all([
-    submitEvidenceCandidate(validBody(), principal, db).then(json),
-    submitEvidenceCandidate(validBody(), principal, db).then(json),
-  ]);
-  assert.deepEqual(
-    [left.status, right.status].sort((a, b) => a - b),
-    [200, 202],
-    "concurrent identical submissions must converge on one candidate/review pair",
+  const responses = await Promise.all(
+    Array.from({ length: 8 }, () =>
+      submitEvidenceCandidate(validBody(), principal, db).then(json)
+    ),
   );
+  assert.equal(responses.filter((response) => response.status === 202).length, 1);
+  assert.equal(responses.filter((response) => response.status === 200).length, 7);
+  assert.equal(new Set(responses.map((response) => response.body.candidate_id)).size, 1);
+  assert.equal(new Set(responses.map((response) => response.body.review_item_id)).size, 1);
+  assert.equal(new Set(responses.map((response) => response.body.audit_id)).size, 1);
   assert.equal(db.rows.memory_capture_candidates.length, 1);
   assert.equal(db.rows.memory_review_queue_items.length, 1);
+  assert.equal(db.rows.audit_logs.length, 1);
 }
 
-// Partial failure: the candidate lands, the review-queue write fails. The
-// candidate must not stay invisible to human review on any supported retry.
+// Failure injection after the candidate insert but before the review insert.
+// The private transaction snapshot is discarded, leaving no orphan.
 {
-  const db = new FakeAdmin({ failReviewInserts: 1 });
-  const partial = await json(await submitEvidenceCandidate(validBody(), principal, db));
-  assert.equal(partial.status, 500);
-  assert.equal(partial.body.error, "review_insert_failed");
-  assert.equal(db.rows.memory_capture_candidates.length, 1, "candidate persisted");
-  assert.equal(db.rows.memory_review_queue_items.length, 0, "orphaned candidate");
-
-  // Identical retry heals the orphan and reports success.
-  const healed = await json(await submitEvidenceCandidate(validBody(), principal, db));
-  assert.equal(healed.status, 202);
-  assert.equal(db.rows.memory_capture_candidates.length, 1);
-  assert.equal(db.rows.memory_review_queue_items.length, 1, "orphan reconciled");
-  assert.equal(db.rows.memory_review_queue_items[0].status, "pending_review");
-  assert.equal(
-    db.rows.memory_review_queue_items[0].audit_metadata.candidateId,
-    db.rows.memory_capture_candidates[0].id,
-    "review item must point at the persisted candidate",
-  );
-}
-
-// The regression that mattered: after a partial failure, a retry carrying
-// CHANGED content must still heal the orphan before reporting the conflict.
-{
-  const db = new FakeAdmin({ failReviewInserts: 1 });
-  const partial = await json(await submitEvidenceCandidate(validBody(), principal, db));
-  assert.equal(partial.status, 500);
+  const db = new FakeAdmin({ failReviewTransactions: 1 });
+  const failed = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(failed.status, 500);
+  assert.equal(failed.body.error, "candidate_transaction_failed");
+  assert.equal(db.rows.memory_capture_candidates.length, 0);
   assert.equal(db.rows.memory_review_queue_items.length, 0);
+  assert.equal(db.rows.audit_logs.length, 0);
 
-  const conflict = await json(await submitEvidenceCandidate(
-    validBody("mcpmaster-pandoras-box", { claim: "Changed content after a partial failure." }),
-    principal,
-    db,
-  ));
-  assert.equal(conflict.status, 409, "changed content is still rejected");
-  assert.equal(conflict.body.error, "idempotency_conflict");
-  assert.equal(
-    db.rows.memory_review_queue_items.length,
-    1,
-    "orphan must be reconciled even when the retry conflicts",
-  );
-
-  // The reconciled queue item must mirror what was actually persisted, not the
-  // rejected submission, so review never sees content that was never stored.
-  const review = db.rows.memory_review_queue_items[0];
-  const candidate = db.rows.memory_capture_candidates[0];
-  assert.equal(review.fingerprint, candidate.metadata.fingerprint);
-  assert.equal(review.evidence_snapshot.claim, candidate.metadata.claim);
-  assert.notEqual(review.evidence_snapshot.claim, "Changed content after a partial failure.");
-  assert.equal(review.normalized_text, candidate.summary);
-  assert.equal(candidate.raw_excerpt, null);
-  assert.equal(db.calls.includes("memory_items"), false, "recovery must not touch canonical memory");
+  const retry = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(retry.status, 202);
+  assert.equal(db.rows.memory_capture_candidates.length, 1);
+  assert.equal(db.rows.memory_review_queue_items.length, 1);
+  assert.equal(db.rows.audit_logs.length, 1);
 }
 
-// No supported path leaves a candidate without a queue item once a retry runs.
+// Failure injection after candidate + review staging but before audit insert.
+// Candidate and review both roll back with the audit failure.
 {
-  const db = new FakeAdmin({ failReviewInserts: 2 });
-  await json(await submitEvidenceCandidate(validBody(), principal, db));
-  await json(await submitEvidenceCandidate(validBody(), principal, db));
-  const recovered = await json(await submitEvidenceCandidate(validBody(), principal, db));
-  assert.equal(recovered.status, 202);
-  const orphans = db.rows.memory_capture_candidates.filter((candidate) =>
-    !db.rows.memory_review_queue_items.some((item) => item.source_ref === candidate.source_ref)
-  );
-  assert.deepEqual(orphans, [], "no candidate may remain without a review queue item");
+  const db = new FakeAdmin({ failAuditTransactions: 1 });
+  const failed = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(failed.status, 500);
+  assert.equal(failed.body.error, "candidate_transaction_failed");
+  assert.equal(db.rows.memory_capture_candidates.length, 0);
+  assert.equal(db.rows.memory_review_queue_items.length, 0);
+  assert.equal(db.rows.audit_logs.length, 0);
+
+  const retry = await json(await submitEvidenceCandidate(validBody(), principal, db));
+  assert.equal(retry.status, 202);
+  assert.equal(db.rows.memory_capture_candidates.length, 1);
+  assert.equal(db.rows.memory_review_queue_items.length, 1);
+  assert.equal(db.rows.audit_logs.length, 1);
 }
 
 console.log("Governed Memory evidence intake behavioral tests: PASS");

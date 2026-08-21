@@ -515,9 +515,6 @@ const EVIDENCE_PROOF_STAGES = new Set([
   "deployed",
   "production_verified",
 ]);
-const EVIDENCE_SOURCE = "projectos-post-task";
-const EVIDENCE_CANDIDATE_TYPE = "projectos_outcome";
-const EVIDENCE_INTAKE_KIND = "projectos_evidence_candidate_v1";
 const EVIDENCE_IDEMPOTENCY_PATTERN = /^[A-Za-z0-9._:-]{16,160}$/;
 const EVIDENCE_PROJECT_KEY_PATTERN = /^[a-z0-9][a-z0-9._-]{1,95}$/;
 const EVIDENCE_UUID_PATTERN =
@@ -647,16 +644,6 @@ const evidenceSensitiveReason = (value: unknown): string | null => {
   return visit(value);
 };
 
-const evidenceSha256 = async (value: string): Promise<string> => {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
-};
-
 const parseEvidenceRefs = (value: unknown): JsonRecord[] | null => {
   if (!Array.isArray(value) || value.length < 1 || value.length > 20) return null;
   const parsed: JsonRecord[] = [];
@@ -727,175 +714,10 @@ const parseEvidenceProvenance = (value: unknown): JsonRecord | null => {
   return output;
 };
 
-// Exactly what is (or is about to be) persisted for one evidence candidate.
-// Review-queue reconciliation is always driven from this, never from a fresh
-// submission, so a healed orphan mirrors the row that actually exists.
-type EvidenceSnapshot = {
-  namespace: string;
-  sourceRef: string;
-  summary: string;
-  proofStage: string;
-  claim: string;
-  evidenceRefs: unknown;
-  provenance: unknown;
-  canonicalProjectId: string;
-  canonicalProjectKey: string;
-  idempotencyKey: string;
-  fingerprint: string;
-};
-
-// Rebuild the snapshot of an already-persisted candidate from its own stored
-// columns. Returns null if the row cannot be read faithfully, so reconciliation
-// fails closed rather than writing a review item that misstates the candidate.
-const storedEvidenceSnapshot = (
-  candidate: JsonRecord,
-  namespace: string,
-  sourceRef: string,
-): EvidenceSnapshot | null => {
-  const metadata = isRecord(candidate.metadata) ? candidate.metadata : null;
-  if (!metadata) return null;
-  const summary = typeof candidate.summary === "string" ? candidate.summary : null;
-  const proofStage = typeof metadata.proof_stage === "string" ? metadata.proof_stage : null;
-  const claim = typeof metadata.claim === "string" ? metadata.claim : null;
-  const projectId = typeof metadata.project_id === "string" ? metadata.project_id : null;
-  const projectKey = typeof metadata.project_key === "string" ? metadata.project_key : null;
-  const idempotencyKey = typeof metadata.idempotency_key === "string"
-    ? metadata.idempotency_key
-    : null;
-  const fingerprint = typeof metadata.fingerprint === "string" ? metadata.fingerprint : null;
-  if (
-    !summary || !proofStage || !claim || !projectId || !projectKey ||
-    !idempotencyKey || !fingerprint || metadata.evidence_refs === undefined ||
-    metadata.provenance === undefined
-  ) {
-    return null;
-  }
-  return {
-    namespace,
-    sourceRef,
-    summary,
-    proofStage,
-    claim,
-    evidenceRefs: metadata.evidence_refs,
-    provenance: metadata.provenance,
-    canonicalProjectId: projectId,
-    canonicalProjectKey: projectKey,
-    idempotencyKey,
-    fingerprint,
-  };
-};
-
-type EnsureReviewResult =
-  | { ok: true; id: string; created: boolean }
-  | { ok: false; response: Response };
-
-// Guarantee that the persisted candidate has a pending_review queue item.
-// Called on every submission before any conflict decision, so a candidate left
-// without a queue item by a partial failure is healed on the next request with
-// the same key — including one whose content has changed.
-const ensureEvidenceReviewItem = async (
-  admin: AdminClient,
-  principal: Principal,
-  snapshot: EvidenceSnapshot,
-  candidateId: string,
-): Promise<EnsureReviewResult> => {
-  const { data: existingReview, error: existingReviewError } = await admin
-    .from("memory_review_queue_items")
-    .select("id")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", snapshot.namespace)
-    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
-    .eq("source_ref", snapshot.sourceRef)
-    .maybeSingle();
-
-  if (existingReviewError) {
-    console.error("projectos_evidence_review_lookup_failed", existingReviewError.message);
-    return { ok: false, response: respond({ ok: false, error: "review_lookup_failed" }, 500) };
-  }
-  if (existingReview?.id) {
-    return { ok: true, id: existingReview.id, created: false };
-  }
-
-  const { data: insertedReview, error: reviewInsertError } = await admin
-    .from("memory_review_queue_items")
-    .insert({
-      user_id: principal.memory_user_id,
-      namespace: snapshot.namespace,
-      status: "pending_review",
-      candidate_type: EVIDENCE_CANDIDATE_TYPE,
-      normalized_text: snapshot.summary,
-      evidence_snapshot: {
-        hasEvidence: true,
-        intakeKind: EVIDENCE_INTAKE_KIND,
-        sourceRef: snapshot.sourceRef,
-        proofStage: snapshot.proofStage,
-        claim: snapshot.claim,
-        evidenceRefs: snapshot.evidenceRefs,
-        provenance: snapshot.provenance,
-        candidateId,
-      },
-      sensitivity_snapshot: {
-        classification: "low",
-        containsSecrets: false,
-        containsPersonalData: false,
-        containsRawArguments: false,
-        containsRawResults: false,
-        containsRawErrors: false,
-      },
-      namespace_snapshot: {
-        sourceNamespace: snapshot.namespace,
-        targetNamespace: snapshot.namespace,
-        namespaceMatch: true,
-      },
-      source_metadata: {
-        source: EVIDENCE_SOURCE,
-        sourceKind: "projectos_evidence",
-        sourceRef: snapshot.sourceRef,
-        projectId: snapshot.canonicalProjectId,
-        projectKey: snapshot.canonicalProjectKey,
-        proofStage: snapshot.proofStage,
-      },
-      audit_metadata: {
-        schemaVersion: 1,
-        candidateId,
-        appendOnly: true,
-        reviewRequired: true,
-        idempotencyKey: snapshot.idempotencyKey,
-        fingerprint: snapshot.fingerprint,
-      },
-      append_only: true,
-      proposed_operation: "append",
-      requires_review: true,
-      source_ref: snapshot.sourceRef,
-      request_hash: snapshot.fingerprint,
-      fingerprint: snapshot.fingerprint,
-      persistence_execution_metadata: {},
-    })
-    .select("id")
-    .maybeSingle();
-
-  if (reviewInsertError && errorCode(reviewInsertError) !== "23505") {
-    console.error("projectos_evidence_review_insert_failed", reviewInsertError.message);
-    return { ok: false, response: respond({ ok: false, error: "review_insert_failed" }, 500) };
-  }
-  if (insertedReview?.id) {
-    return { ok: true, id: insertedReview.id, created: true };
-  }
-
-  // Lost the unique race: another concurrent submission created the queue item.
-  const { data: racedReview, error: racedReviewError } = await admin
-    .from("memory_review_queue_items")
-    .select("id")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", snapshot.namespace)
-    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
-    .eq("source_ref", snapshot.sourceRef)
-    .maybeSingle();
-  if (racedReviewError || !racedReview?.id) {
-    return { ok: false, response: respond({ ok: false, error: "review_recovery_failed" }, 500) };
-  }
-  return { ok: true, id: racedReview.id, created: false };
-};
+const EVIDENCE_ATOMIC_RPC = "submit_projectos_evidence_candidate_atomic";
+const EVIDENCE_RESULT_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EVIDENCE_RESULT_FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/;
 
 const submitEvidenceCandidate = async (
   body: JsonRecord,
@@ -1027,194 +849,78 @@ const submitEvidenceCandidate = async (
     return respond({ ok: false, error: "project_not_allowed" }, 403);
   }
 
-  const projectReference = canonicalProjectKey;
-  const sourceRef = `projectos-evidence:${canonicalProjectId}:${idempotencyKey}`;
-  const fingerprint = await evidenceSha256(JSON.stringify({
-    namespace,
-    project_id: canonicalProjectId,
-    project_key: canonicalProjectKey,
-    title,
-    summary,
-    proof_stage: proofStage,
-    claim,
-    evidence_refs: evidenceRefs,
-    provenance,
-    idempotency_key: idempotencyKey,
-  }));
-  const now = new Date().toISOString();
-
-  const incomingSnapshot: EvidenceSnapshot = {
-    namespace,
-    sourceRef,
-    summary,
-    proofStage,
-    claim,
-    evidenceRefs,
-    provenance,
-    canonicalProjectId,
-    canonicalProjectKey,
-    idempotencyKey,
-    fingerprint,
-  };
-
-  let candidateId: string | null = null;
-  let candidateCreated = false;
-  // The snapshot that is actually persisted. On a replay this is the stored
-  // row, not the incoming submission, so reconciliation cannot rewrite history.
-  let persistedSnapshot: EvidenceSnapshot | null = null;
-  const { data: existingCandidate, error: existingCandidateError } = await admin
-    .from("memory_capture_candidates")
-    .select("id,summary,metadata")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", namespace)
-    .eq("source", EVIDENCE_SOURCE)
-    .eq("source_ref", sourceRef)
-    .maybeSingle();
-
-  if (existingCandidateError) {
-    console.error("projectos_evidence_candidate_lookup_failed", existingCandidateError.message);
-    return respond({ ok: false, error: "candidate_lookup_failed" }, 500);
-  }
-
-  if (existingCandidate?.id) {
-    // Deliberately do NOT decide the conflict yet. The queue item is reconciled
-    // first (below) so a candidate orphaned by an earlier partial failure
-    // becomes visible to human review even when this retry carries new content.
-    persistedSnapshot = storedEvidenceSnapshot(existingCandidate, namespace, sourceRef);
-    if (!persistedSnapshot) {
-      console.error("projectos_evidence_candidate_unreadable", sourceRef);
-      return respond({ ok: false, error: "candidate_reconcile_failed" }, 500);
-    }
-    candidateId = existingCandidate.id;
-  }
-
-  if (!candidateId) {
-    const candidate = {
-      user_id: principal.memory_user_id,
-      namespace,
-      source: EVIDENCE_SOURCE,
-      source_ref: sourceRef,
-      raw_excerpt: null,
-      redacted_excerpt: summary,
-      memory_type: "business_fact",
-      title,
-      summary,
-      importance: 8,
-      sensitivity: "low",
-      confidence: 0.95,
-      should_capture: true,
-      requires_review: true,
-      status: "pending",
-      reason:
-        "ProjectOS evidence intake is review-gated. This candidate cannot become canonical without an authenticated human decision.",
-      people: [],
-      projects: [projectReference],
-      risks: [],
-      tags: ["projectos", "evidence_candidate", proofStage],
-      metadata: {
-        schema_version: 1,
-        intake_kind: EVIDENCE_INTAKE_KIND,
-        project_id: canonicalProjectId,
-        project_key: canonicalProjectKey,
-        proof_stage: proofStage,
-        claim,
-        evidence_refs: evidenceRefs,
-        provenance,
-        idempotency_key: idempotencyKey,
-        fingerprint,
-        privacy_policy: "metadata_only_v2_fail_closed",
-        privacy_scan_version: EVIDENCE_PRIVACY_SCAN_VERSION,
-        privacy_scan_passed: true,
-        privacy_scan_scope: "canonicalized_candidate_payload",
-        imported_raw_arguments: false,
-        imported_raw_results: false,
-        imported_raw_errors: false,
-      },
-      usefulness_score: 0.9,
-      confidence_score: 0.95,
-      freshness_score: 1,
-      retrieval_weight: 0.9,
-      stale_status: "active",
-      scoring_version: "projectos-evidence-v1",
-      scored_at: now,
-    };
-
-    const { data: insertedCandidate, error: candidateInsertError } = await admin
-      .from("memory_capture_candidates")
-      .insert(candidate)
-      .select("id")
-      .maybeSingle();
-
-    if (candidateInsertError && errorCode(candidateInsertError) !== "23505") {
-      console.error("projectos_evidence_candidate_insert_failed", candidateInsertError.message);
-      return respond({ ok: false, error: "candidate_insert_failed" }, 500);
-    }
-
-    if (insertedCandidate?.id) {
-      candidateId = insertedCandidate.id;
-      candidateCreated = true;
-      persistedSnapshot = incomingSnapshot;
-    } else {
-      // Lost the unique race: adopt the winner's stored row and, as above,
-      // reconcile its queue item before judging the conflict.
-      const { data: racedCandidate, error: racedCandidateError } = await admin
-        .from("memory_capture_candidates")
-        .select("id,summary,metadata")
-        .eq("user_id", principal.memory_user_id)
-        .eq("namespace", namespace)
-        .eq("source", EVIDENCE_SOURCE)
-        .eq("source_ref", sourceRef)
-        .maybeSingle();
-      if (racedCandidateError || !racedCandidate?.id) {
-        return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
-      }
-      persistedSnapshot = storedEvidenceSnapshot(racedCandidate, namespace, sourceRef);
-      if (!persistedSnapshot) {
-        console.error("projectos_evidence_candidate_unreadable", sourceRef);
-        return respond({ ok: false, error: "candidate_reconcile_failed" }, 500);
-      }
-      candidateId = racedCandidate.id;
-    }
-  }
-
-  if (!candidateId || !persistedSnapshot) {
-    return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
-  }
-
-  // Reconcile the review queue against whatever is actually persisted. This runs
-  // on every submission, so an orphaned candidate can never remain permanently
-  // invisible to human review.
-  const review = await ensureEvidenceReviewItem(
-    admin,
-    principal,
-    persistedSnapshot,
-    candidateId,
+  // Candidate, pending-review item, and immutable metadata-only audit are one
+  // PostgreSQL transaction. Any failure rolls back the entire lifecycle unit.
+  const { data: atomicResult, error: atomicError } = await admin.rpc(
+    EVIDENCE_ATOMIC_RPC,
+    {
+      p_principal_key: PRINCIPAL_KEY,
+      p_user_id: principal.memory_user_id,
+      p_environment: principal.environment,
+      p_namespace: namespace,
+      p_project_id: canonicalProjectId,
+      p_project_key: canonicalProjectKey,
+      p_title: title,
+      p_summary: summary,
+      p_proof_stage: proofStage,
+      p_claim: claim,
+      p_evidence_refs: evidenceRefs,
+      p_provenance: provenance,
+      p_idempotency_key: idempotencyKey,
+    },
   );
-  if (!review.ok) return review.response;
-  const reviewItemId = review.id;
-  const reviewCreated = review.created;
 
-  // Only now is it safe to report a conflict: the persisted candidate is
-  // queued for review, and this differing submission is rejected rather than
-  // silently overwriting or dropping content.
-  if (persistedSnapshot.fingerprint !== fingerprint) {
+  if (atomicError) {
+    console.error("projectos_evidence_atomic_transaction_failed", atomicError.message);
+    return respond({ ok: false, error: "candidate_transaction_failed" }, 500);
+  }
+  if (!isRecord(atomicResult) || typeof atomicResult.outcome !== "string") {
+    console.error("projectos_evidence_atomic_result_invalid");
+    return respond({ ok: false, error: "candidate_transaction_failed" }, 500);
+  }
+  if (atomicResult.outcome === "idempotency_conflict") {
     return respond({ ok: false, error: "idempotency_conflict" }, 409);
   }
+  if (
+    (atomicResult.outcome !== "created" && atomicResult.outcome !== "deduplicated") ||
+    typeof atomicResult.candidate_id !== "string" ||
+    !EVIDENCE_RESULT_ID_PATTERN.test(atomicResult.candidate_id) ||
+    typeof atomicResult.review_item_id !== "string" ||
+    !EVIDENCE_RESULT_ID_PATTERN.test(atomicResult.review_item_id) ||
+    typeof atomicResult.audit_id !== "string" ||
+    !EVIDENCE_RESULT_ID_PATTERN.test(atomicResult.audit_id) ||
+    typeof atomicResult.fingerprint !== "string" ||
+    !EVIDENCE_RESULT_FINGERPRINT_PATTERN.test(atomicResult.fingerprint) ||
+    atomicResult.namespace !== namespace ||
+    atomicResult.project_id !== canonicalProjectId ||
+    atomicResult.project_key !== canonicalProjectKey ||
+    atomicResult.proof_stage !== proofStage ||
+    atomicResult.canonical_memory_written !== false
+  ) {
+    console.error("projectos_evidence_atomic_result_invalid");
+    return respond({ ok: false, error: "candidate_transaction_failed" }, 500);
+  }
+
+  const created = atomicResult.outcome === "created";
   return respond({
     ok: true,
-    candidate_id: candidateId,
-    review_item_id: reviewItemId,
+    candidate_id: atomicResult.candidate_id,
+    review_item_id: atomicResult.review_item_id,
+    audit_id: atomicResult.audit_id,
     status: "pending_review",
     idempotency_key: idempotencyKey,
     namespace,
     project_id: canonicalProjectId,
     project_key: canonicalProjectKey,
     proof_stage: proofStage,
-    deduplicated: !(candidateCreated || reviewCreated),
-    created_at: candidateCreated || reviewCreated ? now : null,
+    deduplicated: !created,
+    created_at: created && typeof atomicResult.created_at === "string"
+      ? atomicResult.created_at
+      : null,
     canonical_memory_written: false,
-    privacy_policy: "metadata_only_v1",
-  }, candidateCreated || reviewCreated ? 202 : 200);
+    privacy_policy: "metadata_only_v2_fail_closed",
+    atomic_transaction: true,
+  }, created ? 202 : 200);
 };
 
 Deno.serve(async (request: Request) => {

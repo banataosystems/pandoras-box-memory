@@ -4,9 +4,12 @@ import ts from "typescript";
 
 const routePath = "app/api/projectos/memory/evidence-candidates/route.ts";
 const bridgePath = "supabase/functions/pandora-projectos-bridge/index.ts";
+const atomicMigrationPath =
+  "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql";
 
 const route = fs.readFileSync(routePath, "utf8");
 const bridge = fs.readFileSync(bridgePath, "utf8");
+const atomicMigration = fs.readFileSync(atomicMigrationPath, "utf8");
 
 for (const [name, source] of [["route", route], ["bridge", bridge]]) {
   const result = ts.transpileModule(source, {
@@ -46,18 +49,15 @@ for (const marker of [
   '.from("pandora_project_grants")',
   '.eq("can_propose", true)',
   '.eq("environment", principal.environment)',
-  'const sourceRef = `projectos-evidence:${canonicalProjectId}:${idempotencyKey}`',
+  'EVIDENCE_ATOMIC_RPC = "submit_projectos_evidence_candidate_atomic"',
+  "admin.rpc(",
+  "p_idempotency_key: idempotencyKey",
   'error: "idempotency_conflict"',
-  '.from("memory_capture_candidates")',
-  'memory_type: "business_fact"',
-  "requires_review: true",
-  'status: "pending"',
-  '.from("memory_review_queue_items")',
-  "candidate_type: EVIDENCE_CANDIDATE_TYPE",
+  'error: "candidate_transaction_failed"',
   'status: "pending_review"',
-  'proposed_operation: "append"',
+  "audit_id: atomicResult.audit_id",
+  "atomic_transaction: true",
   "canonical_memory_written: false",
-  'privacy_policy: "metadata_only_v2_fail_closed"',
   "EVIDENCE_PRIVACY_SCAN_VERSION",
   '"direct_identifier_phone"',
   '"direct_identifier_name"',
@@ -75,30 +75,60 @@ assert.ok(helperStart >= 0 && serveStart > helperStart, "evidence helper boundar
 
 const helper = bridge.slice(helperStart, serveStart);
 assert.ok(!helper.includes('.from("memory_items")'), "candidate helper must not access canonical memory_items");
+assert.ok(
+  !helper.includes('.from("memory_capture_candidates")'),
+  "bridge must not persist candidates outside the atomic RPC",
+);
+assert.ok(
+  !helper.includes('.from("memory_review_queue_items")'),
+  "bridge must not persist review rows outside the atomic RPC",
+);
 assert.ok(!helper.includes("hard_canon"), "candidate helper must not promote hard canon");
 assert.ok(!helper.includes("soft_canon"), "candidate helper must not promote soft canon");
-assert.ok(helper.includes("raw_excerpt: null"), "candidate helper must force raw excerpt null");
-assert.ok(helper.includes("privacy_scan_version: EVIDENCE_PRIVACY_SCAN_VERSION"), "privacy scan version metadata missing");
-assert.ok(helper.includes("privacy_scan_passed: true"), "privacy scan result metadata missing");
-assert.ok(helper.includes("privacy_scan_scope: \"canonicalized_candidate_payload\""), "privacy scan scope metadata missing");
 assert.ok(!helper.includes("imported_personal_identifiers: false"), "categorical identifier claim must not be persisted");
 assert.ok(!helper.includes("imported_secrets: false"), "categorical secret claim must not be persisted");
-assert.ok(helper.includes("fingerprint,"), "candidate/review content fingerprint missing");
 
-// Review-queue reconciliation must run before the idempotency-conflict decision,
-// otherwise a candidate orphaned by a partial failure stays invisible to review.
+for (const marker of [
+  "begin;",
+  "commit;",
+  "submit_projectos_evidence_candidate_atomic",
+  "security definer",
+  "insert into public.memory_capture_candidates",
+  "insert into public.memory_review_queue_items",
+  "insert into public.audit_logs",
+  "projectos_evidence_candidate_atomic_created",
+  "prevent_projectos_evidence_intake_audit_mutation",
+  "on conflict (user_id, namespace, source, source_ref)",
+  "'outcome', 'idempotency_conflict'",
+  "'outcome', 'deduplicated'",
+  "'outcome', 'created'",
+  "'canonical_memory_written', false",
+  "'privacy_policy', 'metadata_only_v2_fail_closed'",
+  "'privacy_scan_version', 'evidence_privacy_v2'",
+  "'privacy_scan_passed', true",
+  "raw_excerpt",
+  "null,",
+  "grant execute on function public.submit_projectos_evidence_candidate_atomic",
+]) {
+  assert.ok(atomicMigration.includes(marker), `atomic migration marker missing: ${marker}`);
+}
 assert.ok(
-  helper.includes("ensureEvidenceReviewItem"),
-  "review-queue reconciliation helper missing",
+  atomicMigration.indexOf("insert into public.memory_capture_candidates") <
+    atomicMigration.indexOf("insert into public.memory_review_queue_items"),
+  "candidate insert must precede review insert inside one RPC transaction",
 );
 assert.ok(
-  helper.includes("storedEvidenceSnapshot"),
-  "reconciliation must rebuild the persisted snapshot rather than trust the retry",
+  atomicMigration.indexOf("insert into public.memory_review_queue_items") <
+    atomicMigration.indexOf("insert into public.audit_logs"),
+  "review insert must precede immutable audit insert inside one RPC transaction",
 );
 assert.ok(
-  helper.indexOf("await ensureEvidenceReviewItem(") <
-    helper.indexOf("persistedSnapshot.fingerprint !== fingerprint"),
-  "reconciliation must precede the idempotency-conflict decision",
+  !atomicMigration.includes("public.memory_items"),
+  "atomic candidate migration must not touch canonical memory",
+);
+assert.ok(
+  !/delete\s+from\s+public\.(?:memory_|audit_logs)/i.test(atomicMigration),
+  "atomic candidate migration must not delete Memory or audit rows",
 );
 
 const dispatch = bridge.slice(serveStart);

@@ -1,0 +1,140 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-bridge-atomic-intake-successor-candidate-2026-08-21",
+  "observed_at": "2026-08-21T08:09:12Z",
+  "proof_stage": "implemented",
+  "repository": {
+    "full_name": "banataosystems/pandoras-box-memory",
+    "repository_id": 1327294429,
+    "base_commit": "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
+    "base_tree": "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88",
+    "superseded_pr": 55,
+    "successor_parent_commit": "edb82476b2dfefef0e94ced1456b241f79caa889",
+    "successor_parent_tree": "18740e6a0691067a7c18def2e6623a625ff97b35",
+    "branch": "fix/memory-evidence-intake-atomic-successor-20260821",
+    "commit_binding": "exact GitHub head and tree reported by CI and draft PR"
+  },
+  "candidate_source": {
+    "bridge": {
+      "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+      "raw_sha256": "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
+      "blob_sha1": "9adabe26f62205b0f94adc5744151c2d68c2c46e",
+      "bytes": 34998,
+      "required_markers": {
+        "submit_evidence_candidate": true,
+        "atomic_rpc": "submit_projectos_evidence_candidate_atomic",
+        "direct_candidate_write": false,
+        "direct_review_write": false,
+        "canonical_memory_write": false
+      }
+    },
+    "import_map": {
+      "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+      "raw_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
+      "blob_sha1": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+      "bytes": 113
+    },
+    "atomic_migration": {
+      "path": "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+      "raw_sha256": "1218cbb9f8d0748557e785b75561f79cd2a3140413c3c8872d0954acd9cca863",
+      "blob_sha1": "c14097ca35b9efef902449fa882f5f60a892d585",
+      "bytes": 17268,
+      "transactional": true,
+      "modifies_hosted_migration_history": false,
+      "rpc": "public.submit_projectos_evidence_candidate_atomic",
+      "audit_action": "projectos_evidence_candidate_atomic_created",
+      "immutable_audit_trigger": "prevent_projectos_evidence_intake_audit_mutation",
+      "execute_roles": [
+        "service_role"
+      ]
+    }
+  },
+  "test_artifacts": {
+    "behavior": {
+      "path": "scripts/test_memory_evidence_intake_behavior.mjs",
+      "raw_sha256": "b8ff137aed85406b4a38a3aa3291b0cf34e5b2f7da04920b47148961ee2b6b88"
+    },
+    "postgres_runner": {
+      "path": "scripts/test_memory_evidence_atomic_rpc.sh",
+      "raw_sha256": "c791efe8871815c615cd2074639974236d83830bc3c708f0cab9b93255ff7c28"
+    },
+    "postgres_schema": {
+      "path": "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql",
+      "raw_sha256": "ca9ddb72422a69a8a1a38422007bc4ed235b67bebee0c002ec96110ed4df16d9"
+    },
+    "postgres_assertions": {
+      "path": "scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql",
+      "raw_sha256": "d8ea1c076c3397d85b4cb707ec4235035de690ffc1f3434554ccb4a61a74559d"
+    },
+    "required_cases": {
+      "identical_replay": true,
+      "changed_content_conflict": true,
+      "eight_way_concurrency": true,
+      "review_failure_rolls_back_all_rows": true,
+      "audit_failure_rolls_back_all_rows": true,
+      "immutable_audit_update_rejected": true,
+      "immutable_audit_delete_rejected": true,
+      "anonymous_execute_rejected": true,
+      "authenticated_execute_rejected": true,
+      "canonical_memory_never_written": true
+    }
+  },
+  "live_baseline": {
+    "supabase_project": "ivmvufhcsezyhczzondn",
+    "bridge_version": 15,
+    "bridge_package_sha256": "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a",
+    "bridge_raw_sha256": "7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf",
+    "bridge_source_commit": "523fec111bfb2c327f69c2abdf0784775ab49a90",
+    "principal": "projectos-mcpmaster-production",
+    "scopes": [
+      "memory:health",
+      "memory:read"
+    ],
+    "candidate_action_live": false,
+    "production_changed": false
+  },
+  "migration_parity": {
+    "verdict": "RED",
+    "hosted_versions": 69,
+    "source_versions_before_successor": 17,
+    "matching_versions": 15,
+    "hosted_only_versions": 54,
+    "local_only_versions_before_successor": 2,
+    "successor_adds_local_only_migration": true,
+    "hosted_history_mutation_authorized": false
+  },
+  "rollback": {
+    "live_v15_source_recoverable": true,
+    "live_v15_restore_rehearsed": false,
+    "scope_rollback_path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+    "scope_rollback_qualified": false,
+    "atomic_rpc_dormant_without_write_scope": true
+  },
+  "authority": {
+    "source_candidate": true,
+    "tests": true,
+    "branch": true,
+    "draft_pull_request": true,
+    "merge": false,
+    "database_migration": false,
+    "edge_deployment": false,
+    "hosted_migration_history_change": false,
+    "evidence_submission": false,
+    "canonical_promotion": false,
+    "production_verification": false,
+    "pxe_0008_closure": false,
+    "refreshed_exact_artifact_owner_authorization_required": true,
+    "different_vendor_review_required": true
+  },
+  "proof_state": {
+    "documented": true,
+    "implemented": true,
+    "local_source_checks": true,
+    "exact_head_ci": "pending_at_source_creation",
+    "independent_review": false,
+    "deployed": false,
+    "production_verified": false,
+    "pxe_0008_closed": false
+  },
+  "manifest": "recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md"
+}

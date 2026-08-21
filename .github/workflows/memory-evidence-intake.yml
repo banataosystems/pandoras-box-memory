@@ -8,35 +8,48 @@ on:
       - 'supabase/functions/pandora-projectos-bridge/**'
       - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
       - 'supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql'
+      - 'supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql'
       - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
       - 'supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql'
       - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
+      - 'recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md'
       - 'docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json'
+      - 'docs/capabilities/evidence/MEMORY_BRIDGE_ATOMIC_INTAKE_SUCCESSOR_CANDIDATE_2026-08-21.json'
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/check_memory_evidence_activation.mjs'
       - 'scripts/check_memory_bridge_repair_candidate.mjs'
       - 'scripts/check_no_literal_secrets.sh'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
+      - 'scripts/test_memory_evidence_atomic_rpc.sh'
+      - 'scripts/fixtures/memory_evidence_atomic_rpc_schema.sql'
+      - 'scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql'
       - '.github/workflows/memory-evidence-intake.yml'
   push:
     branches:
       - feature/projectos-memory-evidence-intake
       - fix/memory-evidence-intake-activation-20260820
       - fix/memory-bridge-exact-source-parity-20260821
+      - fix/memory-evidence-intake-atomic-successor-20260821
     paths:
       - 'app/api/projectos/memory/evidence-candidates/**'
       - 'supabase/functions/pandora-projectos-bridge/**'
       - 'supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql'
       - 'supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql'
+      - 'supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql'
       - 'supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql'
       - 'supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql'
       - 'recovery/evidence/memory-evidence-intake-activation-release-manifest.md'
+      - 'recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md'
       - 'docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json'
+      - 'docs/capabilities/evidence/MEMORY_BRIDGE_ATOMIC_INTAKE_SUCCESSOR_CANDIDATE_2026-08-21.json'
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/check_memory_evidence_activation.mjs'
       - 'scripts/check_memory_bridge_repair_candidate.mjs'
       - 'scripts/check_no_literal_secrets.sh'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
+      - 'scripts/test_memory_evidence_atomic_rpc.sh'
+      - 'scripts/fixtures/memory_evidence_atomic_rpc_schema.sql'
+      - 'scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql'
       - '.github/workflows/memory-evidence-intake.yml'
 
 permissions:
@@ -46,6 +59,18 @@ jobs:
   verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
     env:
       EXPECTED_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
     steps:
@@ -86,6 +111,11 @@ jobs:
 
       - name: Exercise evidence intake behavior
         run: node scripts/test_memory_evidence_intake_behavior.mjs
+
+      - name: Exercise atomic evidence RPC in PostgreSQL
+        env:
+          PGPASSWORD: postgres
+        run: bash scripts/test_memory_evidence_atomic_rpc.sh
 
       - name: Reject literal secrets
         run: bash scripts/check_no_literal_secrets.sh
