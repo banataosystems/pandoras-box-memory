@@ -32,8 +32,8 @@ for worker in 1 2 3 4 5 6 7 8; do
 done
 wait
 
-created_count="$(grep -hxc 'created' "$task_tmp"/concurrent-*.out || true)"
-deduplicated_count="$(grep -hxc 'deduplicated' "$task_tmp"/concurrent-*.out || true)"
+created_count="$(awk '$0 == "created" { count++ } END { print count + 0 }' "$task_tmp"/concurrent-*.out)"
+deduplicated_count="$(awk '$0 == "deduplicated" { count++ } END { print count + 0 }' "$task_tmp"/concurrent-*.out)"
 test "$created_count" = "1"
 test "$deduplicated_count" = "7"
 

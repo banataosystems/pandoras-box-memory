@@ -70,7 +70,7 @@ RPC call. It no longer directly reads or writes `memory_capture_candidates` or
 - Behavioral test `scripts/test_memory_evidence_intake_behavior.mjs`
   - SHA-256: `b8ff137aed85406b4a38a3aa3291b0cf34e5b2f7da04920b47148961ee2b6b88`
 - PostgreSQL integration test `scripts/test_memory_evidence_atomic_rpc.sh`
-  - SHA-256: `c791efe8871815c615cd2074639974236d83830bc3c708f0cab9b93255ff7c28`
+  - SHA-256: `9ea4dc5fef90faa31deef1c1111584c1ece9fb3280ae21e2a52b0bc4ad5a8c2b`
 - Schema fixture `scripts/fixtures/memory_evidence_atomic_rpc_schema.sql`
   - SHA-256: `ca9ddb72422a69a8a1a38422007bc4ed235b67bebee0c002ec96110ed4df16d9`
 - Assertion fixture

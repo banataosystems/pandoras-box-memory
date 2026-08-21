@@ -56,7 +56,7 @@
     },
     "postgres_runner": {
       "path": "scripts/test_memory_evidence_atomic_rpc.sh",
-      "raw_sha256": "c791efe8871815c615cd2074639974236d83830bc3c708f0cab9b93255ff7c28"
+      "raw_sha256": "9ea4dc5fef90faa31deef1c1111584c1ece9fb3280ae21e2a52b0bc4ad5a8c2b"
     },
     "postgres_schema": {
       "path": "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql",
