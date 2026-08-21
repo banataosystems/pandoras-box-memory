@@ -36,9 +36,9 @@
     },
     "atomic_migration": {
       "path": "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
-      "raw_sha256": "1218cbb9f8d0748557e785b75561f79cd2a3140413c3c8872d0954acd9cca863",
-      "blob_sha1": "c14097ca35b9efef902449fa882f5f60a892d585",
-      "bytes": 17268,
+      "raw_sha256": "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
+      "blob_sha1": "2cd3fa2e63cad104b1efcd1af84ca310d1a17c68",
+      "bytes": 17635,
       "transactional": true,
       "modifies_hosted_migration_history": false,
       "rpc": "public.submit_projectos_evidence_candidate_atomic",
@@ -47,6 +47,14 @@
       "execute_roles": [
         "service_role"
       ]
+    },
+    "scope_activation_migration": {
+      "path": "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "raw_sha256": "8eda6e1a4a57bbb6c545eac3fe3b075aa3f5b14279e91da4a41c96fe924c85ab",
+      "blob_sha1": "b5579175163fe8d5d914701bcf3bdc8e56863fcc",
+      "bytes": 16352,
+      "requires_atomic_rpc_precondition": true,
+      "successor_bridge_sha256": "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555"
     }
   },
   "test_artifacts": {
@@ -56,7 +64,7 @@
     },
     "postgres_runner": {
       "path": "scripts/test_memory_evidence_atomic_rpc.sh",
-      "raw_sha256": "9ea4dc5fef90faa31deef1c1111584c1ece9fb3280ae21e2a52b0bc4ad5a8c2b"
+      "raw_sha256": "8b05551c40635ffd8faa7d5a62270e5a6f2586a3b81d7601e2d3f348d2dcebf3"
     },
     "postgres_schema": {
       "path": "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql",
@@ -72,6 +80,7 @@
       "eight_way_concurrency": true,
       "review_failure_rolls_back_all_rows": true,
       "audit_failure_rolls_back_all_rows": true,
+      "same_name_wrong_key_audit_index_rejected": true,
       "immutable_audit_update_rejected": true,
       "immutable_audit_delete_rejected": true,
       "anonymous_execute_rejected": true,
@@ -100,15 +109,28 @@
     "matching_versions": 15,
     "hosted_only_versions": 54,
     "local_only_versions_before_successor": 2,
-    "successor_adds_local_only_migration": true,
+    "source_versions_on_successor": 19,
+    "local_only_versions_on_successor": 4,
+    "successor_adds_local_only_migrations": 2,
     "hosted_history_mutation_authorized": false
   },
+  "activation_order": [
+    "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+    "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+    "supabase/functions/pandora-projectos-bridge/index.ts"
+  ],
   "rollback": {
     "live_v15_source_recoverable": true,
     "live_v15_restore_rehearsed": false,
     "scope_rollback_path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+    "scope_rollback_sha256": "2a5c33a8e5108d0082d5f6241a8112770873ee1865c15ba489bc89810bec0955",
     "scope_rollback_qualified": false,
-    "atomic_rpc_dormant_without_write_scope": true
+    "atomic_rpc_dormant_without_write_scope": true,
+    "order": [
+      "restore and verify content-addressed live v15 bridge source",
+      "remove memory:write with the forward-recovery rollback",
+      "verify health/search and fail-closed evidence submission"
+    ]
   },
   "authority": {
     "source_candidate": true,
@@ -123,6 +145,8 @@
     "canonical_promotion": false,
     "production_verification": false,
     "pxe_0008_closure": false,
+    "issue_56_predecessor_authorization_recorded": true,
+    "successor_exact_artifact_authorized": false,
     "refreshed_exact_artifact_owner_authorization_required": true,
     "different_vendor_review_required": true
   },

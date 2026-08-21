@@ -12,18 +12,36 @@ command -v psql >/dev/null 2>&1 || {
   exit 1
 }
 
-psql -X -v ON_ERROR_STOP=1 \
-  -f scripts/fixtures/memory_evidence_atomic_rpc_schema.sql
-psql -X -v ON_ERROR_STOP=1 \
-  -f supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql
-psql -X -v ON_ERROR_STOP=1 \
-  -f scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql
-
 task_tmp="$(mktemp -d)"
 cleanup() {
   rm -rf -- "$task_tmp"
 }
 trap cleanup EXIT
+
+psql -X -v ON_ERROR_STOP=1 \
+  -f scripts/fixtures/memory_evidence_atomic_rpc_schema.sql
+
+psql -X -v ON_ERROR_STOP=1 -Atq <<'SQL'
+create unique index audit_logs_projectos_evidence_candidate_atomic_unique
+  on public.audit_logs (user_id)
+  where action = 'projectos_evidence_candidate_atomic_created'
+    and table_name = 'memory_capture_candidates';
+SQL
+
+if psql -X -v ON_ERROR_STOP=1 \
+  -f supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql \
+  >"$task_tmp/wrong-index.out" 2>"$task_tmp/wrong-index.err"; then
+  echo "wrong-key atomic audit index unexpectedly passed migration drift guard" >&2
+  exit 1
+fi
+grep -q "projectos evidence atomic audit index drift" "$task_tmp/wrong-index.err"
+psql -X -v ON_ERROR_STOP=1 -Atq \
+  -c "drop index public.audit_logs_projectos_evidence_candidate_atomic_unique;"
+
+psql -X -v ON_ERROR_STOP=1 \
+  -f supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql
+psql -X -v ON_ERROR_STOP=1 \
+  -f scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql
 
 for worker in 1 2 3 4 5 6 7 8; do
   psql -X -v ON_ERROR_STOP=1 -Atq \

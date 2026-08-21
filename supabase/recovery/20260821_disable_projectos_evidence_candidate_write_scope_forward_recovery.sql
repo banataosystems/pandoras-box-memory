@@ -134,7 +134,12 @@ begin
     and table_name = 'pandora_service_principals'
     and record_id = v_principal.id
     and metadata ->> 'activation_id' = 'memory-evidence-candidate-bridge-prod-activation-20260821'
-    and metadata ->> 'governance_issue' = 'banataosystems/pandoras-box-memory#56';
+    and metadata ->> 'governance_issue' = 'banataosystems/pandoras-box-memory#56'
+    and metadata ->> 'atomic_migration' = '20260821160000_submit_projectos_evidence_candidate_atomic'
+    and metadata ->> 'atomic_migration_sha256' = '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908'
+    and metadata ->> 'forward_migration' = '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope'
+    and metadata ->> 'bridge_index_sha256' = '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555'
+    and metadata ->> 'import_map_sha256' = 'ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf';
 
   if v_activation_audit_count <> 1 then
     raise exception 'projectos evidence forward rollback blocked: activation audit mismatch';
@@ -238,7 +243,11 @@ begin
       'rollback_id', 'memory-evidence-candidate-bridge-prod-rollback-20260821',
       'activation_id', 'memory-evidence-candidate-bridge-prod-activation-20260821',
       'governance_issue', 'banataosystems/pandoras-box-memory#56',
-      'forward_migration', '20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope',
+      'atomic_migration', '20260821160000_submit_projectos_evidence_candidate_atomic',
+      'atomic_migration_sha256', '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908',
+      'forward_migration', '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope',
+      'bridge_index_sha256', '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555',
+      'import_map_sha256', 'ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf',
       'rollback_source_commit', '523fec111bfb2c327f69c2abdf0784775ab49a90',
       'canonical_project_key', 'mcpmaster-pandoras-box',
       'preserve_pending_candidates', true,
@@ -268,7 +277,10 @@ begin
       'scopes', to_jsonb(array['memory:health', 'memory:read']::text[])
     )
     and metadata ->> 'rollback_id' = 'memory-evidence-candidate-bridge-prod-rollback-20260821'
-    and metadata ->> 'activation_id' = 'memory-evidence-candidate-bridge-prod-activation-20260821';
+    and metadata ->> 'activation_id' = 'memory-evidence-candidate-bridge-prod-activation-20260821'
+    and metadata ->> 'atomic_migration_sha256' = '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908'
+    and metadata ->> 'forward_migration' = '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope'
+    and metadata ->> 'bridge_index_sha256' = '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555';
 
   if v_exact_audit_count <> 1 then
     raise exception 'projectos evidence forward rollback failed: exact audit readback mismatch';

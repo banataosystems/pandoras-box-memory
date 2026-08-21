@@ -4,7 +4,9 @@
 -- ledger, but its runtime scope change was subsequently rolled back during the
 -- transaction-only proof. Preserve that history: do not repair, delete, rename,
 -- or replay the original ledger entry. This distinct migration records the
--- separately governed production activation.
+-- separately governed production activation. The atomic evidence-intake RPC
+-- migration must exist and pass its privilege/audit guards before this source
+-- may make memory:write available to the bridge.
 
 begin;
 
@@ -32,6 +34,9 @@ declare
   v_existing_activation_audits integer;
   v_scope_constraint_count integer;
   v_scope_constraint_definition text;
+  v_atomic_rpc regprocedure;
+  v_atomic_audit_index_count integer;
+  v_atomic_audit_trigger_count integer;
 begin
   -- Accept the exact hosted history shape produced by the governed provider
   -- apply and the exact clean-replay shape produced from this repository.
@@ -57,6 +62,48 @@ begin
 
   if v_prior_ledger_count <> 1 then
     raise exception 'projectos evidence forward activation blocked: prior migration ledger drift';
+  end if;
+
+  v_atomic_rpc := to_regprocedure(
+    'public.submit_projectos_evidence_candidate_atomic(text,uuid,text,text,uuid,text,text,text,text,text,jsonb,jsonb,text)'
+  );
+  if v_atomic_rpc is null then
+    raise exception 'projectos evidence forward activation blocked: atomic RPC migration missing';
+  end if;
+  if not has_function_privilege('service_role', v_atomic_rpc, 'execute')
+     or has_function_privilege('anon', v_atomic_rpc, 'execute')
+     or has_function_privilege('authenticated', v_atomic_rpc, 'execute') then
+    raise exception 'projectos evidence forward activation blocked: atomic RPC privilege drift';
+  end if;
+
+  select count(*)::integer
+    into v_atomic_audit_index_count
+  from pg_catalog.pg_index i
+  where i.indexrelid =
+      to_regclass('public.audit_logs_projectos_evidence_candidate_atomic_unique')
+    and i.indisunique
+    and i.indnkeyatts = 1
+    and pg_get_indexdef(i.indexrelid, 1, true) = 'record_id'
+    and i.indexprs is null
+    and pg_get_expr(i.indpred, i.indrelid)
+      like '%projectos_evidence_candidate_atomic_created%'
+    and pg_get_expr(i.indpred, i.indrelid)
+      like '%memory_capture_candidates%';
+
+  if v_atomic_audit_index_count <> 1 then
+    raise exception 'projectos evidence forward activation blocked: atomic audit index drift';
+  end if;
+
+  select count(*)::integer
+    into v_atomic_audit_trigger_count
+  from pg_catalog.pg_trigger t
+  where t.tgrelid = 'public.audit_logs'::regclass
+    and t.tgname = 'prevent_projectos_evidence_intake_audit_mutation'
+    and not t.tgisinternal
+    and t.tgenabled = 'O';
+
+  if v_atomic_audit_trigger_count <> 1 then
+    raise exception 'projectos evidence forward activation blocked: atomic audit trigger drift';
   end if;
 
   select *
@@ -312,10 +359,13 @@ begin
       'governance_issue', 'banataosystems/pandoras-box-memory#56',
       'prior_ledger_migration', '20260820113000_enable_projectos_evidence_candidate_write_scope',
       'prior_ledger_mode', v_prior_ledger_mode,
-      'forward_migration', '20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope',
-      'bridge_index_sha256', '09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656',
+      'atomic_migration', '20260821160000_submit_projectos_evidence_candidate_atomic',
+      'atomic_migration_sha256', '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908',
+      'forward_migration', '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope',
+      'bridge_index_sha256', '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555',
       'import_map_sha256', 'ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf',
       'canonical_project_key', 'mcpmaster-pandoras-box',
+      'owner_exact_artifact_authorization_required', true,
       'review_required', true,
       'canonical_memory_written', false,
       'privacy_policy', 'metadata_only_v1'
@@ -345,8 +395,12 @@ begin
     and metadata ->> 'activation_id' = 'memory-evidence-candidate-bridge-prod-activation-20260821'
     and metadata ->> 'governance_issue' = 'banataosystems/pandoras-box-memory#56'
     and metadata ->> 'prior_ledger_migration' = '20260820113000_enable_projectos_evidence_candidate_write_scope'
-    and metadata ->> 'bridge_index_sha256' = '09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656'
+    and metadata ->> 'atomic_migration' = '20260821160000_submit_projectos_evidence_candidate_atomic'
+    and metadata ->> 'atomic_migration_sha256' = '22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908'
+    and metadata ->> 'forward_migration' = '20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope'
+    and metadata ->> 'bridge_index_sha256' = '63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555'
     and metadata ->> 'import_map_sha256' = 'ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf'
+    and metadata ->> 'owner_exact_artifact_authorization_required' = 'true'
     and metadata ->> 'review_required' = 'true';
 
   if v_exact_audit_count <> 1 then

@@ -30,11 +30,12 @@
     "verify_jwt": false,
     "import_map": true,
     "source": {
-      "commit": "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
+      "commit": null,
+      "commit_binding": "exact final atomic-successor head and tree reported by the draft PR and CI",
       "index_path": "supabase/functions/pandora-projectos-bridge/index.ts",
-      "index_blob_sha1": "54a5e6429fea4e26a6717bdc8cdf8d09ef450d9d",
-      "index_raw_sha256": "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
-      "index_bytes": 45193,
+      "index_blob_sha1": "9adabe26f62205b0f94adc5744151c2d68c2c46e",
+      "index_raw_sha256": "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
+      "index_bytes": 34998,
       "deno_path": "supabase/functions/pandora-projectos-bridge/deno.json",
       "deno_blob_sha1": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
       "deno_raw_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
@@ -43,6 +44,9 @@
     "required_markers": {
       "submitEvidenceCandidate": true,
       "submit_evidence_candidate": true,
+      "atomic_rpc": "submit_projectos_evidence_candidate_atomic",
+      "direct_candidate_write": false,
+      "direct_review_write": false,
       "unsupported_action": true,
       "dispatch_before_search": true,
       "dispatch_before_unsupported_fallback": true
@@ -83,12 +87,13 @@
     "canonical_and_live_index_sha256_equal": false,
     "canonical_and_live_index_blob_equal": false,
     "finding": "The active Supabase bridge is an exact older source artifact and does not implement the canonical evidence-candidate handler or dispatch.",
-    "repair": "Deploy only the target source identity after separate production authorization; do not edit the already-correct runtime source merely to create a diff."
+    "repair": "After migration parity, fresh exact-artifact owner authorization, and independent review: apply the atomic RPC migration, then scope activation, then deploy only the successor bridge."
   },
   "forward_recovery": {
     "governance_issue": "banataosystems/pandoras-box-memory#56",
     "activation_id": "memory-evidence-candidate-bridge-prod-activation-20260821",
-    "owner_production_authorization_recorded": true,
+    "issue_56_predecessor_authorization_recorded": true,
+    "successor_exact_artifact_authorized": false,
     "release_gate_satisfied": false,
     "prior_hosted_migration": {
       "source_name": "20260820113000_enable_projectos_evidence_candidate_write_scope",
@@ -100,22 +105,36 @@
       ],
       "ledger_row_preserved": true
     },
+    "atomic_migration": {
+      "path": "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+      "blob_sha1": "2cd3fa2e63cad104b1efcd1af84ca310d1a17c68",
+      "raw_sha256": "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
+      "bytes": 17635,
+      "transactional": true,
+      "modifies_prior_ledger_row": false,
+      "adds_write_scope": false
+    },
     "migration": {
-      "path": "supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
-      "blob_sha1": "19e2e5401ded023bb7ef48cb1f494489627e2df8",
-      "raw_sha256": "c5107b7ebac2a070c129ea84b5a8d53db5a380d65f41c626fd1b333e4111fae4",
-      "bytes": 13705,
+      "path": "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "blob_sha1": "b5579175163fe8d5d914701bcf3bdc8e56863fcc",
+      "raw_sha256": "8eda6e1a4a57bbb6c545eac3fe3b075aa3f5b14279e91da4a41c96fe924c85ab",
+      "bytes": 16352,
       "transactional": true,
       "unique_forward_migration": true,
       "modifies_prior_ledger_row": false,
       "hosted_baseline_fail_closed": true,
       "clean_replay_compatible": true
     },
+    "activation_order": [
+      "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+      "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "supabase/functions/pandora-projectos-bridge/index.ts"
+    ],
     "rollback": {
       "path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
-      "blob_sha1": "9fce9e88dc1461ad7c26881934c93d436c609710",
-      "raw_sha256": "43e4e9a0d4470abffbdad22c4069d4bb475ab191114dfa229b29c48a703f5627",
-      "bytes": 10211,
+      "blob_sha1": "af7fc38780073aa39c4e2325ee5ebe42ee27760e",
+      "raw_sha256": "2a5c33a8e5108d0082d5f6241a8112770873ee1865c15ba489bc89810bec0955",
+      "bytes": 11499,
       "transactional": true,
       "single_execution_fail_closed": true,
       "preserves_activation_audit": true,
@@ -130,7 +149,8 @@
       "review_required": true,
       "candidate_content_recorded": false,
       "direct_identifiers_recorded": false,
-      "bridge_index_sha256": "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+      "atomic_migration_sha256": "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
+      "bridge_index_sha256": "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
       "import_map_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf"
     }
   },
@@ -161,9 +181,9 @@
     "classification": "content_addressed_source_recoverable_but_unrehearsed",
     "database_scope_rollback": {
       "path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
-      "blob_sha1": "9fce9e88dc1461ad7c26881934c93d436c609710",
-      "raw_sha256": "43e4e9a0d4470abffbdad22c4069d4bb475ab191114dfa229b29c48a703f5627",
-      "bytes": 10211,
+      "blob_sha1": "af7fc38780073aa39c4e2325ee5ebe42ee27760e",
+      "raw_sha256": "2a5c33a8e5108d0082d5f6241a8112770873ee1865c15ba489bc89810bec0955",
+      "bytes": 11499,
       "transactional": true,
       "idempotent": false,
       "single_execution_fail_closed": true,
@@ -194,7 +214,8 @@
     "source_candidate": true,
     "regression_tests": true,
     "draft_pull_request": true,
-    "owner_production_activation_task": true,
+    "issue_56_predecessor_activation_task": true,
+    "successor_exact_artifact_authorized": false,
     "owner_authorization_issue": "banataosystems/pandoras-box-memory#56",
     "remaining_release_gates_satisfied": false,
     "merge": false,
@@ -210,7 +231,8 @@
     "implemented_in_canonical_source": true,
     "regression_candidate_prepared": true,
     "forward_recovery_implemented": true,
-    "owner_production_authorization_recorded": true,
+    "issue_56_predecessor_authorization_recorded": true,
+    "successor_exact_artifact_authorized": false,
     "exact_head_tested": false,
     "independent_review": false,
     "deployed": false,

@@ -17,14 +17,30 @@ do $atomic_audit_index_assertion$
 declare
   v_is_unique boolean;
   v_predicate text;
+  v_key_count smallint;
+  v_key_definition text;
+  v_has_expressions boolean;
 begin
-  select i.indisunique, pg_get_expr(i.indpred, i.indrelid)
-    into v_is_unique, v_predicate
+  select
+    i.indisunique,
+    pg_get_expr(i.indpred, i.indrelid),
+    i.indnkeyatts,
+    pg_get_indexdef(i.indexrelid, 1, true),
+    i.indexprs is not null
+    into
+      v_is_unique,
+      v_predicate,
+      v_key_count,
+      v_key_definition,
+      v_has_expressions
   from pg_catalog.pg_index i
   where i.indexrelid =
     'public.audit_logs_projectos_evidence_candidate_atomic_unique'::regclass;
 
   if v_is_unique is not true
+    or v_key_count <> 1
+    or v_key_definition is distinct from 'record_id'
+    or v_has_expressions is true
     or v_predicate not like '%projectos_evidence_candidate_atomic_created%'
     or v_predicate not like '%memory_capture_candidates%'
   then

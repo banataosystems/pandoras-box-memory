@@ -64,13 +64,23 @@ RPC call. It no longer directly reads or writes `memory_capture_candidates` or
   - Bytes: 113
 - Atomic migration
   `supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql`
-  - SHA-256: `1218cbb9f8d0748557e785b75561f79cd2a3140413c3c8872d0954acd9cca863`
-  - Git blob SHA-1: `c14097ca35b9efef902449fa882f5f60a892d585`
-  - Bytes: 17,268
+  - SHA-256: `22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908`
+  - Git blob SHA-1: `2cd3fa2e63cad104b1efcd1af84ca310d1a17c68`
+  - Bytes: 17,635
+- Forward scope migration
+  `supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql`
+  - SHA-256: `8eda6e1a4a57bbb6c545eac3fe3b075aa3f5b14279e91da4a41c96fe924c85ab`
+  - Git blob SHA-1: `b5579175163fe8d5d914701bcf3bdc8e56863fcc`
+  - Bytes: 16,352
+- Forward scope rollback
+  `supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql`
+  - SHA-256: `2a5c33a8e5108d0082d5f6241a8112770873ee1865c15ba489bc89810bec0955`
+  - Git blob SHA-1: `af7fc38780073aa39c4e2325ee5ebe42ee27760e`
+  - Bytes: 11,499
 - Behavioral test `scripts/test_memory_evidence_intake_behavior.mjs`
   - SHA-256: `b8ff137aed85406b4a38a3aa3291b0cf34e5b2f7da04920b47148961ee2b6b88`
 - PostgreSQL integration test `scripts/test_memory_evidence_atomic_rpc.sh`
-  - SHA-256: `9ea4dc5fef90faa31deef1c1111584c1ece9fb3280ae21e2a52b0bc4ad5a8c2b`
+  - SHA-256: `8b05551c40635ffd8faa7d5a62270e5a6f2586a3b81d7601e2d3f348d2dcebf3`
 - Schema fixture `scripts/fixtures/memory_evidence_atomic_rpc_schema.sql`
   - SHA-256: `ca9ddb72422a69a8a1a38422007bc4ed235b67bebee0c002ec96110ed4df16d9`
 - Assertion fixture
@@ -92,19 +102,24 @@ dependency audit, typecheck, and build.
 The PostgreSQL test runs against a disposable PostgreSQL 17 service in exact-head
 CI. It injects failures after candidate staging and after candidate+review
 staging and proves zero rows persist in all three tables.
+It also installs a same-name unique audit index on the wrong key (`user_id`) and
+proves the migration rejects it instead of treating uniqueness plus predicate
+text as sufficient; the accepted key definition is exactly `record_id`.
 
 This does **not** resolve the existing migration-parity blocker. Current evidence
-remains: 69 hosted ledger versions, 17 active source migrations, 15 matching
-versions, 54 hosted-only versions, and two local-only versions before this
-successor. This additive migration is therefore another local-only candidate
-until the canonical migration chain is recovered and replayed. Hosted history
-must not be edited, renamed, deleted, or fabricated.
+remains: 69 hosted ledger versions, 17 active base-source migrations, 15
+matching versions, 54 hosted-only versions, and two local-only versions before
+this successor. This branch adds two intentionally unapplied source migrations
+(atomic RPC then scope activation), so its source inventory is 19 migrations
+with four local-only versions while the hosted ledger remains unchanged.
+Hosted history must not be edited, renamed, deleted, or fabricated.
 
 ## Production and rollback gates
 
-Issue #56's artifact authorization binds the superseded bridge SHA-256
+Issue #56's predecessor artifact authorization binds the superseded bridge SHA-256
 `09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656`.
-Because this successor changes the bridge and adds an RPC migration, refreshed
+It does not authorize this successor. Because this successor changes the bridge
+and adds an RPC migration, refreshed
 owner authorization must bind the final successor head, bridge hash, atomic
 migration hash, forward scope migration, import map, and rollback artifacts.
 
@@ -119,6 +134,15 @@ Before any activation, require:
 5. a rehearsed content-addressed restore of live bridge v15;
 6. one new exact durable ProjectOS plan and approval; and
 7. fresh provider readback immediately before mutation.
+
+Required activation order is exact and fail-closed:
+
+1. apply and read back atomic RPC migration
+   `20260821160000_submit_projectos_evidence_candidate_atomic`;
+2. apply and read back scope activation migration
+   `20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope`;
+3. deploy and read back successor bridge SHA-256
+   `63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555`.
 
 Rollback order remains: restore and verify content-addressed live v15 source
 `7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf`,

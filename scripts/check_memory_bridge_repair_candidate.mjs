@@ -113,6 +113,8 @@ const validate = (evidence) => {
     "insert into public.audit_logs",
     "projectos_evidence_candidate_atomic_created",
     "prevent_projectos_evidence_intake_audit_mutation",
+    "pg_get_indexdef(i.indexrelid, 1, true)",
+    "v_key_definition is distinct from 'record_id'",
     "on conflict (user_id, namespace, source, source_ref)",
     "grant execute on function public.submit_projectos_evidence_candidate_atomic",
     "'canonical_memory_written', false",
@@ -140,6 +142,19 @@ const validate = (evidence) => {
   assert.equal(migration.audit_action, "projectos_evidence_candidate_atomic_created");
   assert.deepEqual(migration.execute_roles, ["service_role"]);
 
+  const scopeMigration = evidence.candidate_source.scope_activation_migration;
+  const scopeMigrationBytes = assertArtifact(
+    scopeMigration,
+    "successor scope activation migration",
+  );
+  const scopeMigrationSource = scopeMigrationBytes.toString("utf8");
+  assert.ok(scopeMigrationSource.includes(migration.raw_sha256));
+  assert.ok(scopeMigrationSource.includes(bridge.raw_sha256));
+  assert.ok(scopeMigrationSource.includes("atomic RPC migration missing"));
+  assert.ok(scopeMigrationSource.includes("pg_get_indexdef(i.indexrelid, 1, true) = 'record_id'"));
+  assert.equal(scopeMigration.requires_atomic_rpc_precondition, true);
+  assert.equal(scopeMigration.successor_bridge_sha256, bridge.raw_sha256);
+
   for (const artifact of [
     evidence.test_artifacts.behavior,
     evidence.test_artifacts.postgres_runner,
@@ -149,6 +164,16 @@ const validate = (evidence) => {
     const bytes = read(artifact.path);
     assert.equal(sha256(bytes), artifact.raw_sha256, `${artifact.path} hash drift`);
   }
+  const postgresRunner = read(evidence.test_artifacts.postgres_runner.path).toString(
+    "utf8",
+  );
+  assert.ok(
+    postgresRunner.includes(
+      "create unique index audit_logs_projectos_evidence_candidate_atomic_unique",
+    ),
+  );
+  assert.ok(postgresRunner.includes("on public.audit_logs (user_id)"));
+  assert.ok(postgresRunner.includes("wrong-key atomic audit index unexpectedly passed"));
   for (const value of Object.values(evidence.test_artifacts.required_cases)) {
     assert.equal(value, true);
   }
@@ -171,13 +196,25 @@ const validate = (evidence) => {
   assert.equal(evidence.migration_parity.matching_versions, 15);
   assert.equal(evidence.migration_parity.hosted_only_versions, 54);
   assert.equal(evidence.migration_parity.local_only_versions_before_successor, 2);
-  assert.equal(evidence.migration_parity.successor_adds_local_only_migration, true);
+  assert.equal(evidence.migration_parity.source_versions_on_successor, 19);
+  assert.equal(evidence.migration_parity.local_only_versions_on_successor, 4);
+  assert.equal(evidence.migration_parity.successor_adds_local_only_migrations, 2);
   assert.equal(evidence.migration_parity.hosted_history_mutation_authorized, false);
+
+  assert.deepEqual(evidence.activation_order, [
+    migration.path,
+    scopeMigration.path,
+    bridge.path,
+  ]);
 
   assert.equal(evidence.rollback.live_v15_source_recoverable, true);
   assert.equal(evidence.rollback.live_v15_restore_rehearsed, false);
   assert.equal(evidence.rollback.scope_rollback_qualified, false);
   assert.equal(evidence.rollback.atomic_rpc_dormant_without_write_scope, true);
+  assert.equal(
+    sha256(read(evidence.rollback.scope_rollback_path)),
+    evidence.rollback.scope_rollback_sha256,
+  );
 
   assert.equal(evidence.authority.source_candidate, true);
   assert.equal(evidence.authority.tests, true);
@@ -195,6 +232,8 @@ const validate = (evidence) => {
   ]) {
     assert.equal(evidence.authority[gate], false, `${gate} must remain blocked`);
   }
+  assert.equal(evidence.authority.issue_56_predecessor_authorization_recorded, true);
+  assert.equal(evidence.authority.successor_exact_artifact_authorized, false);
   assert.equal(evidence.authority.refreshed_exact_artifact_owner_authorization_required, true);
   assert.equal(evidence.authority.different_vendor_review_required, true);
   assert.equal(evidence.proof_state.exact_head_ci, "pending_at_source_creation");
@@ -208,6 +247,7 @@ const validate = (evidence) => {
   assert.ok(manifest.includes(evidence.repository.base_commit));
   assert.ok(manifest.includes(bridge.raw_sha256));
   assert.ok(manifest.includes(migration.raw_sha256));
+  assert.ok(manifest.includes(scopeMigration.raw_sha256));
   assert.ok(manifest.includes("PXE-0008 remains FAIL/HOLD"));
 };
 

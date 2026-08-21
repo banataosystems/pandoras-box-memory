@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 
 const migrationPath =
@@ -6,7 +7,7 @@ const migrationPath =
 const rollbackPath =
   "supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql";
 const forwardMigrationPath =
-  "supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql";
+  "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql";
 const forwardRollbackPath =
   "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql";
 const atomicMigrationPath =
@@ -26,6 +27,7 @@ const atomicRpcAssertionsPath =
   "scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql";
 const bridgeCandidateCheckPath =
   "scripts/check_memory_bridge_repair_candidate.mjs";
+const activationCheckPath = "scripts/check_memory_evidence_activation.mjs";
 const secretCheckPath = "scripts/check_no_literal_secrets.sh";
 const workflowPath = ".github/workflows/memory-evidence-intake.yml";
 
@@ -37,6 +39,22 @@ const atomicMigration = fs.readFileSync(atomicMigrationPath, "utf8");
 const manifest = fs.readFileSync(manifestPath, "utf8");
 const secretCheck = fs.readFileSync(secretCheckPath, "utf8");
 const workflow = fs.readFileSync(workflowPath, "utf8");
+const bridgeCandidateEvidence = JSON.parse(
+  fs.readFileSync(bridgeCandidateEvidencePath, "utf8"),
+);
+const atomicSuccessorEvidence = JSON.parse(
+  fs.readFileSync(atomicSuccessorEvidencePath, "utf8"),
+);
+const sha256 = (path) =>
+  crypto.createHash("sha256").update(fs.readFileSync(path)).digest("hex");
+const gitBlobSha1 = (path) => {
+  const bytes = fs.readFileSync(path);
+  return crypto
+    .createHash("sha1")
+    .update(Buffer.from(`blob ${bytes.length}\0`))
+    .update(bytes)
+    .digest("hex");
+};
 
 for (const [name, source] of [
   ["migration", migration],
@@ -91,10 +109,16 @@ for (const marker of [
   "clean_replay_active",
   "rolled-back scope constraint definition drift",
   "another principal has write scope",
+  "atomic RPC migration missing",
+  "atomic RPC privilege drift",
+  "atomic audit index drift",
+  "atomic audit trigger drift",
+  "20260821160000_submit_projectos_evidence_candidate_atomic",
+  "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
   "insert into public.audit_logs",
   "memory-evidence-candidate-bridge-prod-activation-20260821",
   "banataosystems/pandoras-box-memory#56",
-  "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+  "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
   "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
   "'review_required', true",
   "'canonical_memory_written', false",
@@ -114,6 +138,16 @@ assert.ok(
   ),
   "forward recovery must leave the prior migration ledger row untouched",
 );
+assert.ok(
+  !forwardMigration.includes(
+    "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+  ),
+  "forward activation must not bind the superseded PR #55 bridge",
+);
+assert.ok(
+  atomicMigrationPath.localeCompare(forwardMigrationPath) < 0,
+  "migration filenames must apply the atomic RPC before scope activation",
+);
 
 for (const marker of [
   "Restore and verify the recovered live bridge source",
@@ -124,6 +158,10 @@ for (const marker of [
   "insert into public.audit_logs",
   "memory-evidence-candidate-bridge-prod-rollback-20260821",
   "memory-evidence-candidate-bridge-prod-activation-20260821",
+  "20260821160000_submit_projectos_evidence_candidate_atomic",
+  "22645821b6434bd24bad17395261bff6476c830abc5d7c5f8db9806940add908",
+  "20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope",
+  "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
   "preserve_pending_candidates",
   "canonical_memory_deleted",
 ]) {
@@ -134,6 +172,11 @@ for (const marker of [
 }
 assert.ok(!/delete\s+from\s+public\.audit_logs/i.test(forwardRollback));
 assert.ok(!/delete\s+from\s+public\.memory_/i.test(forwardRollback));
+assert.ok(
+  !forwardRollback.includes(
+    "20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope",
+  ),
+);
 
 for (const marker of [
   "begin;",
@@ -205,11 +248,45 @@ for (const path of [
 assert.ok(workflow.includes("node scripts/check_memory_evidence_activation.mjs"));
 assert.ok(workflow.includes("node scripts/check_memory_bridge_repair_candidate.mjs --self-test"));
 
+const targetSource = bridgeCandidateEvidence.target_deployment.source;
+const atomicSource = atomicSuccessorEvidence.candidate_source;
+assert.equal(targetSource.index_blob_sha1, atomicSource.bridge.blob_sha1);
+assert.equal(targetSource.index_raw_sha256, atomicSource.bridge.raw_sha256);
+assert.equal(targetSource.index_bytes, atomicSource.bridge.bytes);
+assert.equal(
+  bridgeCandidateEvidence.forward_recovery.successor_exact_artifact_authorized,
+  false,
+);
+assert.equal(
+  bridgeCandidateEvidence.authorization.successor_exact_artifact_authorized,
+  false,
+);
+assert.deepEqual(bridgeCandidateEvidence.forward_recovery.activation_order, [
+  atomicMigrationPath,
+  forwardMigrationPath,
+  "supabase/functions/pandora-projectos-bridge/index.ts",
+]);
+assert.deepEqual(atomicSuccessorEvidence.activation_order, [
+  atomicMigrationPath,
+  forwardMigrationPath,
+  "supabase/functions/pandora-projectos-bridge/index.ts",
+]);
+for (const [artifact, path] of [
+  [bridgeCandidateEvidence.forward_recovery.atomic_migration, atomicMigrationPath],
+  [bridgeCandidateEvidence.forward_recovery.migration, forwardMigrationPath],
+  [bridgeCandidateEvidence.forward_recovery.rollback, forwardRollbackPath],
+]) {
+  assert.equal(artifact.path, path);
+  assert.equal(artifact.raw_sha256, sha256(path));
+  assert.equal(artifact.blob_sha1, gitBlobSha1(path));
+  assert.equal(artifact.bytes, fs.statSync(path).size);
+}
+
 for (const marker of [
-  "EXACT-SOURCE CANDIDATE / BLOCKED",
+  "ATOMIC SUCCESSOR / BLOCKED",
   "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
-  "54a5e6429fea4e26a6717bdc8cdf8d09ef450d9d",
-  "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+  "9adabe26f62205b0f94adc5744151c2d68c2c46e",
+  "63c8d4ced312744933d8d036034f9796c7f043740d1f63301ee75ee11e691555",
   "pandora-projectos-bridge@15",
   "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a",
   "07ebf082e15867faae27c74ce9c1074d466e7f08",
@@ -218,9 +295,32 @@ for (const marker of [
   "No automatic canonical Memory promotion",
   "memory-evidence-candidate-bridge-prod-activation-20260821",
   "banataosystems/pandoras-box-memory#56",
-  "Owner production authorization is recorded",
+  "Issue #56 does not authorize this successor",
 ]) {
   assert.ok(manifest.includes(marker), `manifest marker missing: ${marker}`);
 }
+for (const path of [
+  activationCheckPath,
+  workflowPath,
+  bridgeCandidateEvidencePath,
+  bridgeCandidateCheckPath,
+  atomicSuccessorEvidencePath,
+  atomicRpcTestPath,
+  atomicSuccessorManifestPath,
+]) {
+  assert.ok(
+    manifest.includes(sha256(path)),
+    `manifest artifact hash missing or stale: ${path}`,
+  );
+}
+assert.ok(
+  manifest.indexOf(
+    "Apply `supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql` first",
+  ) <
+    manifest.indexOf(
+      "Apply `supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql` second",
+    ),
+  "manifest activation order must be atomic RPC then scope activation",
+);
 
 console.log("Governed Memory evidence-intake activation contract: PASS");
