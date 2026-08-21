@@ -1,0 +1,196 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-bridge-atomic-intake-successor-candidate-2026-08-21",
+  "observed_at": "2026-08-21T08:09:12Z",
+  "proof_stage": "implemented",
+  "repository": {
+    "full_name": "banataosystems/pandoras-box-memory",
+    "repository_id": 1327294429,
+    "base_commit": "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
+    "base_tree": "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88",
+    "superseded_pr": 55,
+    "successor_parent_commit": "edb82476b2dfefef0e94ced1456b241f79caa889",
+    "successor_parent_tree": "18740e6a0691067a7c18def2e6623a625ff97b35",
+    "branch": "fix/memory-evidence-intake-atomic-successor-20260821",
+    "commit_binding": "exact GitHub head and tree reported by CI and draft PR"
+  },
+  "candidate_source": {
+    "bridge": {
+      "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+      "raw_sha256": "383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83",
+      "blob_sha1": "2a056ec4997d7daeeed797a2eb89e9c75c25b8f3",
+      "bytes": 39055,
+      "required_markers": {
+        "submit_evidence_candidate": true,
+        "atomic_rpc": "submit_projectos_evidence_candidate_atomic",
+        "direct_candidate_write": false,
+        "direct_review_write": false,
+        "canonical_memory_write": false
+      }
+    },
+    "import_map": {
+      "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+      "raw_sha256": "5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b",
+      "blob_sha1": "a4c2351c4bc2d8f41937fe05690f6fd72f3ebbf7",
+      "bytes": 119
+    },
+    "atomic_migration": {
+      "path": "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+      "raw_sha256": "ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81",
+      "blob_sha1": "d83e77608c4e6c2dbd2fa59e9dd778c5852a8d1e",
+      "bytes": 47878,
+      "transactional": true,
+      "modifies_hosted_migration_history": false,
+      "rpc": "public.submit_projectos_evidence_candidate_atomic",
+      "audit_action": "projectos_evidence_candidate_atomic_created",
+      "immutable_audit_trigger": "prevent_projectos_evidence_intake_audit_mutation",
+      "reserved_row_trigger": "protect_projectos_evidence_reserved_rows",
+      "durable_privacy_boundary": true,
+      "execute_roles": [
+        "service_role"
+      ]
+    },
+    "scope_activation_migration": {
+      "path": "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "raw_sha256": "f40060e7bb5a7e79cbb8122369d1cd8da6d68f2b68bedbe298b6fbd888ae49c6",
+      "blob_sha1": "ee5debe1544a962aee33780a6567f81aad3a7611",
+      "bytes": 22970,
+      "requires_atomic_rpc_precondition": true,
+      "successor_bridge_sha256": "383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83",
+      "sole_scope_activation": true,
+      "historical_migration_read_only": true
+    }
+  },
+  "test_artifacts": {
+    "behavior": {
+      "path": "scripts/test_memory_evidence_intake_behavior.mjs",
+      "raw_sha256": "d3a7e693a936e18f8aa441e2f641fdcfc82b50ae97aef479d02147aaead55ed7"
+    },
+    "postgres_runner": {
+      "path": "scripts/test_memory_evidence_atomic_rpc.sh",
+      "raw_sha256": "c3897e58f1a6c775bae0f56ab8ee9cf701021eb6d4829bc7eed67c10988ac30d"
+    },
+    "postgres_schema": {
+      "path": "scripts/fixtures/memory_evidence_atomic_rpc_schema.sql",
+      "raw_sha256": "0a87f4cef079185262405112f6dc05675d7208cd8c7b2be16ef88deab3baecf4"
+    },
+    "postgres_assertions": {
+      "path": "scripts/fixtures/memory_evidence_atomic_rpc_assertions.sql",
+      "raw_sha256": "998f7afb45512ef291547515deaca619dd0652cbf1e61e162af7466dfb9e8ed6"
+    },
+    "postgres_authorization": {
+      "path": "scripts/fixtures/memory_evidence_atomic_rpc_authorization.sql",
+      "raw_sha256": "f664ebf94e73b3f92b950f3556208d6aa88e35e91b967a4764904dc25daf8e99"
+    },
+    "required_cases": {
+      "identical_replay": true,
+      "changed_content_conflict": true,
+      "eight_way_concurrency": true,
+      "review_failure_rolls_back_all_rows": true,
+      "audit_failure_rolls_back_all_rows": true,
+      "same_name_wrong_key_audit_index_rejected": true,
+      "same_name_wrong_predicate_audit_index_rejected": true,
+      "authenticated_reserved_preseed_rejected": true,
+      "service_role_reserved_preseed_rejected": true,
+      "service_role_benign_to_reserved_relabel_rejected": true,
+      "service_role_truncate_rejected": true,
+      "service_role_direct_rpc_privacy_bypass_rejected": true,
+      "base64_secret_rejected": true,
+      "embedded_and_split_base64_secret_rejected": true,
+      "plain_contextual_uppercase_and_unicode_name_rejected": true,
+      "artifact_prefix_name_bypass_rejected": true,
+      "labelled_birth_date_formats_rejected": true,
+      "strict_encoded_text_parity": true,
+      "short_and_punctuation_split_base64_rejected": true,
+      "exact_safe_artifact_names_accepted": true,
+      "formatted_phone_rejected": true,
+      "labelled_contiguous_phone_rejected": true,
+      "labelled_government_and_financial_ids_rejected": true,
+      "hyphenated_and_authorization_credentials_rejected": true,
+      "successor_activation_audit_preseed_rejected": true,
+      "unexpected_preexisting_trigger_rejected": true,
+      "disposable_database_identity_required": true,
+      "legacy_migration_remains_read_only": true,
+      "sole_truthful_activation_transition": true,
+      "hosted_predecessor_audits_preserved_but_not_trusted": true,
+      "immutable_audit_update_rejected": true,
+      "immutable_audit_delete_rejected": true,
+      "anonymous_execute_rejected": true,
+      "authenticated_execute_rejected": true,
+      "canonical_memory_never_written": true
+    }
+  },
+  "live_baseline": {
+    "supabase_project": "ivmvufhcsezyhczzondn",
+    "bridge_version": 15,
+    "bridge_package_sha256": "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a",
+    "bridge_raw_sha256": "7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf",
+    "bridge_source_commit": "523fec111bfb2c327f69c2abdf0784775ab49a90",
+    "principal": "projectos-mcpmaster-production",
+    "scopes": [
+      "memory:health",
+      "memory:read"
+    ],
+    "candidate_action_live": false,
+    "production_changed": false
+  },
+  "migration_parity": {
+    "verdict": "RED",
+    "hosted_versions": 69,
+    "source_versions_before_successor": 17,
+    "matching_versions": 15,
+    "hosted_only_versions": 54,
+    "local_only_versions_before_successor": 2,
+    "source_versions_on_successor": 19,
+    "local_only_versions_on_successor": 4,
+    "successor_adds_local_only_migrations": 2,
+    "hosted_history_mutation_authorized": false
+  },
+  "activation_order": [
+    "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+    "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+    "supabase/functions/pandora-projectos-bridge/index.ts"
+  ],
+  "rollback": {
+    "live_v15_source_recoverable": true,
+    "live_v15_restore_rehearsed": false,
+    "scope_rollback_path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+    "scope_rollback_sha256": "a9ab3376e1dca1b795c5a2d9184ae4626e4e30e554a3c70c6a829276da34d773",
+    "scope_rollback_qualified": false,
+    "atomic_rpc_dormant_without_write_scope": true,
+    "order": [
+      "restore and verify content-addressed live v15 bridge source",
+      "remove memory:write with the forward-recovery rollback",
+      "verify health/search and fail-closed evidence submission"
+    ]
+  },
+  "authority": {
+    "source_candidate": true,
+    "tests": true,
+    "branch": true,
+    "draft_pull_request": true,
+    "merge": false,
+    "database_migration": false,
+    "edge_deployment": false,
+    "hosted_migration_history_change": false,
+    "evidence_submission": false,
+    "canonical_promotion": false,
+    "production_verification": false,
+    "pxe_0008_closure": false,
+    "issue_56_predecessor_authorization_recorded": true,
+    "successor_exact_artifact_authorized": false,
+    "refreshed_exact_artifact_owner_authorization_required": true,
+    "different_vendor_review_required": true
+  },
+  "proof_state": {
+    "documented": true,
+    "implemented": true,
+    "local_source_checks": true,
+    "exact_head_ci": "pending_at_source_creation",
+    "independent_review": false,
+    "deployed": false,
+    "production_verified": false,
+    "pxe_0008_closed": false
+  },
+  "manifest": "recovery/evidence/memory-evidence-intake-atomic-successor-manifest.md"
+}

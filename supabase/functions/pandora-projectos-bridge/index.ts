@@ -1,5 +1,5 @@
-import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import "jsr:@supabase/functions-js@2.110.9/edge-runtime.d.ts";
+import { createClient } from "@supabase/supabase-js";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5.10.0";
 
 const PRINCIPAL_KEY = "projectos-mcpmaster-production";
@@ -515,9 +515,6 @@ const EVIDENCE_PROOF_STAGES = new Set([
   "deployed",
   "production_verified",
 ]);
-const EVIDENCE_SOURCE = "projectos-post-task";
-const EVIDENCE_CANDIDATE_TYPE = "projectos_outcome";
-const EVIDENCE_INTAKE_KIND = "projectos_evidence_candidate_v1";
 const EVIDENCE_IDEMPOTENCY_PATTERN = /^[A-Za-z0-9._:-]{16,160}$/;
 const EVIDENCE_PROJECT_KEY_PATTERN = /^[a-z0-9][a-z0-9._-]{1,95}$/;
 const EVIDENCE_UUID_PATTERN =
@@ -544,10 +541,11 @@ const evidenceIsoTimestamp = (value: unknown): string | null => {
   return Number.isFinite(parsed) ? normalized : null;
 };
 
-const EVIDENCE_PRIVACY_SCAN_VERSION = "evidence_privacy_v2";
+const EVIDENCE_PRIVACY_SCAN_VERSION = "evidence_privacy_v3";
 const EVIDENCE_PRIVACY_TEXT_LIMIT = 20_000;
+const EVIDENCE_SAFE_ARTIFACT_NAME_PATTERN = /^(?:Atomic Migration|Systems Mastery|Candidate Atomic Migration passed\.)$/;
 const EVIDENCE_SECRET_FIELD_PATTERN = /^(?:password|passwd|passphrase|pwd|pin|secret|client_secret|secret_key|secret_access_key|aws_secret_access_key|aws_access_key_id|access_key_id|api_key|access_token|refresh_token|service_role|private_key|accountkey|sharedaccesssignature)$/i;
-const EVIDENCE_DIRECT_IDENTIFIER_FIELD_PATTERN = /^(?:phone|phone_number|mobile|mobile_number|telephone|address|street_address|home_address|mailing_address|full_name|first_name|last_name|given_name|family_name|ssn|social_security_number|passport|passport_number|tax_id|bank_account|iban|card_number)$/i;
+const EVIDENCE_DIRECT_IDENTIFIER_FIELD_PATTERN = /^(?:phone|phone_number|mobile|mobile_number|telephone|address|street_address|home_address|mailing_address|full_name|first_name|last_name|given_name|family_name|date_of_birth|birth_date|dob|ssn|social_security_number|passport|passport_number|tax_id|bank_account|iban|card_number)$/i;
 
 const normalizeEvidencePrivacyKey = (value: string): string =>
   value
@@ -590,23 +588,88 @@ const decodeEvidencePrivacyText = (value: string): string => {
   return text.slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT);
 };
 
-const evidencePrivacyTextReason = (value: string): string | null => {
+const decodeEvidencePrivacyBase64 = (value: string): string[] => {
+  const text = decodeEvidencePrivacyText(value).trim();
+  const candidates: string[] = [];
+  const dataUrl = text.match(
+    /^data:[^,]{0,128};base64,([A-Za-z0-9+/_=-]{8,})$/i,
+  );
+  if (dataUrl) candidates.push(dataUrl[1]);
+  if (/^[A-Za-z0-9+/_-]{8,}={0,2}$/.test(text)) candidates.push(text);
+  for (const match of text.matchAll(/[A-Za-z0-9+/_-]{8,}={0,2}/g)) {
+    candidates.push(match[0]);
+  }
+  for (const match of text.matchAll(
+    /(?:[A-Za-z0-9+/_-][\t\r\n ,.;|]*){8,}={0,2}/g,
+  )) {
+    candidates.push(match[0].replace(/[\s,.;|]+/g, ""));
+  }
+
+  const decoded: string[] = [];
+  for (const candidate of new Set(candidates)) {
+    const standard = candidate.replace(/-/g, "+").replace(/_/g, "/");
+    const padded = standard + "=".repeat((4 - (standard.length % 4)) % 4);
+    try {
+      const result = atob(padded).slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT);
+      const printable = Array.from(result).filter((character) => {
+        const code = character.charCodeAt(0);
+        return code === 9 || code === 10 || code === 13 || code >= 32;
+      }).length;
+      if (result && printable / result.length >= 0.8) decoded.push(result);
+    } catch {
+      // Invalid base64 is not privacy evidence; structural validation handles it.
+    }
+  }
+  return decoded;
+};
+
+const evidencePrivacyTextReason = (
+  value: string,
+  decodeDepth = 0,
+): string | null => {
+  const normalized = value
+    .slice(0, EVIDENCE_PRIVACY_TEXT_LIMIT)
+    .normalize("NFKC");
+  if (/[\u200B-\u200F\u2060\uFEFF]/u.test(normalized)) {
+    return "obfuscated_text";
+  }
+  if (/%[0-9a-f]{2}/i.test(normalized)) return "percent_encoded_text";
+  if (/\\u\{?[0-9a-f]{4,6}\}?|\\x[0-9a-f]{2}|&#x[0-9a-f]{2,6};?|&#[0-9]{2,7};?|&commat;|&colon;/i.test(normalized)) {
+    return "encoded_escape_text";
+  }
   const text = decodeEvidencePrivacyText(value);
+  if (EVIDENCE_SAFE_ARTIFACT_NAME_PATTERN.test(text.trim())) return null;
+  if (decodeDepth < 2) {
+    for (const decoded of decodeEvidencePrivacyBase64(text)) {
+      const reason = evidencePrivacyTextReason(decoded, decodeDepth + 1);
+      if (reason) return `base64_${reason}`;
+    }
+  }
   const checks: Array<[RegExp, string]> = [
     [/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i, "direct_identifier_email"],
     [/(?:\+\d{1,3}[\s().-]*)?(?:\(?\d{2,4}\)?[\s.-]+)\d{3,4}[\s.-]+\d{3,4}\b/, "direct_identifier_phone"],
     [/\b(?:\+?63|0)9\d{9}\b/, "direct_identifier_phone"],
-    [/\b(?:full[ _-]?name|first[ _-]?name|last[ _-]?name|given[ _-]?name|family[ _-]?name|name)\s*[:=]\s*["']?[A-Z][A-Z .'-]{2,80}/i, "direct_identifier_name"],
+    [/\b(?:phone(?:[ _-]?number)?|telephone|mobile(?:[ _-]?number)?)\s*[:=]\s*\+?[0-9][0-9 ()-]{7,20}\b/i, "direct_identifier_phone"],
+    [/\b(?:born(?:\s+on)?|date[ _-]?of[ _-]?birth|birth[ _-]?date|birthday|dob)\s*(?:is\s+|[:= -]*)(?:[12]\d{3}[-/.][0-3]?\d[-/.][0-3]?\d|[0-3]?\d[-/.][0-3]?\d[-/.][12]\d{3}|(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+[0-3]?\d,?\s+[12]\d{3})\b/i, "direct_identifier_birth_date"],
     [/\b(?:address|street[ _-]?address|home[ _-]?address|mailing[ _-]?address)\s*[:=]\s*[^,;\n]{5,160}/i, "direct_identifier_address"],
     [/\b\d{1,5}\s+[A-Z0-9.'-]+(?:\s+[A-Z0-9.'-]+){0,5}\s+(?:street|st|road|rd|avenue|ave|boulevard|blvd|drive|dr|lane|ln|court|ct|highway|hwy|barangay|brgy)\b/i, "direct_identifier_address"],
+    [/\b(?:passport(?:[ _-]?number)?|government[ _-]?id|national[ _-]?id|tax[ _-]?id|tin|ssn|umid|philhealth|pag[ _-]?ibig)\s*[:=]\s*["']?[A-Z0-9][A-Z0-9 -]{4,40}\b/i, "direct_identifier_government"],
+    [/\b(?:card[ _-]?number|credit[ _-]?card|debit[ _-]?card|bank[ _-]?account|account[ _-]?number|iban)\s*[:=]\s*["']?[A-Z0-9][A-Z0-9 -]{4,40}\b/i, "direct_identifier_financial"],
     [/\b\d{3}-\d{2}-\d{4}\b/, "direct_identifier_government"],
     [/\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b/, "direct_identifier_financial"],
     [/-----BEGIN (?:[A-Z0-9 -]+ )?PRIVATE KEY-----/i, "private_key_material"],
     [/\b(?:AKIA|ASIA|AIDA|AROA|AIPA|ANPA|ANVA)[A-Z0-9]{16}\b/, "cloud_credential_signature"],
     [/\bAIza[0-9A-Za-z_-]{35}\b/, "cloud_credential_signature"],
-    [/\b(?:ghp|github_pat|glpat|sk|sbp|xox[baprs])_[A-Za-z0-9_-]{12,}\b/i, "credential_signature"],
+    [/\b(?:ghp|github_pat|glpat|sk|sbp|xox[baprs])[-_][A-Za-z0-9_-]{12,}\b/i, "credential_signature"],
+    [/\b(?:authorization\s*:\s*(?:bearer|basic)|bearer|basic|api[_ -]?token\s*[:=])\s+[A-Za-z0-9._~+/-]{16,}\b/i, "credential_signature"],
     [/\beyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/, "jwt_signature"],
-    [/\b(?:password|passwd|passphrase|pwd|client[_ -]?secret|secret[_ -]?(?:key|access[_ -]?key)|aws[_ -]?(?:secret[_ -]?access[_ -]?key|access[_ -]?key[_ -]?id)|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|service[_ -]?role|private[_ -]?key|accountkey|sharedaccesssignature)\s*[:=]\s*["']?(?!(?:true|false|null|none|redacted|masked)\b)[^\s"',;}{]{4,}/i, "secret_assignment"],
+    [/\b(?:password|passwd|passphrase|pwd|pin|client[_ -]?secret|secret[_ -]?(?:key|access[_ -]?key)|aws[_ -]?(?:secret[_ -]?access[_ -]?key|access[_ -]?key[_ -]?id)|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|service[_ -]?role|private[_ -]?key|accountkey|sharedaccesssignature)\s*[:=]\s*["']?[^\s"',;}{]{4,}/i, "secret_assignment"],
+    [/\b(?:full[ _-]?name|first[ _-]?name|last[ _-]?name|given[ _-]?name|family[ _-]?name|name)\s*[:=]\s*["']?[A-Z][A-Z .'-]{2,80}/i, "direct_identifier_name"],
+    [/(?<![\p{L}\p{M}])\p{Lu}[\p{L}\p{M}]{1,30}(?:[ '-](?:\p{Lu}[\p{L}\p{M}]{1,30}|\p{Lu}\.?)){1,3}(?![\p{L}\p{M}])/u, "direct_identifier_name"],
+    [/(?<![\p{L}\p{M}])\p{Lu}\.?(?:[ '-]\p{Lu}\.?){0,2}[ '-]\p{Lu}[\p{L}\p{M}]{1,30}(?![\p{L}\p{M}])/u, "direct_identifier_name"],
+    [/(?<![\p{L}\p{M}])\p{Lu}[\p{L}\p{M}]{1,30}\s+(?:(?:[Dd]e|[Dd]el|[Dd]ela|[Dd]e\s+la|[Ll]a|[Dd]a|[Dd]os|[Vv]an|[Vv]on)\s+)+\p{Lu}[\p{L}\p{M}]{1,30}(?![\p{L}\p{M}])/u, "direct_identifier_name"],
+    [/\b(?:[Cc]andidate|[Pp]erson|[Uu]ser|[Cc]ustomer|[Cc]lient|[Ee]mployee|[Oo]wner|[Cc]ontact|[Aa]uthor)\s+(?:[Nn]amed\s+)?(?:\p{Lu}[\p{L}\p{M}]{1,30}[ '-]){1,3}\p{Lu}[\p{L}\p{M}]{1,30}\b/u, "direct_identifier_name"],
+    [/\b(?:[Bb]y|[Ff]rom|[Ff]or|[Cc]ontact)\s+(?:\p{Lu}[\p{L}\p{M}]{1,30}[ '-]){1,3}\p{Lu}[\p{L}\p{M}]{1,30}\b/u, "direct_identifier_name"],
     [/https?:\/\/[^/\s:@]+:[^/\s@]{4,}@/i, "credential_in_url"],
   ];
   for (const [pattern, reason] of checks) {
@@ -645,16 +708,6 @@ const evidenceSensitiveReason = (value: unknown): string | null => {
     return null;
   };
   return visit(value);
-};
-
-const evidenceSha256 = async (value: string): Promise<string> => {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest))
-    .map((byte) => byte.toString(16).padStart(2, "0"))
-    .join("");
 };
 
 const parseEvidenceRefs = (value: unknown): JsonRecord[] | null => {
@@ -727,175 +780,10 @@ const parseEvidenceProvenance = (value: unknown): JsonRecord | null => {
   return output;
 };
 
-// Exactly what is (or is about to be) persisted for one evidence candidate.
-// Review-queue reconciliation is always driven from this, never from a fresh
-// submission, so a healed orphan mirrors the row that actually exists.
-type EvidenceSnapshot = {
-  namespace: string;
-  sourceRef: string;
-  summary: string;
-  proofStage: string;
-  claim: string;
-  evidenceRefs: unknown;
-  provenance: unknown;
-  canonicalProjectId: string;
-  canonicalProjectKey: string;
-  idempotencyKey: string;
-  fingerprint: string;
-};
-
-// Rebuild the snapshot of an already-persisted candidate from its own stored
-// columns. Returns null if the row cannot be read faithfully, so reconciliation
-// fails closed rather than writing a review item that misstates the candidate.
-const storedEvidenceSnapshot = (
-  candidate: JsonRecord,
-  namespace: string,
-  sourceRef: string,
-): EvidenceSnapshot | null => {
-  const metadata = isRecord(candidate.metadata) ? candidate.metadata : null;
-  if (!metadata) return null;
-  const summary = typeof candidate.summary === "string" ? candidate.summary : null;
-  const proofStage = typeof metadata.proof_stage === "string" ? metadata.proof_stage : null;
-  const claim = typeof metadata.claim === "string" ? metadata.claim : null;
-  const projectId = typeof metadata.project_id === "string" ? metadata.project_id : null;
-  const projectKey = typeof metadata.project_key === "string" ? metadata.project_key : null;
-  const idempotencyKey = typeof metadata.idempotency_key === "string"
-    ? metadata.idempotency_key
-    : null;
-  const fingerprint = typeof metadata.fingerprint === "string" ? metadata.fingerprint : null;
-  if (
-    !summary || !proofStage || !claim || !projectId || !projectKey ||
-    !idempotencyKey || !fingerprint || metadata.evidence_refs === undefined ||
-    metadata.provenance === undefined
-  ) {
-    return null;
-  }
-  return {
-    namespace,
-    sourceRef,
-    summary,
-    proofStage,
-    claim,
-    evidenceRefs: metadata.evidence_refs,
-    provenance: metadata.provenance,
-    canonicalProjectId: projectId,
-    canonicalProjectKey: projectKey,
-    idempotencyKey,
-    fingerprint,
-  };
-};
-
-type EnsureReviewResult =
-  | { ok: true; id: string; created: boolean }
-  | { ok: false; response: Response };
-
-// Guarantee that the persisted candidate has a pending_review queue item.
-// Called on every submission before any conflict decision, so a candidate left
-// without a queue item by a partial failure is healed on the next request with
-// the same key — including one whose content has changed.
-const ensureEvidenceReviewItem = async (
-  admin: AdminClient,
-  principal: Principal,
-  snapshot: EvidenceSnapshot,
-  candidateId: string,
-): Promise<EnsureReviewResult> => {
-  const { data: existingReview, error: existingReviewError } = await admin
-    .from("memory_review_queue_items")
-    .select("id")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", snapshot.namespace)
-    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
-    .eq("source_ref", snapshot.sourceRef)
-    .maybeSingle();
-
-  if (existingReviewError) {
-    console.error("projectos_evidence_review_lookup_failed", existingReviewError.message);
-    return { ok: false, response: respond({ ok: false, error: "review_lookup_failed" }, 500) };
-  }
-  if (existingReview?.id) {
-    return { ok: true, id: existingReview.id, created: false };
-  }
-
-  const { data: insertedReview, error: reviewInsertError } = await admin
-    .from("memory_review_queue_items")
-    .insert({
-      user_id: principal.memory_user_id,
-      namespace: snapshot.namespace,
-      status: "pending_review",
-      candidate_type: EVIDENCE_CANDIDATE_TYPE,
-      normalized_text: snapshot.summary,
-      evidence_snapshot: {
-        hasEvidence: true,
-        intakeKind: EVIDENCE_INTAKE_KIND,
-        sourceRef: snapshot.sourceRef,
-        proofStage: snapshot.proofStage,
-        claim: snapshot.claim,
-        evidenceRefs: snapshot.evidenceRefs,
-        provenance: snapshot.provenance,
-        candidateId,
-      },
-      sensitivity_snapshot: {
-        classification: "low",
-        containsSecrets: false,
-        containsPersonalData: false,
-        containsRawArguments: false,
-        containsRawResults: false,
-        containsRawErrors: false,
-      },
-      namespace_snapshot: {
-        sourceNamespace: snapshot.namespace,
-        targetNamespace: snapshot.namespace,
-        namespaceMatch: true,
-      },
-      source_metadata: {
-        source: EVIDENCE_SOURCE,
-        sourceKind: "projectos_evidence",
-        sourceRef: snapshot.sourceRef,
-        projectId: snapshot.canonicalProjectId,
-        projectKey: snapshot.canonicalProjectKey,
-        proofStage: snapshot.proofStage,
-      },
-      audit_metadata: {
-        schemaVersion: 1,
-        candidateId,
-        appendOnly: true,
-        reviewRequired: true,
-        idempotencyKey: snapshot.idempotencyKey,
-        fingerprint: snapshot.fingerprint,
-      },
-      append_only: true,
-      proposed_operation: "append",
-      requires_review: true,
-      source_ref: snapshot.sourceRef,
-      request_hash: snapshot.fingerprint,
-      fingerprint: snapshot.fingerprint,
-      persistence_execution_metadata: {},
-    })
-    .select("id")
-    .maybeSingle();
-
-  if (reviewInsertError && errorCode(reviewInsertError) !== "23505") {
-    console.error("projectos_evidence_review_insert_failed", reviewInsertError.message);
-    return { ok: false, response: respond({ ok: false, error: "review_insert_failed" }, 500) };
-  }
-  if (insertedReview?.id) {
-    return { ok: true, id: insertedReview.id, created: true };
-  }
-
-  // Lost the unique race: another concurrent submission created the queue item.
-  const { data: racedReview, error: racedReviewError } = await admin
-    .from("memory_review_queue_items")
-    .select("id")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", snapshot.namespace)
-    .eq("candidate_type", EVIDENCE_CANDIDATE_TYPE)
-    .eq("source_ref", snapshot.sourceRef)
-    .maybeSingle();
-  if (racedReviewError || !racedReview?.id) {
-    return { ok: false, response: respond({ ok: false, error: "review_recovery_failed" }, 500) };
-  }
-  return { ok: true, id: racedReview.id, created: false };
-};
+const EVIDENCE_ATOMIC_RPC = "submit_projectos_evidence_candidate_atomic";
+const EVIDENCE_RESULT_ID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const EVIDENCE_RESULT_FINGERPRINT_PATTERN = /^[a-f0-9]{64}$/;
 
 const submitEvidenceCandidate = async (
   body: JsonRecord,
@@ -1027,194 +915,78 @@ const submitEvidenceCandidate = async (
     return respond({ ok: false, error: "project_not_allowed" }, 403);
   }
 
-  const projectReference = canonicalProjectKey;
-  const sourceRef = `projectos-evidence:${canonicalProjectId}:${idempotencyKey}`;
-  const fingerprint = await evidenceSha256(JSON.stringify({
-    namespace,
-    project_id: canonicalProjectId,
-    project_key: canonicalProjectKey,
-    title,
-    summary,
-    proof_stage: proofStage,
-    claim,
-    evidence_refs: evidenceRefs,
-    provenance,
-    idempotency_key: idempotencyKey,
-  }));
-  const now = new Date().toISOString();
-
-  const incomingSnapshot: EvidenceSnapshot = {
-    namespace,
-    sourceRef,
-    summary,
-    proofStage,
-    claim,
-    evidenceRefs,
-    provenance,
-    canonicalProjectId,
-    canonicalProjectKey,
-    idempotencyKey,
-    fingerprint,
-  };
-
-  let candidateId: string | null = null;
-  let candidateCreated = false;
-  // The snapshot that is actually persisted. On a replay this is the stored
-  // row, not the incoming submission, so reconciliation cannot rewrite history.
-  let persistedSnapshot: EvidenceSnapshot | null = null;
-  const { data: existingCandidate, error: existingCandidateError } = await admin
-    .from("memory_capture_candidates")
-    .select("id,summary,metadata")
-    .eq("user_id", principal.memory_user_id)
-    .eq("namespace", namespace)
-    .eq("source", EVIDENCE_SOURCE)
-    .eq("source_ref", sourceRef)
-    .maybeSingle();
-
-  if (existingCandidateError) {
-    console.error("projectos_evidence_candidate_lookup_failed", existingCandidateError.message);
-    return respond({ ok: false, error: "candidate_lookup_failed" }, 500);
-  }
-
-  if (existingCandidate?.id) {
-    // Deliberately do NOT decide the conflict yet. The queue item is reconciled
-    // first (below) so a candidate orphaned by an earlier partial failure
-    // becomes visible to human review even when this retry carries new content.
-    persistedSnapshot = storedEvidenceSnapshot(existingCandidate, namespace, sourceRef);
-    if (!persistedSnapshot) {
-      console.error("projectos_evidence_candidate_unreadable", sourceRef);
-      return respond({ ok: false, error: "candidate_reconcile_failed" }, 500);
-    }
-    candidateId = existingCandidate.id;
-  }
-
-  if (!candidateId) {
-    const candidate = {
-      user_id: principal.memory_user_id,
-      namespace,
-      source: EVIDENCE_SOURCE,
-      source_ref: sourceRef,
-      raw_excerpt: null,
-      redacted_excerpt: summary,
-      memory_type: "business_fact",
-      title,
-      summary,
-      importance: 8,
-      sensitivity: "low",
-      confidence: 0.95,
-      should_capture: true,
-      requires_review: true,
-      status: "pending",
-      reason:
-        "ProjectOS evidence intake is review-gated. This candidate cannot become canonical without an authenticated human decision.",
-      people: [],
-      projects: [projectReference],
-      risks: [],
-      tags: ["projectos", "evidence_candidate", proofStage],
-      metadata: {
-        schema_version: 1,
-        intake_kind: EVIDENCE_INTAKE_KIND,
-        project_id: canonicalProjectId,
-        project_key: canonicalProjectKey,
-        proof_stage: proofStage,
-        claim,
-        evidence_refs: evidenceRefs,
-        provenance,
-        idempotency_key: idempotencyKey,
-        fingerprint,
-        privacy_policy: "metadata_only_v2_fail_closed",
-        privacy_scan_version: EVIDENCE_PRIVACY_SCAN_VERSION,
-        privacy_scan_passed: true,
-        privacy_scan_scope: "canonicalized_candidate_payload",
-        imported_raw_arguments: false,
-        imported_raw_results: false,
-        imported_raw_errors: false,
-      },
-      usefulness_score: 0.9,
-      confidence_score: 0.95,
-      freshness_score: 1,
-      retrieval_weight: 0.9,
-      stale_status: "active",
-      scoring_version: "projectos-evidence-v1",
-      scored_at: now,
-    };
-
-    const { data: insertedCandidate, error: candidateInsertError } = await admin
-      .from("memory_capture_candidates")
-      .insert(candidate)
-      .select("id")
-      .maybeSingle();
-
-    if (candidateInsertError && errorCode(candidateInsertError) !== "23505") {
-      console.error("projectos_evidence_candidate_insert_failed", candidateInsertError.message);
-      return respond({ ok: false, error: "candidate_insert_failed" }, 500);
-    }
-
-    if (insertedCandidate?.id) {
-      candidateId = insertedCandidate.id;
-      candidateCreated = true;
-      persistedSnapshot = incomingSnapshot;
-    } else {
-      // Lost the unique race: adopt the winner's stored row and, as above,
-      // reconcile its queue item before judging the conflict.
-      const { data: racedCandidate, error: racedCandidateError } = await admin
-        .from("memory_capture_candidates")
-        .select("id,summary,metadata")
-        .eq("user_id", principal.memory_user_id)
-        .eq("namespace", namespace)
-        .eq("source", EVIDENCE_SOURCE)
-        .eq("source_ref", sourceRef)
-        .maybeSingle();
-      if (racedCandidateError || !racedCandidate?.id) {
-        return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
-      }
-      persistedSnapshot = storedEvidenceSnapshot(racedCandidate, namespace, sourceRef);
-      if (!persistedSnapshot) {
-        console.error("projectos_evidence_candidate_unreadable", sourceRef);
-        return respond({ ok: false, error: "candidate_reconcile_failed" }, 500);
-      }
-      candidateId = racedCandidate.id;
-    }
-  }
-
-  if (!candidateId || !persistedSnapshot) {
-    return respond({ ok: false, error: "candidate_recovery_failed" }, 500);
-  }
-
-  // Reconcile the review queue against whatever is actually persisted. This runs
-  // on every submission, so an orphaned candidate can never remain permanently
-  // invisible to human review.
-  const review = await ensureEvidenceReviewItem(
-    admin,
-    principal,
-    persistedSnapshot,
-    candidateId,
+  // Candidate, pending-review item, and immutable metadata-only audit are one
+  // PostgreSQL transaction. Any failure rolls back the entire lifecycle unit.
+  const { data: atomicResult, error: atomicError } = await admin.rpc(
+    EVIDENCE_ATOMIC_RPC,
+    {
+      p_principal_key: PRINCIPAL_KEY,
+      p_user_id: principal.memory_user_id,
+      p_environment: principal.environment,
+      p_namespace: namespace,
+      p_project_id: canonicalProjectId,
+      p_project_key: canonicalProjectKey,
+      p_title: title,
+      p_summary: summary,
+      p_proof_stage: proofStage,
+      p_claim: claim,
+      p_evidence_refs: evidenceRefs,
+      p_provenance: provenance,
+      p_idempotency_key: idempotencyKey,
+    },
   );
-  if (!review.ok) return review.response;
-  const reviewItemId = review.id;
-  const reviewCreated = review.created;
 
-  // Only now is it safe to report a conflict: the persisted candidate is
-  // queued for review, and this differing submission is rejected rather than
-  // silently overwriting or dropping content.
-  if (persistedSnapshot.fingerprint !== fingerprint) {
+  if (atomicError) {
+    console.error("projectos_evidence_atomic_transaction_failed", atomicError.message);
+    return respond({ ok: false, error: "candidate_transaction_failed" }, 500);
+  }
+  if (!isRecord(atomicResult) || typeof atomicResult.outcome !== "string") {
+    console.error("projectos_evidence_atomic_result_invalid");
+    return respond({ ok: false, error: "candidate_transaction_failed" }, 500);
+  }
+  if (atomicResult.outcome === "idempotency_conflict") {
     return respond({ ok: false, error: "idempotency_conflict" }, 409);
   }
+  if (
+    (atomicResult.outcome !== "created" && atomicResult.outcome !== "deduplicated") ||
+    typeof atomicResult.candidate_id !== "string" ||
+    !EVIDENCE_RESULT_ID_PATTERN.test(atomicResult.candidate_id) ||
+    typeof atomicResult.review_item_id !== "string" ||
+    !EVIDENCE_RESULT_ID_PATTERN.test(atomicResult.review_item_id) ||
+    typeof atomicResult.audit_id !== "string" ||
+    !EVIDENCE_RESULT_ID_PATTERN.test(atomicResult.audit_id) ||
+    typeof atomicResult.fingerprint !== "string" ||
+    !EVIDENCE_RESULT_FINGERPRINT_PATTERN.test(atomicResult.fingerprint) ||
+    atomicResult.namespace !== namespace ||
+    atomicResult.project_id !== canonicalProjectId ||
+    atomicResult.project_key !== canonicalProjectKey ||
+    atomicResult.proof_stage !== proofStage ||
+    atomicResult.canonical_memory_written !== false
+  ) {
+    console.error("projectos_evidence_atomic_result_invalid");
+    return respond({ ok: false, error: "candidate_transaction_failed" }, 500);
+  }
+
+  const created = atomicResult.outcome === "created";
   return respond({
     ok: true,
-    candidate_id: candidateId,
-    review_item_id: reviewItemId,
+    candidate_id: atomicResult.candidate_id,
+    review_item_id: atomicResult.review_item_id,
+    audit_id: atomicResult.audit_id,
     status: "pending_review",
     idempotency_key: idempotencyKey,
     namespace,
     project_id: canonicalProjectId,
     project_key: canonicalProjectKey,
     proof_stage: proofStage,
-    deduplicated: !(candidateCreated || reviewCreated),
-    created_at: candidateCreated || reviewCreated ? now : null,
+    deduplicated: !created,
+    created_at: created && typeof atomicResult.created_at === "string"
+      ? atomicResult.created_at
+      : null,
     canonical_memory_written: false,
-    privacy_policy: "metadata_only_v1",
-  }, candidateCreated || reviewCreated ? 202 : 200);
+    privacy_policy: "metadata_only_v2_fail_closed",
+    atomic_transaction: true,
+  }, created ? 202 : 200);
 };
 
 Deno.serve(async (request: Request) => {
