@@ -322,12 +322,28 @@ const searchMemory = async (
     itemQuery = itemQuery.or(orFilter(terms, ["title", "body"]));
   }
 
+  // Independent namespace freshness anchor: this query deliberately ignores
+  // relevance terms and requested draft visibility. It answers only when the
+  // newest active approved canonical record in this principal-owned namespace
+  // changed, so callers never mistake a query-scoped result timestamp for a
+  // namespace-wide freshness signal.
+  const freshestApprovedQuery = supabase
+    .from("memory_items")
+    .select("updated_at")
+    .eq("user_id", principal.memory_user_id)
+    .eq("namespace", namespace)
+    .eq("is_active", true)
+    .in("canon_status", [...APPROVED_CANON_STATUSES])
+    .order("updated_at", { ascending: false })
+    .limit(1);
+
   const [
     profilesResult,
     loopsResult,
     eventsResult,
     itemsResult,
     packsResult,
+    freshestApprovedResult,
   ] = await Promise.all([
     profileQuery,
     supabase
@@ -360,6 +376,7 @@ const searchMemory = async (
       .eq("status", "active")
       .order("updated_at", { ascending: false })
       .limit(20),
+    freshestApprovedQuery,
   ]);
 
   const firstError = [
@@ -368,6 +385,7 @@ const searchMemory = async (
     eventsResult,
     itemsResult,
     packsResult,
+    freshestApprovedResult,
   ].find((result) => result.error)?.error;
   if (firstError) {
     console.error("projectos_memory_search_failed", {
@@ -382,6 +400,11 @@ const searchMemory = async (
   const recentEvents = (eventsResult.data ?? []) as JsonRecord[];
   const items = (itemsResult.data ?? []) as JsonRecord[];
   const packs = (packsResult.data ?? []) as JsonRecord[];
+  const freshestApprovedRows = (freshestApprovedResult.data ?? []) as JsonRecord[];
+  const namespaceFreshestApprovedAt =
+    typeof freshestApprovedRows[0]?.updated_at === "string"
+      ? freshestApprovedRows[0].updated_at
+      : null;
   const dailyContextPack =
     packs.find((pack: JsonRecord) => pack.pack_type === "daily") ?? null;
   const latestContextPack =
@@ -493,6 +516,11 @@ const searchMemory = async (
     semantic_matches: semanticMatches,
     canonical_records: canonicalRecords,
     approved_record_count: approvedCount,
+    // This anchor is intentionally independent of the relevance query above.
+    // It is namespace-wide, not project-specific; a future project identity
+    // contract is required before claiming per-project freshness.
+    namespace_freshest_approved_at: namespaceFreshestApprovedAt,
+    freshness_scope: "namespace_approved_records",
     requested_canon_statuses: canonStatuses,
     retrieval_mode: "keyword_recency_context_pack",
     retrieval_reasoning_summary:

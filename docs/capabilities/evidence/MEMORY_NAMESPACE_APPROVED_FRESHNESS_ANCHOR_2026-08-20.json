@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-namespace-approved-freshness-anchor-20260820",
+  "observed_at": "2026-08-20T02:53:00Z",
+  "repository": "banataosystems/pandoras-box-memory",
+  "base_commit_sha": "63d133f6e865a2cf6f4a874c6304ce351df9ac4a",
+  "source_candidate_before_evidence_commit": "ad41e7cc11fed60a0be14b84cacac43ff458c077",
+  "change_contract": {
+    "response_field": "namespace_freshest_approved_at",
+    "freshness_scope": "namespace_approved_records",
+    "query_independent": true,
+    "approved_canon_only": true,
+    "project_scoped_claim": false,
+    "schema_migration_required": false
+  },
+  "source_contract": {
+    "principal_user_filter_required": true,
+    "namespace_filter_required": true,
+    "active_record_filter_required": true,
+    "approved_status_filter_required": true,
+    "updated_at_desc_limit_one": true,
+    "relevance_terms_forbidden": true,
+    "caller_requested_canon_statuses_forbidden": true,
+    "exact_head_contract_check_added": true
+  },
+  "gates": {
+    "source_implemented": true,
+    "freshness_contract_workflow_passed_on_initial_head": true,
+    "source_security_passed_on_initial_head": true,
+    "capability_registry_gate_passed": false,
+    "exact_head_tests_passed": false,
+    "independent_review_passed": false,
+    "merged": false,
+    "edge_function_deployed": false,
+    "production_verified": false
+  },
+  "limitations": [
+    "The current ProjectOS Memory search request is namespace-scoped and carries no canonical project identity, so this artifact does not claim project-specific freshness.",
+    "The anchor is independent of relevance matching but is namespace-wide across approved active records owned by the service principal memory user.",
+    "This artifact is source evidence only and does not authorize merge, migration, deployment, production release, canonical Memory mutation, or project-grant change."
+  ]
+}

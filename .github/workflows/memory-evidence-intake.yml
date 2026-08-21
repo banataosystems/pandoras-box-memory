@@ -12,6 +12,7 @@ on:
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/check_memory_evidence_activation.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
+      - 'scripts/check_memory_freshness_anchor.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
   push:
     branches:
@@ -26,6 +27,7 @@ on:
       - 'scripts/check_memory_evidence_intake.mjs'
       - 'scripts/check_memory_evidence_activation.mjs'
       - 'scripts/test_memory_evidence_intake_behavior.mjs'
+      - 'scripts/check_memory_freshness_anchor.mjs'
       - '.github/workflows/memory-evidence-intake.yml'
 
 permissions:
@@ -70,6 +72,9 @@ jobs:
 
       - name: Exercise evidence intake behavior
         run: node scripts/test_memory_evidence_intake_behavior.mjs
+
+      - name: Verify namespace-wide approved freshness anchor
+        run: node scripts/check_memory_freshness_anchor.mjs
 
       - name: Reject literal secrets
         run: bash scripts/check_no_literal_secrets.sh
