@@ -1,0 +1,249 @@
+{
+  "schema_version": "1.0.0",
+  "evidence_id": "memory-bridge-exact-source-repair-candidate-2026-08-21",
+  "observed_at": "2026-08-20T18:51:00Z",
+  "capability": "governed-projectos-evidence-candidate-bridge",
+  "proof_stage": "implemented",
+  "coordination": {
+    "issue": "banataosystems/Pandoras-box#55",
+    "activation_issue": "banataosystems/pandoras-box-memory#56",
+    "activation_id": "memory-evidence-atomic-successor-prod-activation-20260821",
+    "delivery_envelope_plan_id": "692e4599-8976-4cbc-926b-153371accfd1",
+    "delivery_envelope_write_status": "blocked",
+    "fallback_durable_location": "this exact-source candidate and its draft pull request"
+  },
+  "repository": {
+    "full_name": "banataosystems/pandoras-box-memory",
+    "repository_id": 1327294429,
+    "base_ref": "main",
+    "base_commit": "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
+    "base_tree": "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88",
+    "repair_lane_base_commit": "b88633083ac671885e622acc79b336c7840f2bae",
+    "repair_lane_base_tree": "b1fad19ce80f803dc5d3d5c086afc846441d9ecf"
+  },
+  "target_deployment": {
+    "provider": "supabase",
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "function_id": "0e7e24e6-7cb7-46d0-b474-3d626898d7e6",
+    "function_slug": "pandora-projectos-bridge",
+    "provider_assigned_next_version": null,
+    "verify_jwt": false,
+    "import_map": true,
+    "source": {
+      "commit": null,
+      "commit_binding": "exact final atomic-successor head and tree reported by the draft PR and CI",
+      "index_path": "supabase/functions/pandora-projectos-bridge/index.ts",
+      "index_blob_sha1": "2a056ec4997d7daeeed797a2eb89e9c75c25b8f3",
+      "index_raw_sha256": "383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83",
+      "index_bytes": 39055,
+      "deno_path": "supabase/functions/pandora-projectos-bridge/deno.json",
+      "deno_blob_sha1": "a4c2351c4bc2d8f41937fe05690f6fd72f3ebbf7",
+      "deno_raw_sha256": "5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b",
+      "deno_bytes": 119
+    },
+    "required_markers": {
+      "submitEvidenceCandidate": true,
+      "submit_evidence_candidate": true,
+      "atomic_rpc": "submit_projectos_evidence_candidate_atomic",
+      "direct_candidate_write": false,
+      "direct_review_write": false,
+      "unsupported_action": true,
+      "dispatch_before_search": true,
+      "dispatch_before_unsupported_fallback": true
+    }
+  },
+  "live_source_readback": {
+    "provider": "supabase",
+    "readback_method": "authenticated get_edge_function plus list_edge_functions",
+    "project_ref": "ivmvufhcsezyhczzondn",
+    "function_id": "0e7e24e6-7cb7-46d0-b474-3d626898d7e6",
+    "function_slug": "pandora-projectos-bridge",
+    "version": 15,
+    "status": "ACTIVE",
+    "updated_at": "2026-08-20T16:48:19.081Z",
+    "ezbr_sha256": "7d2388c4c101ea3ca023e7c354aa5e08e7e02c49db5d51baf752ef27debfcb0a",
+    "verify_jwt": false,
+    "import_map": true,
+    "source": {
+      "exact_repository_commit": "523fec111bfb2c327f69c2abdf0784775ab49a90",
+      "exact_repository_tree": "b450709c57c970eef345d4794d13d6026d1b6969",
+      "index_blob_sha1": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+      "index_raw_sha256": "7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf",
+      "index_bytes": 18758,
+      "deno_blob_sha1": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+      "deno_raw_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
+      "deno_bytes": 113,
+      "provider_files_byte_identical_to_repository_commit": true
+    },
+    "markers": {
+      "submitEvidenceCandidate": false,
+      "submit_evidence_candidate": false,
+      "unsupported_action": true
+    }
+  },
+  "source_parity": {
+    "verdict": "RED",
+    "classification": "source_runtime_activation_gap",
+    "canonical_and_live_index_sha256_equal": false,
+    "canonical_and_live_index_blob_equal": false,
+    "finding": "The active Supabase bridge is an exact older source artifact and does not implement the canonical evidence-candidate handler or dispatch.",
+    "repair": "After migration parity, fresh exact-artifact owner authorization, and independent review: apply the atomic RPC migration, then scope activation, then deploy only the successor bridge."
+  },
+  "forward_recovery": {
+    "governance_issue": "banataosystems/pandoras-box-memory#56",
+    "activation_id": "memory-evidence-atomic-successor-prod-activation-20260821",
+    "issue_56_predecessor_authorization_recorded": true,
+    "issue_56_authorizes_successor": false,
+    "successor_authorization_id": "memory-evidence-atomic-successor-exact-artifact-authorization",
+    "successor_exact_artifact_authorized": false,
+    "release_gate_satisfied": false,
+    "prior_hosted_migration": {
+      "source_name": "20260820113000_enable_projectos_evidence_candidate_write_scope",
+      "hosted_version": "20260820150902",
+      "hosted_statement_count": 1,
+      "runtime_scopes_after_transaction_proof_rollback": [
+        "memory:health",
+        "memory:read"
+      ],
+      "ledger_row_preserved": true
+    },
+    "atomic_migration": {
+      "path": "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+      "blob_sha1": "d83e77608c4e6c2dbd2fa59e9dd778c5852a8d1e",
+      "raw_sha256": "ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81",
+      "bytes": 47878,
+      "transactional": true,
+      "modifies_prior_ledger_row": false,
+      "adds_write_scope": false
+    },
+    "migration": {
+      "path": "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "blob_sha1": "ee5debe1544a962aee33780a6567f81aad3a7611",
+      "raw_sha256": "f40060e7bb5a7e79cbb8122369d1cd8da6d68f2b68bedbe298b6fbd888ae49c6",
+      "bytes": 22970,
+      "transactional": true,
+      "unique_forward_migration": true,
+      "modifies_prior_ledger_row": false,
+      "hosted_baseline_fail_closed": true,
+      "clean_replay_compatible": true,
+      "sole_truthful_read_to_write_transition": true,
+      "historical_source_migration_read_only": true
+    },
+    "activation_order": [
+      "supabase/migrations/20260821160000_submit_projectos_evidence_candidate_atomic.sql",
+      "supabase/migrations/20260821163000_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "supabase/functions/pandora-projectos-bridge/index.ts"
+    ],
+    "rollback": {
+      "path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+      "blob_sha1": "7933c37e47e96e60173d01afd8772b68a90b3809",
+      "raw_sha256": "a9ab3376e1dca1b795c5a2d9184ae4626e4e30e554a3c70c6a829276da34d773",
+      "bytes": 15011,
+      "transactional": true,
+      "single_execution_fail_closed": true,
+      "preserves_activation_audit": true,
+      "preserves_pending_candidates": true
+    },
+    "audit": {
+      "table": "public.audit_logs",
+      "same_transaction_as_scope_change": true,
+      "principal_user_server_derived": true,
+      "namespace": "real_life",
+      "before_after_scope_arrays_only": true,
+      "review_required": true,
+      "candidate_content_recorded": false,
+      "direct_identifiers_recorded": false,
+      "atomic_migration_sha256": "ed97a4254879c1acea18a08aefa3dce0612339bdf1b55dc64df015aa3479af81",
+      "bridge_index_sha256": "383c1cac600f0381aba21fe492bc5d04777a91e361ba5bd2ac0e088449103d83",
+      "import_map_sha256": "5089831e8691c1b4183e7d5f5c0703ca861d4bb46d5fc7f8dbee0c0f76d3a88b"
+    }
+  },
+  "vercel_route_readback": {
+    "team_id": "team_IcdJUnzLi5wUN1GD8ALHyjF7",
+    "project_id": "prj_brg3BJDcHfSftHH84NhnFtDJAnDO",
+    "deployment_id": "dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk",
+    "state": "READY",
+    "target": "production",
+    "git_repository": "banataosystems/pandoras-box-memory",
+    "git_ref": "main",
+    "git_commit": "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
+    "source_parity_verdict": "PASS",
+    "created_at": "2026-08-20T14:42:08.649Z",
+    "ready_at": "2026-08-20T14:42:24.143Z",
+    "requires_change_for_bridge_repair": false
+  },
+  "rollback_evidence": {
+    "strategy": "content_addressed_redeploy_of_current_live_source_then_scope_deactivation",
+    "provider_native_version_rollback_available": false,
+    "current_live_source_exactly_recoverable": true,
+    "current_live_source_commit": "523fec111bfb2c327f69c2abdf0784775ab49a90",
+    "current_live_source_index_blob_sha1": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+    "current_live_source_index_raw_sha256": "7cdb0e6a2ae74a6ea970ba537f8ff04c64cfd2c608e8b8e6c4a394dcff8d07cf",
+    "current_live_source_matches_provider_readback": true,
+    "restoration_rehearsed": false,
+    "automatic_rollback_qualified": false,
+    "classification": "content_addressed_source_recoverable_but_unrehearsed",
+    "database_scope_rollback": {
+      "path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+      "blob_sha1": "7933c37e47e96e60173d01afd8772b68a90b3809",
+      "raw_sha256": "a9ab3376e1dca1b795c5a2d9184ae4626e4e30e554a3c70c6a829276da34d773",
+      "bytes": 15011,
+      "transactional": true,
+      "idempotent": false,
+      "single_execution_fail_closed": true,
+      "activation_audit_preserved": true
+    },
+    "historical_transaction_proof_rollback": {
+      "path": "supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql",
+      "blob_sha1": "c7fda0c2eb9e861504ef7447db0d338c57fbb291",
+      "raw_sha256": "bd8250f19ba32640d5211727ec9bf6d9d31c594c97adb8b3549cc48dd85af779",
+      "bytes": 4394
+    },
+    "rollback_order": [
+      "redeploy the content-addressed current-live bridge source and verify provider readback",
+      "run supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+      "verify health and search remain functional and evidence submission fails closed"
+    ]
+  },
+  "post_activation_acceptance": {
+    "governed_candidate_idempotency_key": "master-pandora-systems-v1-installed-20260821",
+    "required_candidate_status": "pending",
+    "required_review_status": "pending_review",
+    "canonical_memory_written": false,
+    "prove_identical_replay_deduplicates": true,
+    "prove_changed_content_conflicts": true,
+    "resubmission_authorized_now": false
+  },
+  "authorization": {
+    "source_candidate": true,
+    "regression_tests": true,
+    "draft_pull_request": true,
+    "issue_56_predecessor_activation_task": true,
+    "successor_exact_artifact_authorized": false,
+    "owner_authorization_issue": "banataosystems/pandoras-box-memory#56",
+    "remaining_release_gates_satisfied": false,
+    "merge": false,
+    "database_mutation": false,
+    "edge_function_deployment": false,
+    "vercel_production_effect": false,
+    "candidate_resubmission": false,
+    "canonical_promotion": false,
+    "production_verification": false
+  },
+  "proof_state": {
+    "documented": true,
+    "implemented_in_canonical_source": true,
+    "regression_candidate_prepared": true,
+    "forward_recovery_implemented": true,
+    "issue_56_predecessor_authorization_recorded": true,
+    "successor_exact_artifact_authorized": false,
+    "exact_head_tested": false,
+    "independent_review": false,
+    "deployed": false,
+    "production_verified": false
+  },
+  "external_reference": {
+    "supabase_edge_function_deployment_guide": "https://supabase.com/docs/guides/functions/deploy",
+    "supabase_dashboard_version_control_note": "https://supabase.com/docs/guides/functions/quickstart-dashboard"
+  }
+}
