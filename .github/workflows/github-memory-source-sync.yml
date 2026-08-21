@@ -1,0 +1,137 @@
+name: GitHub Memory source sync
+
+on:
+  pull_request:
+    paths:
+      - "supabase/functions/pandora-github-memory-ingest/**"
+      - "supabase/migrations/20260820010000_add_github_memory_source_intake.sql"
+      - ".github/workflows/github-memory-source-sync.yml"
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "docs/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  EXPECTED_HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  contract:
+    name: Verify GitHub Memory source sync contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out exact event source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.EXPECTED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Assert exact checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$EXPECTED_HEAD"
+          echo "source_sha=$actual" >> "$GITHUB_STEP_SUMMARY"
+          echo "tree_sha=$(git rev-parse HEAD^{tree})" >> "$GITHUB_STEP_SUMMARY"
+      - name: Set up Deno
+        uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5
+        with:
+          deno-version: v2.4.3
+      - name: Check GitHub intake formatting
+        run: >-
+          deno fmt --check
+          supabase/functions/pandora-github-memory-ingest/deno.json
+          supabase/functions/pandora-github-memory-ingest/index.ts
+          supabase/functions/pandora-github-memory-ingest/policy.ts
+          supabase/functions/pandora-github-memory-ingest/policy_test.ts
+      - name: Run GitHub identity and snapshot regressions
+        run: >-
+          deno test
+          --config supabase/functions/pandora-github-memory-ingest/deno.json
+          supabase/functions/pandora-github-memory-ingest/policy_test.ts
+      - name: Type-check GitHub Memory ingest
+        run: >-
+          deno check
+          --config supabase/functions/pandora-github-memory-ingest/deno.json
+          supabase/functions/pandora-github-memory-ingest/index.ts
+      - name: Scan source for literal secrets
+        run: bash scripts/check_no_literal_secrets.sh
+
+  capture-main-source:
+    name: Capture main source into Memory review queue
+    needs: contract
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out exact main source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ env.EXPECTED_HEAD }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Assert exact main checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$EXPECTED_HEAD"
+          test "$GITHUB_REF" = "refs/heads/main"
+      - name: Submit signed GitHub source snapshot
+        shell: bash
+        env:
+          PANDORA_GITHUB_MEMORY_URL: https://ivmvufhcsezyhczzondn.supabase.co/functions/v1/pandora-github-memory-ingest
+        run: |
+          set -euo pipefail
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}"
+          test -n "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}"
+          oidc_json="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=pandora-memory-github-v1")"
+          oidc_token="$(printf '%s' "$oidc_json" | node -e '
+            let s="";
+            process.stdin.on("data",d=>s+=d);
+            process.stdin.on("end",()=>{
+              const v=JSON.parse(s).value;
+              if(typeof v!=="string" || v.length<20) process.exit(2);
+              process.stdout.write(v);
+            });
+          ')"
+          test -n "$oidc_token"
+          response="$(curl --silent --show-error --fail-with-body \
+            --request POST \
+            --header "Authorization: Bearer ${oidc_token}" \
+            --header "Content-Type: application/json" \
+            --data '{}' \
+            "$PANDORA_GITHUB_MEMORY_URL")"
+          printf '%s' "$response" | EXPECTED_HEAD="$EXPECTED_HEAD" node -e '
+            let s="";
+            process.stdin.on("data",d=>s+=d);
+            process.stdin.on("end",()=>{
+              const v=JSON.parse(s);
+              if(v.ok!==true) throw new Error("memory_intake_not_ok");
+              if(v.source_sha!==process.env.EXPECTED_HEAD) throw new Error("source_sha_mismatch");
+              if(v.status!=="pending_review") throw new Error("review_gate_missing");
+              if(v.canonical_memory_written!==false) throw new Error("canonical_write_forbidden");
+              const safe={
+                ok:v.ok,
+                status:v.status,
+                source_sha:v.source_sha,
+                source_tree_sha:v.source_tree_sha,
+                snapshot_sha256:v.snapshot_sha256,
+                canonical_memory_written:v.canonical_memory_written,
+                deduplicated:v.deduplicated
+              };
+              process.stdout.write(JSON.stringify(safe)+"\n");
+            });
+          '
