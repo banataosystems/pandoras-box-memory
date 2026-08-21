@@ -69,6 +69,14 @@ const validate = (evidence) => {
     "the failed governed issue write must not be represented as persisted",
   );
   assert.equal(evidence.coordination.delivery_envelope_plan_id, "692e4599-8976-4cbc-926b-153371accfd1");
+  assert.equal(
+    evidence.coordination.activation_issue,
+    "banataosystems/pandoras-box-memory#56",
+  );
+  assert.equal(
+    evidence.coordination.activation_id,
+    "memory-evidence-candidate-bridge-prod-activation-20260821",
+  );
 
   const repository = evidence.repository;
   assert.equal(repository.full_name, "banataosystems/pandoras-box-memory");
@@ -76,6 +84,8 @@ const validate = (evidence) => {
   assert.equal(repository.base_ref, "main");
   assert.equal(repository.base_commit, "478105057c1ca5fb5b356750ba1fa1fb58b1f42c");
   assert.equal(repository.base_tree, "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88");
+  assert.equal(repository.repair_lane_base_commit, "b88633083ac671885e622acc79b336c7840f2bae");
+  assert.equal(repository.repair_lane_base_tree, "b1fad19ce80f803dc5d3d5c086afc846441d9ecf");
 
   const target = evidence.target_deployment;
   const targetSource = target.source;
@@ -179,6 +189,75 @@ const validate = (evidence) => {
     gitBlobSha1(currentIndex) === gitBlobSha1(rollbackIndex),
   );
 
+  const forwardRecovery = evidence.forward_recovery;
+  assert.equal(
+    forwardRecovery.governance_issue,
+    "banataosystems/pandoras-box-memory#56",
+  );
+  assert.equal(
+    forwardRecovery.activation_id,
+    "memory-evidence-candidate-bridge-prod-activation-20260821",
+  );
+  assert.equal(forwardRecovery.owner_production_authorization_recorded, true);
+  assert.equal(forwardRecovery.release_gate_satisfied, false);
+  const priorMigration = forwardRecovery.prior_hosted_migration;
+  assert.equal(
+    priorMigration.source_name,
+    "20260820113000_enable_projectos_evidence_candidate_write_scope",
+  );
+  assert.equal(priorMigration.hosted_version, "20260820150902");
+  assert.equal(priorMigration.hosted_statement_count, 1);
+  assert.deepEqual(priorMigration.runtime_scopes_after_transaction_proof_rollback, [
+    "memory:health",
+    "memory:read",
+  ]);
+  assert.equal(priorMigration.ledger_row_preserved, true);
+
+  const forwardMigration = forwardRecovery.migration;
+  const forwardMigrationSource = read(forwardMigration.path);
+  assertIdentity(
+    forwardMigrationSource,
+    {
+      bytes: forwardMigration.bytes,
+      raw_sha256: forwardMigration.raw_sha256,
+      blob_sha1: forwardMigration.blob_sha1,
+    },
+    "forward activation migration",
+  );
+  assert.equal(forwardMigration.transactional, true);
+  assert.equal(forwardMigration.unique_forward_migration, true);
+  assert.equal(forwardMigration.modifies_prior_ledger_row, false);
+  assert.equal(forwardMigration.hosted_baseline_fail_closed, true);
+  assert.equal(forwardMigration.clean_replay_compatible, true);
+
+  const forwardRollback = forwardRecovery.rollback;
+  const forwardRollbackSource = read(forwardRollback.path);
+  assertIdentity(
+    forwardRollbackSource,
+    {
+      bytes: forwardRollback.bytes,
+      raw_sha256: forwardRollback.raw_sha256,
+      blob_sha1: forwardRollback.blob_sha1,
+    },
+    "forward activation rollback",
+  );
+  assert.equal(forwardRollback.transactional, true);
+  assert.equal(forwardRollback.single_execution_fail_closed, true);
+  assert.equal(forwardRollback.preserves_activation_audit, true);
+  assert.equal(forwardRollback.preserves_pending_candidates, true);
+
+  const activationAudit = forwardRecovery.audit;
+  assert.equal(activationAudit.table, "public.audit_logs");
+  assert.equal(activationAudit.same_transaction_as_scope_change, true);
+  assert.equal(activationAudit.principal_user_server_derived, true);
+  assert.equal(activationAudit.namespace, "real_life");
+  assert.equal(activationAudit.before_after_scope_arrays_only, true);
+  assert.equal(activationAudit.review_required, true);
+  assert.equal(activationAudit.candidate_content_recorded, false);
+  assert.equal(activationAudit.direct_identifiers_recorded, false);
+  assert.equal(activationAudit.bridge_index_sha256, targetSource.index_raw_sha256);
+  assert.equal(activationAudit.import_map_sha256, targetSource.deno_raw_sha256);
+
   const vercel = evidence.vercel_route_readback;
   assert.equal(vercel.team_id, "team_IcdJUnzLi5wUN1GD8ALHyjF7");
   assert.equal(vercel.project_id, "prj_brg3BJDcHfSftHH84NhnFtDJAnDO");
@@ -216,13 +295,32 @@ const validate = (evidence) => {
     "database scope rollback",
   );
   assert.equal(databaseRollback.transactional, true);
-  assert.equal(databaseRollback.idempotent, true);
+  assert.equal(databaseRollback.idempotent, false);
+  assert.equal(databaseRollback.single_execution_fail_closed, true);
+  assert.equal(databaseRollback.activation_audit_preserved, true);
+  const historicalRollback = rollback.historical_transaction_proof_rollback;
+  const historicalRollbackSource = read(historicalRollback.path);
+  assertIdentity(
+    historicalRollbackSource,
+    {
+      bytes: historicalRollback.bytes,
+      raw_sha256: historicalRollback.raw_sha256,
+      blob_sha1: historicalRollback.blob_sha1,
+    },
+    "historical transaction-proof rollback",
+  );
   assert.equal(rollback.rollback_order.length, 3);
 
   const authorization = evidence.authorization;
   assert.equal(authorization.source_candidate, true);
   assert.equal(authorization.regression_tests, true);
   assert.equal(authorization.draft_pull_request, true);
+  assert.equal(authorization.owner_production_activation_task, true);
+  assert.equal(
+    authorization.owner_authorization_issue,
+    "banataosystems/pandoras-box-memory#56",
+  );
+  assert.equal(authorization.remaining_release_gates_satisfied, false);
   for (const gate of [
     "merge",
     "database_mutation",
@@ -248,6 +346,8 @@ const validate = (evidence) => {
   assert.equal(evidence.proof_state.documented, true);
   assert.equal(evidence.proof_state.implemented_in_canonical_source, true);
   assert.equal(evidence.proof_state.regression_candidate_prepared, true);
+  assert.equal(evidence.proof_state.forward_recovery_implemented, true);
+  assert.equal(evidence.proof_state.owner_production_authorization_recorded, true);
   assert.equal(evidence.proof_state.exact_head_tested, false);
   assert.equal(evidence.proof_state.independent_review, false);
   assert.equal(evidence.proof_state.deployed, false);
@@ -292,6 +392,15 @@ if (process.argv.includes("--self-test")) {
     }],
     ["premature mastery resubmission", (copy) => {
       copy.post_activation_acceptance.resubmission_authorized_now = true;
+    }],
+    ["wrong governed activation", (copy) => {
+      copy.forward_recovery.activation_id = "wrong-activation";
+    }],
+    ["ledger history rewrite", (copy) => {
+      copy.forward_recovery.prior_hosted_migration.ledger_row_preserved = false;
+    }],
+    ["premature release gate", (copy) => {
+      copy.forward_recovery.release_gate_satisfied = true;
     }],
   ];
 

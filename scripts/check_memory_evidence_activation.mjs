@@ -5,22 +5,32 @@ const migrationPath =
   "supabase/migrations/20260820113000_enable_projectos_evidence_candidate_write_scope.sql";
 const rollbackPath =
   "supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql";
+const forwardMigrationPath =
+  "supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql";
+const forwardRollbackPath =
+  "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql";
 const manifestPath =
   "recovery/evidence/memory-evidence-intake-activation-release-manifest.md";
 const bridgeCandidateEvidencePath =
   "docs/capabilities/evidence/MEMORY_BRIDGE_EXACT_SOURCE_REPAIR_CANDIDATE_2026-08-21.json";
 const bridgeCandidateCheckPath =
   "scripts/check_memory_bridge_repair_candidate.mjs";
+const secretCheckPath = "scripts/check_no_literal_secrets.sh";
 const workflowPath = ".github/workflows/memory-evidence-intake.yml";
 
 const migration = fs.readFileSync(migrationPath, "utf8");
 const rollback = fs.readFileSync(rollbackPath, "utf8");
+const forwardMigration = fs.readFileSync(forwardMigrationPath, "utf8");
+const forwardRollback = fs.readFileSync(forwardRollbackPath, "utf8");
 const manifest = fs.readFileSync(manifestPath, "utf8");
+const secretCheck = fs.readFileSync(secretCheckPath, "utf8");
 const workflow = fs.readFileSync(workflowPath, "utf8");
 
 for (const [name, source] of [
   ["migration", migration],
   ["rollback", rollback],
+  ["forward migration", forwardMigration],
+  ["forward rollback", forwardRollback],
 ]) {
   assert.match(source, /^begin;/m, `${name} must be transactional`);
   assert.match(source, /^commit;/m, `${name} must commit explicitly`);
@@ -62,6 +72,62 @@ for (const marker of [
 }
 assert.ok(!rollback.includes("set scopes = array['memory:health', 'memory:read', 'memory:write']::text[]"));
 
+for (const marker of [
+  "20260820150902",
+  "20260820113000_enable_projectos_evidence_candidate_write_scope",
+  "hosted_rolled_back",
+  "clean_replay_active",
+  "rolled-back scope constraint definition drift",
+  "another principal has write scope",
+  "insert into public.audit_logs",
+  "memory-evidence-candidate-bridge-prod-activation-20260821",
+  "banataosystems/pandoras-box-memory#56",
+  "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+  "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf",
+  "'review_required', true",
+  "'canonical_memory_written', false",
+]) {
+  assert.ok(
+    forwardMigration.includes(marker),
+    `forward migration marker missing: ${marker}`,
+  );
+}
+assert.ok(
+  !forwardMigration.includes("migration repair"),
+  "forward recovery must not rewrite hosted migration history",
+);
+assert.ok(
+  !/(?:insert\s+into|update|delete\s+from)\s+supabase_migrations\.schema_migrations/i.test(
+    forwardMigration,
+  ),
+  "forward recovery must leave the prior migration ledger row untouched",
+);
+
+for (const marker of [
+  "Restore and verify the recovered live bridge source",
+  "523fec111bfb2c327f69c2abdf0784775ab49a90",
+  "exact activated scopes missing",
+  "activated scope constraint drift",
+  "write scope escaped target principal",
+  "insert into public.audit_logs",
+  "memory-evidence-candidate-bridge-prod-rollback-20260821",
+  "memory-evidence-candidate-bridge-prod-activation-20260821",
+  "preserve_pending_candidates",
+  "canonical_memory_deleted",
+]) {
+  assert.ok(
+    forwardRollback.includes(marker),
+    `forward rollback marker missing: ${marker}`,
+  );
+}
+assert.ok(!/delete\s+from\s+public\.audit_logs/i.test(forwardRollback));
+assert.ok(!/delete\s+from\s+public\.memory_/i.test(forwardRollback));
+
+assert.ok(
+  secretCheck.includes('grep -nE -- "$pattern"'),
+  "secret scan must terminate grep options before an option-like regex",
+);
+
 const activate = (scopes) => {
   const allowed = new Set(["memory:health", "memory:read", "memory:write"]);
   assert.ok(scopes.includes("memory:health"));
@@ -93,9 +159,12 @@ assert.throws(() => activate(["memory:health", "memory:read", "memory:admin"]));
 for (const path of [
   migrationPath,
   rollbackPath,
+  forwardMigrationPath,
+  forwardRollbackPath,
   manifestPath,
   bridgeCandidateEvidencePath,
   bridgeCandidateCheckPath,
+  secretCheckPath,
 ]) {
   assert.ok(workflow.includes(path), `workflow path filter missing: ${path}`);
 }
@@ -113,7 +182,9 @@ for (const marker of [
   "dpl_7d7WTrvGvrv8cC9ZMrCc59qmDUUk",
   "0fcacb20c0ff46ca224ca1769098ac3db14bb83d9bb264b755c23a58f2382e78",
   "No automatic canonical Memory promotion",
-  "Explicit owner production authorization",
+  "memory-evidence-candidate-bridge-prod-activation-20260821",
+  "banataosystems/pandoras-box-memory#56",
+  "Owner production authorization is recorded",
 ]) {
   assert.ok(manifest.includes(marker), `manifest marker missing: ${marker}`);
 }

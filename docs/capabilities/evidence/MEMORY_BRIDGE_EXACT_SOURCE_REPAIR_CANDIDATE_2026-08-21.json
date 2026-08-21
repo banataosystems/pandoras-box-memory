@@ -6,6 +6,8 @@
   "proof_stage": "implemented",
   "coordination": {
     "issue": "banataosystems/Pandoras-box#55",
+    "activation_issue": "banataosystems/pandoras-box-memory#56",
+    "activation_id": "memory-evidence-candidate-bridge-prod-activation-20260821",
     "delivery_envelope_plan_id": "692e4599-8976-4cbc-926b-153371accfd1",
     "delivery_envelope_write_status": "blocked",
     "fallback_durable_location": "this exact-source candidate and its draft pull request"
@@ -15,7 +17,9 @@
     "repository_id": 1327294429,
     "base_ref": "main",
     "base_commit": "478105057c1ca5fb5b356750ba1fa1fb58b1f42c",
-    "base_tree": "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88"
+    "base_tree": "fb4909bd962ddf32df3a63fbd46c136d7b3d9d88",
+    "repair_lane_base_commit": "b88633083ac671885e622acc79b336c7840f2bae",
+    "repair_lane_base_tree": "b1fad19ce80f803dc5d3d5c086afc846441d9ecf"
   },
   "target_deployment": {
     "provider": "supabase",
@@ -81,6 +85,55 @@
     "finding": "The active Supabase bridge is an exact older source artifact and does not implement the canonical evidence-candidate handler or dispatch.",
     "repair": "Deploy only the target source identity after separate production authorization; do not edit the already-correct runtime source merely to create a diff."
   },
+  "forward_recovery": {
+    "governance_issue": "banataosystems/pandoras-box-memory#56",
+    "activation_id": "memory-evidence-candidate-bridge-prod-activation-20260821",
+    "owner_production_authorization_recorded": true,
+    "release_gate_satisfied": false,
+    "prior_hosted_migration": {
+      "source_name": "20260820113000_enable_projectos_evidence_candidate_write_scope",
+      "hosted_version": "20260820150902",
+      "hosted_statement_count": 1,
+      "runtime_scopes_after_transaction_proof_rollback": [
+        "memory:health",
+        "memory:read"
+      ],
+      "ledger_row_preserved": true
+    },
+    "migration": {
+      "path": "supabase/migrations/20260821014442_forward_reactivate_projectos_evidence_candidate_write_scope.sql",
+      "blob_sha1": "19e2e5401ded023bb7ef48cb1f494489627e2df8",
+      "raw_sha256": "c5107b7ebac2a070c129ea84b5a8d53db5a380d65f41c626fd1b333e4111fae4",
+      "bytes": 13705,
+      "transactional": true,
+      "unique_forward_migration": true,
+      "modifies_prior_ledger_row": false,
+      "hosted_baseline_fail_closed": true,
+      "clean_replay_compatible": true
+    },
+    "rollback": {
+      "path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+      "blob_sha1": "9fce9e88dc1461ad7c26881934c93d436c609710",
+      "raw_sha256": "43e4e9a0d4470abffbdad22c4069d4bb475ab191114dfa229b29c48a703f5627",
+      "bytes": 10211,
+      "transactional": true,
+      "single_execution_fail_closed": true,
+      "preserves_activation_audit": true,
+      "preserves_pending_candidates": true
+    },
+    "audit": {
+      "table": "public.audit_logs",
+      "same_transaction_as_scope_change": true,
+      "principal_user_server_derived": true,
+      "namespace": "real_life",
+      "before_after_scope_arrays_only": true,
+      "review_required": true,
+      "candidate_content_recorded": false,
+      "direct_identifiers_recorded": false,
+      "bridge_index_sha256": "09f7c95fc18333ae708a84f7f0476669c41fdb70a34c24bd7d8edff0f7692656",
+      "import_map_sha256": "ca096542a83daaeb67db79e8a5a66bb5ecdd9e0e773e99c5177cc366f0aacbaf"
+    }
+  },
   "vercel_route_readback": {
     "team_id": "team_IcdJUnzLi5wUN1GD8ALHyjF7",
     "project_id": "prj_brg3BJDcHfSftHH84NhnFtDJAnDO",
@@ -107,16 +160,24 @@
     "automatic_rollback_qualified": false,
     "classification": "content_addressed_source_recoverable_but_unrehearsed",
     "database_scope_rollback": {
+      "path": "supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
+      "blob_sha1": "9fce9e88dc1461ad7c26881934c93d436c609710",
+      "raw_sha256": "43e4e9a0d4470abffbdad22c4069d4bb475ab191114dfa229b29c48a703f5627",
+      "bytes": 10211,
+      "transactional": true,
+      "idempotent": false,
+      "single_execution_fail_closed": true,
+      "activation_audit_preserved": true
+    },
+    "historical_transaction_proof_rollback": {
       "path": "supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql",
       "blob_sha1": "c7fda0c2eb9e861504ef7447db0d338c57fbb291",
       "raw_sha256": "bd8250f19ba32640d5211727ec9bf6d9d31c594c97adb8b3549cc48dd85af779",
-      "bytes": 4394,
-      "transactional": true,
-      "idempotent": true
+      "bytes": 4394
     },
     "rollback_order": [
       "redeploy the content-addressed current-live bridge source and verify provider readback",
-      "run supabase/recovery/20260820_disable_projectos_evidence_candidate_write_scope.sql",
+      "run supabase/recovery/20260821_disable_projectos_evidence_candidate_write_scope_forward_recovery.sql",
       "verify health and search remain functional and evidence submission fails closed"
     ]
   },
@@ -133,6 +194,9 @@
     "source_candidate": true,
     "regression_tests": true,
     "draft_pull_request": true,
+    "owner_production_activation_task": true,
+    "owner_authorization_issue": "banataosystems/pandoras-box-memory#56",
+    "remaining_release_gates_satisfied": false,
     "merge": false,
     "database_mutation": false,
     "edge_function_deployment": false,
@@ -145,6 +209,8 @@
     "documented": true,
     "implemented_in_canonical_source": true,
     "regression_candidate_prepared": true,
+    "forward_recovery_implemented": true,
+    "owner_production_authorization_recorded": true,
     "exact_head_tested": false,
     "independent_review": false,
     "deployed": false,

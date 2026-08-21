@@ -15,13 +15,16 @@ if [[ ${#roots[@]} -eq 0 ]]; then
   exit 0
 fi
 
-# Do not scan this script against its own detection regex literals.
-mapfile -t files < <(find "${roots[@]}" -type f \
+# Do not scan this script against its own detection regex literals. `lastpipe`
+# keeps the NUL-safe file array in this shell without relying on /dev/fd process
+# substitution, which is unavailable in some governed runners.
+shopt -s lastpipe
+find "${roots[@]}" -type f \
   ! -path '*/node_modules/*' \
   ! -path '*/.git/*' \
   ! -path 'scripts/check_no_literal_secrets.sh' \
   \( -name '*.sql' -o -name '*.ts' -o -name '*.tsx' -o -name '*.js' -o -name '*.jsx' -o -name '*.json' -o -name '*.mjs' -o -name '*.cjs' -o -name '*.sh' -o -name '*.env' \) \
-  -print)
+  -print0 | mapfile -d '' -t files
 
 if [[ ${#files[@]} -eq 0 ]]; then
   echo "No scannable runtime files found; secret gate passes."
@@ -29,13 +32,15 @@ if [[ ${#files[@]} -eq 0 ]]; then
 fi
 
 failed=0
+hits_file="$(mktemp "${TMPDIR:-.}/pandora-secret-hits.XXXXXX")"
+trap 'rm -f "$hits_file"' EXIT
 check() {
   local label="$1"
   local pattern="$2"
-  if grep -nE "$pattern" "${files[@]}" >/tmp/pandora_secret_hits 2>/dev/null; then
+  if grep -nE -- "$pattern" "${files[@]}" >"$hits_file" 2>/dev/null; then
     echo "::error::Potential literal secret detected: $label"
     # Show file/line only, not the matching secret text.
-    cut -d: -f1-2 /tmp/pandora_secret_hits | sort -u
+    cut -d: -f1-2 "$hits_file" | sort -u
     failed=1
   fi
 }
@@ -47,8 +52,6 @@ check "JWT literal" 'eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20
 check "Private key block" '-----BEGIN ([A-Z0-9 ]+ )?PRIVATE KEY-----'
 check "AWS access key" 'AKIA[0-9A-Z]{16}'
 check "Slack token" 'xox[baprs]-[A-Za-z0-9-]{10,}'
-
-rm -f /tmp/pandora_secret_hits
 
 if [[ $failed -ne 0 ]]; then
   echo "Literal-secret gate FAILED. Move secrets to Supabase Vault/function secrets or the required bootstrap secret store."
