@@ -1,0 +1,2101 @@
+{
+  "schema_version": "1.0.0",
+  "registry_id": "pandora-compounding-capability-registry-v1",
+  "generated_at": "2026-08-14T01:45:00+08:00",
+  "authoritative_roadmap": {
+    "title": "Pandora Compounding Intelligence — Master Roadmap v2",
+    "github_issue": 22,
+    "issue_url": "https://github.com/banataosystems/pandoras-box-memory/issues/22",
+    "versioned_source_path": "docs/roadmap/PANDORA_COMPOUNDING_INTELLIGENCE_MASTER_ROADMAP_V2.md",
+    "normalized_body_sha256": "6edfccb01d9b0a386906383b2c954471544f86ed15c5338005edb8f569048548",
+    "state": "documented",
+    "canonical_memory_state": "blocked-pending-reviewed-persistence-and-readback"
+  },
+  "security_privacy_reliability_cross_cutting_from_phase_1": true,
+  "project_completion_percent": null,
+  "original_archive": {
+    "identity_rule": "SHA-256 plus byte size; filenames are aliases, not authority",
+    "filename_aliases": [
+      "Memory-main (4).zip",
+      "Memory-main (4)(2).zip"
+    ],
+    "size_bytes": 1085918,
+    "zip_sha256": "b0cfc83e04798887d9e889f45a1b9c8cf0e42cc51ce7f46fb3923b3a22434f2b",
+    "deterministic_capsule_sha256": "458e7fa22541f103d6ed22198418d38928bba9c43006136c70534f0afdefbb13",
+    "recorded_source_commit": "7d4ec6cb30edb922024cf05f043807759d1fded7",
+    "expected_regular_file_count": 782,
+    "archive_bytes_available_in_canonical_repository": false,
+    "deterministic_per_file_manifest_available": false,
+    "coverage": {
+      "registered_file_count": 0,
+      "expected_file_count": 782,
+      "complete": false,
+      "completion_percent": null,
+      "classification": "blocked-pending-proof",
+      "blocking_reason": "The content-addressed archive bytes and deterministic per-file manifest are not present in the exact canonical baseline; unseen files must not be reconstructed from model inference."
+    },
+    "known_capability_families": [
+      {
+        "family": "adaptive-memory",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "autopilot-distillation",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "compaction-and-scoring",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "candidate-review",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "persistence-readback-and-retrieval",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "operator-and-admin-console",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "operating-brain",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "project-context-engine",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "shadow-context-packs",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "preflight",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "promotion-request-execution-and-rollback",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "operator-actions",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "mcp-and-oauth",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "environment-governance",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "automated-tests",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      },
+      {
+        "family": "documentation-and-skills",
+        "classification": "blocked-pending-proof",
+        "evidence": "https://github.com/banataosystems/pandoras-box-memory/issues/22"
+      }
+    ]
+  },
+  "pinned_canonical_baseline": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+    "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+    "git_signature_verification": {
+      "state": "provider-verified",
+      "evidence_url": "https://github.com/banataosystems/pandoras-box-memory/commit/db409325c15778a1a701dad3f931e4c0fd19447c",
+      "independently_reverified_in_registry_cycle": false
+    },
+    "baseline_regular_file_count": 62,
+    "coverage": {
+      "registered_file_count": 62,
+      "expected_file_count": 62,
+      "complete": true,
+      "completion_percent": 100,
+      "scope": "exact canonical baseline only; not original-archive or live-runtime completeness"
+    },
+    "relationship_to_original_archive": "not-proven",
+    "relationship_to_current_production_deployment": "not-proven-file-by-file",
+    "snapshot_scope": "per-file registry pinned to the historical baseline commit below. This is NOT a file listing of current canonical main; see canonical_main_observed_at_generation for that relationship.",
+    "is_current_canonical_main": false,
+    "files": [
+      {
+        "path": ".github/workflows/security-source-gate.yml",
+        "git_blob_sha1": "d9a3fc3d6b02636108fd2805cbc82bd1d6764b29",
+        "size_bytes": 371,
+        "capability_family": "delivery-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": ".github/workflows/security-source-gate.yml",
+            "blob_sha1": "d9a3fc3d6b02636108fd2805cbc82bd1d6764b29",
+            "size_bytes": 371
+          }
+        ],
+        "owner_target": "Pandora delivery governance",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": ".github/workflows/web-recovery-build.yml",
+        "git_blob_sha1": "3fafcec1ee0606cee35440c5ea713c5ad6bb1eb9",
+        "size_bytes": 899,
+        "capability_family": "delivery-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": ".github/workflows/web-recovery-build.yml",
+            "blob_sha1": "3fafcec1ee0606cee35440c5ea713c5ad6bb1eb9",
+            "size_bytes": 899
+          }
+        ],
+        "owner_target": "Pandora delivery governance",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/.well-known/oauth-protected-resource/api/mcp/route.ts",
+        "git_blob_sha1": "1c47ceef07cc86cb73b0669563b47f019263c2a4",
+        "size_bytes": 523,
+        "capability_family": "mcp-and-oauth",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/.well-known/oauth-protected-resource/api/mcp/route.ts",
+            "blob_sha1": "1c47ceef07cc86cb73b0669563b47f019263c2a4",
+            "size_bytes": 523
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/api/mcp/route.ts",
+        "git_blob_sha1": "0b279db89d69213d3169efc328167820680b4715",
+        "size_bytes": 2077,
+        "capability_family": "mcp-and-oauth",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/api/mcp/route.ts",
+            "blob_sha1": "0b279db89d69213d3169efc328167820680b4715",
+            "size_bytes": 2077
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/api/projectos/health/route.ts",
+        "git_blob_sha1": "67d9df545b7f9007e624f4b5369d301a25ce8308",
+        "size_bytes": 299,
+        "capability_family": "memory-connector",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/api/projectos/health/route.ts",
+            "blob_sha1": "67d9df545b7f9007e624f4b5369d301a25ce8308",
+            "size_bytes": 299
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/api/projectos/memory/search/route.ts",
+        "git_blob_sha1": "1bfaaf1c864af2f9c391f17598dd79f9bb19794b",
+        "size_bytes": 862,
+        "capability_family": "memory-connector",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/api/projectos/memory/search/route.ts",
+            "blob_sha1": "1bfaaf1c864af2f9c391f17598dd79f9bb19794b",
+            "size_bytes": 862
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/auth/confirm/route.ts",
+        "git_blob_sha1": "1fa672c4f8432a771f4894f2d0ad7a89bcf1c54b",
+        "size_bytes": 2065,
+        "capability_family": "authentication-and-consent",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/auth/confirm/route.ts",
+            "blob_sha1": "1fa672c4f8432a771f4894f2d0ad7a89bcf1c54b",
+            "size_bytes": 2065
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/auth/login/page.tsx",
+        "git_blob_sha1": "87cba278a99e214ed137ee5a19364c076461827d",
+        "size_bytes": 2348,
+        "capability_family": "authentication-and-consent",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/auth/login/page.tsx",
+            "blob_sha1": "87cba278a99e214ed137ee5a19364c076461827d",
+            "size_bytes": 2348
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/globals.css",
+        "git_blob_sha1": "e9899b4dc1e2db2dfef5bfdf3b140bd6070b194b",
+        "size_bytes": 1188,
+        "capability_family": "operator-web-surface",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/globals.css",
+            "blob_sha1": "e9899b4dc1e2db2dfef5bfdf3b140bd6070b194b",
+            "size_bytes": 1188
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/layout.tsx",
+        "git_blob_sha1": "fb1dd3e36a2005b3b37d9dc13601fb2fd4e6801c",
+        "size_bytes": 360,
+        "capability_family": "operator-web-surface",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/layout.tsx",
+            "blob_sha1": "fb1dd3e36a2005b3b37d9dc13601fb2fd4e6801c",
+            "size_bytes": 360
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/oauth/consent/page.tsx",
+        "git_blob_sha1": "a878c4c6a04346f90fc5271521716ef6969ddc8f",
+        "size_bytes": 3610,
+        "capability_family": "authentication-and-consent",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/oauth/consent/page.tsx",
+            "blob_sha1": "a878c4c6a04346f90fc5271521716ef6969ddc8f",
+            "size_bytes": 3610
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "app/page.tsx",
+        "git_blob_sha1": "f3dcbab630ce0b2b5b8a936b8d5237880b95acaf",
+        "size_bytes": 660,
+        "capability_family": "operator-web-surface",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "app/page.tsx",
+            "blob_sha1": "f3dcbab630ce0b2b5b8a936b8d5237880b95acaf",
+            "size_bytes": 660
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "docs/adapters/FLUTTERFLOW_GATEWAY_ADAPTER.md",
+        "git_blob_sha1": "d3e94e23ad352601a1d11266dc72b449f52e0dd8",
+        "size_bytes": 5335,
+        "capability_family": "provider-adapters",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/adapters/FLUTTERFLOW_GATEWAY_ADAPTER.md",
+            "blob_sha1": "d3e94e23ad352601a1d11266dc72b449f52e0dd8",
+            "size_bytes": 5335
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "docs/architecture/ALWAYS_ON_MEMORY_ARCHITECTURE.md",
+        "git_blob_sha1": "77e41263c12795230f10e6babdf48b562665a355",
+        "size_bytes": 11272,
+        "capability_family": "architecture",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/architecture/ALWAYS_ON_MEMORY_ARCHITECTURE.md",
+            "blob_sha1": "77e41263c12795230f10e6babdf48b562665a355",
+            "size_bytes": 11272
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+        "git_blob_sha1": "609e0fe7c9814faa55632fafd99d18c3b0b6cd30",
+        "size_bytes": 7929,
+        "capability_family": "architecture",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+            "blob_sha1": "609e0fe7c9814faa55632fafd99d18c3b0b6cd30",
+            "size_bytes": 7929
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "docs/auth/OAUTH_CONSENT_SURFACE.md",
+        "git_blob_sha1": "0c932ff673d54789be0ae85c0dd001fa04f28f3e",
+        "size_bytes": 4950,
+        "capability_family": "authentication-and-consent",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/auth/OAUTH_CONSENT_SURFACE.md",
+            "blob_sha1": "0c932ff673d54789be0ae85c0dd001fa04f28f3e",
+            "size_bytes": 4950
+          }
+        ],
+        "owner_target": "Pandora phone-first operator experience",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "docs/project-state/PANDORA_FULL_CAPACITY_MEMORY_CANON_PROOF_2026-08-12.md",
+        "git_blob_sha1": "55a0a8c91ede49caba0fd9ed08ce827574b84022",
+        "size_bytes": 3159,
+        "capability_family": "project-state-evidence",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/project-state/PANDORA_FULL_CAPACITY_MEMORY_CANON_PROOF_2026-08-12.md",
+            "blob_sha1": "55a0a8c91ede49caba0fd9ed08ce827574b84022",
+            "size_bytes": 3159
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/project-state/PANDORA_FULL_CAPACITY_PLAN_2026-08-12.md",
+        "git_blob_sha1": "acb492e0298c3b48bd719b89c6dc530637a83d67",
+        "size_bytes": 7396,
+        "capability_family": "project-state-evidence",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/project-state/PANDORA_FULL_CAPACITY_PLAN_2026-08-12.md",
+            "blob_sha1": "acb492e0298c3b48bd719b89c6dc530637a83d67",
+            "size_bytes": 7396
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/recovery/AUTH_RECOVERY_2026-08-09.md",
+        "git_blob_sha1": "950211ce13712708634d1cbbd7fcc4a5906d819f",
+        "size_bytes": 5293,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/AUTH_RECOVERY_2026-08-09.md",
+            "blob_sha1": "950211ce13712708634d1cbbd7fcc4a5906d819f",
+            "size_bytes": 5293
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/recovery/EXTERNAL_MCP_ACCESS_BLOCKER_2026-08-09.md",
+        "git_blob_sha1": "8505a5965897ece4e5386ffb3ffc30f10dccd3cd",
+        "size_bytes": 5372,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/EXTERNAL_MCP_ACCESS_BLOCKER_2026-08-09.md",
+            "blob_sha1": "8505a5965897ece4e5386ffb3ffc30f10dccd3cd",
+            "size_bytes": 5372
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/recovery/LIVE_MEMORY_STATE_2026-08-09.md",
+        "git_blob_sha1": "5788138681383419f4cd85e5f8d38bfa6909c975",
+        "size_bytes": 8787,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/LIVE_MEMORY_STATE_2026-08-09.md",
+            "blob_sha1": "5788138681383419f4cd85e5f8d38bfa6909c975",
+            "size_bytes": 8787
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/recovery/LIVE_MIGRATION_INVENTORY_2026-08-09.md",
+        "git_blob_sha1": "e2beeef9e3a5b7f5dc52ed3faea5eff95e4ad907",
+        "size_bytes": 4271,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/LIVE_MIGRATION_INVENTORY_2026-08-09.md",
+            "blob_sha1": "e2beeef9e3a5b7f5dc52ed3faea5eff95e4ad907",
+            "size_bytes": 4271
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/recovery/LIVE_PARITY_RECONCILIATION_2026-08-10.md",
+        "git_blob_sha1": "b67586804a2debdb984ff635ace7e408c30dda06",
+        "size_bytes": 5346,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/LIVE_PARITY_RECONCILIATION_2026-08-10.md",
+            "blob_sha1": "b67586804a2debdb984ff635ace7e408c30dda06",
+            "size_bytes": 5346
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "docs/recovery/PHASE0_SOURCE_RECOVERY_GATE.md",
+        "git_blob_sha1": "b289b6af72c7bfda95838c4e80e575b9599301bb",
+        "size_bytes": 3526,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "blocked-pending-proof",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "blocked",
+            "tested": "blocked",
+            "deployed": "blocked",
+            "production_verified": "blocked"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/PHASE0_SOURCE_RECOVERY_GATE.md",
+            "blob_sha1": "b289b6af72c7bfda95838c4e80e575b9599301bb",
+            "size_bytes": 3526
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Reconcile against the content-addressed original archive and live provider state; do not infer or replay missing source."
+      },
+      {
+        "path": "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
+        "git_blob_sha1": "f3f9537ed5ec8f250afa77321bf0ae3a52e9c7eb",
+        "size_bytes": 1800,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "blocked-pending-proof",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "blocked",
+            "tested": "blocked",
+            "deployed": "blocked",
+            "production_verified": "blocked"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/recovery/SOURCE_RECOVERY_MANIFEST.json",
+            "blob_sha1": "f3f9537ed5ec8f250afa77321bf0ae3a52e9c7eb",
+            "size_bytes": 1800
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Reconcile against the content-addressed original archive and live provider state; do not infer or replay missing source."
+      },
+      {
+        "path": "docs/roadmap/ALWAYS_ON_MEMORY_IMPLEMENTATION_ROADMAP.md",
+        "git_blob_sha1": "b4de602f270a29995a6e804db3737d36c5317497",
+        "size_bytes": 8849,
+        "capability_family": "roadmap",
+        "classification": "obsolete-superseded",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/roadmap/ALWAYS_ON_MEMORY_IMPLEMENTATION_ROADMAP.md",
+            "blob_sha1": "b4de602f270a29995a6e804db3737d36c5317497",
+            "size_bytes": 8849
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Retain as provenance; link retrieval to Roadmap v2 and never treat this older roadmap as current authority."
+      },
+      {
+        "path": "docs/security/2026-08-09_LEGACY_SECRET_MIGRATION_FINDING.md",
+        "git_blob_sha1": "7ef7395205603c21a75a251aac62ce6a65c54ed5",
+        "size_bytes": 3035,
+        "capability_family": "security-evidence",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "docs/security/2026-08-09_LEGACY_SECRET_MIGRATION_FINDING.md",
+            "blob_sha1": "7ef7395205603c21a75a251aac62ce6a65c54ed5",
+            "size_bytes": 3035
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "lib/services/projectos-memory-bridge-client.ts",
+        "git_blob_sha1": "568e0318c991750b5c4483f17da4445062e66f49",
+        "size_bytes": 3609,
+        "capability_family": "memory-connector",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "lib/services/projectos-memory-bridge-client.ts",
+            "blob_sha1": "568e0318c991750b5c4483f17da4445062e66f49",
+            "size_bytes": 3609
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "lib/supabase/client.ts",
+        "git_blob_sha1": "31993ab199f1868c1b061263284aa0adc4f64215",
+        "size_bytes": 615,
+        "capability_family": "supabase-data-access",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "lib/supabase/client.ts",
+            "blob_sha1": "31993ab199f1868c1b061263284aa0adc4f64215",
+            "size_bytes": 615
+          }
+        ],
+        "owner_target": "Pandora Memory Supabase boundary",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "lib/supabase/server.ts",
+        "git_blob_sha1": "976064c2acfd85ef96d51c1be9193712665b909c",
+        "size_bytes": 815,
+        "capability_family": "supabase-data-access",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "lib/supabase/server.ts",
+            "blob_sha1": "976064c2acfd85ef96d51c1be9193712665b909c",
+            "size_bytes": 815
+          }
+        ],
+        "owner_target": "Pandora Memory Supabase boundary",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "next-env.d.ts",
+        "git_blob_sha1": "6112bfd06ed9026e0e8fa0d461535174dcbffaf6",
+        "size_bytes": 157,
+        "capability_family": "application-build-and-configuration",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "next-env.d.ts",
+            "blob_sha1": "6112bfd06ed9026e0e8fa0d461535174dcbffaf6",
+            "size_bytes": 157
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "next.config.ts",
+        "git_blob_sha1": "dcf478452042490bb80ab95e300ce09d99e7b965",
+        "size_bytes": 156,
+        "capability_family": "application-build-and-configuration",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "next.config.ts",
+            "blob_sha1": "dcf478452042490bb80ab95e300ce09d99e7b965",
+            "size_bytes": 156
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "ops/PRODUCTION_MCP_RECOVERY_2026-08-09.md",
+        "git_blob_sha1": "6f187bcba6110a78f0835b95ec84d83e0126f8d2",
+        "size_bytes": 1995,
+        "capability_family": "operations-and-rollback",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "ops/PRODUCTION_MCP_RECOVERY_2026-08-09.md",
+            "blob_sha1": "6f187bcba6110a78f0835b95ec84d83e0126f8d2",
+            "size_bytes": 1995
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "ops/projectos-memory-connector-recovery-2026-08-10.md",
+        "git_blob_sha1": "f110969dd0e8c10efd3dee6fc6e4682697cbc060",
+        "size_bytes": 5199,
+        "capability_family": "operations-and-rollback",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "ops/projectos-memory-connector-recovery-2026-08-10.md",
+            "blob_sha1": "f110969dd0e8c10efd3dee6fc6e4682697cbc060",
+            "size_bytes": 5199
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "ops/vercel-rebind-probe-2026-08-09.md",
+        "git_blob_sha1": "f52a3636d154774cd1a7eb554ff763a58a7447b3",
+        "size_bytes": 456,
+        "capability_family": "operations-and-rollback",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "ops/vercel-rebind-probe-2026-08-09.md",
+            "blob_sha1": "f52a3636d154774cd1a7eb554ff763a58a7447b3",
+            "size_bytes": 456
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "package.json",
+        "git_blob_sha1": "b5e33602df4a482e73b80a60485d58017f5e9b55",
+        "size_bytes": 573,
+        "capability_family": "application-build-and-configuration",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "package.json",
+            "blob_sha1": "b5e33602df4a482e73b80a60485d58017f5e9b55",
+            "size_bytes": 573
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "PROJECT_CUSTOM_INSTRUCTION.md",
+        "git_blob_sha1": "a8835c6af12600f417a33e2b3d2ec5eeb6e71262",
+        "size_bytes": 7538,
+        "capability_family": "product-canon",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "PROJECT_CUSTOM_INSTRUCTION.md",
+            "blob_sha1": "a8835c6af12600f417a33e2b3d2ec5eeb6e71262",
+            "size_bytes": 7538
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "RECOVERY_STATUS_2026-08-09.md",
+        "git_blob_sha1": "c02122f851a7e2245e5c71778f69065cbe70f05f",
+        "size_bytes": 3880,
+        "capability_family": "application-build-and-configuration",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "documented",
+          "stages": {
+            "documented": "proven",
+            "implemented": "not-applicable",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "RECOVERY_STATUS_2026-08-09.md",
+            "blob_sha1": "c02122f851a7e2245e5c71778f69065cbe70f05f",
+            "size_bytes": 3880
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "recovery/web-overlay/app/auth/confirm/route.ts",
+        "git_blob_sha1": "c821902596f6e3fb80314734dbfbe52f04b7437c",
+        "size_bytes": 1690,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "recovery/web-overlay/app/auth/confirm/route.ts",
+            "blob_sha1": "c821902596f6e3fb80314734dbfbe52f04b7437c",
+            "size_bytes": 1690
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "recovery/web-overlay/app/oauth/consent/page.tsx",
+        "git_blob_sha1": "c1bb0b1916ff6c73eed6cd0d7282a5503ce80a04",
+        "size_bytes": 6963,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "recovery/web-overlay/app/oauth/consent/page.tsx",
+            "blob_sha1": "c1bb0b1916ff6c73eed6cd0d7282a5503ce80a04",
+            "size_bytes": 6963
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "recovery/web-overlay/components/auth/login-form.tsx",
+        "git_blob_sha1": "c1a672c51e8de63f6508bebbeb96b0aa0021ac8d",
+        "size_bytes": 4774,
+        "capability_family": "source-and-runtime-recovery",
+        "classification": "historical-only",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "recovery/web-overlay/components/auth/login-form.tsx",
+            "blob_sha1": "c1a672c51e8de63f6508bebbeb96b0aa0021ac8d",
+            "size_bytes": 4774
+          }
+        ],
+        "owner_target": "Pandora recovery and operations",
+        "next_action": "Retain as dated evidence; supersede stale state through linked current records without deleting history."
+      },
+      {
+        "path": "scripts/check_no_literal_secrets.sh",
+        "git_blob_sha1": "4d93c14a4dc14f021f0c8a9177968718b9e42244",
+        "size_bytes": 1985,
+        "capability_family": "source-security",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "scripts/check_no_literal_secrets.sh",
+            "blob_sha1": "4d93c14a4dc14f021f0c8a9177968718b9e42244",
+            "size_bytes": 1985
+          }
+        ],
+        "owner_target": "Pandora delivery governance",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      },
+      {
+        "path": "supabase/functions/pandora-machine-gateway/index.ts",
+        "git_blob_sha1": "b4fa5019859c7cfd3e39ec649d7f6426235dc0d6",
+        "size_bytes": 17825,
+        "capability_family": "machine-gateway",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/functions/pandora-machine-gateway/index.ts",
+            "blob_sha1": "b4fa5019859c7cfd3e39ec649d7f6426235dc0d6",
+            "size_bytes": 17825
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Preserve exact live/source parity evidence and obtain different-vendor review before any deployment."
+      },
+      {
+        "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+        "git_blob_sha1": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+        "size_bytes": 113,
+        "capability_family": "projectos-memory-bridge",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/functions/pandora-projectos-bridge/deno.json",
+            "blob_sha1": "915cbeb478c0c52cc8be8f03cb307f4f72fed7d3",
+            "size_bytes": 113
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Preserve exact live/source parity evidence and obtain different-vendor review before any deployment."
+      },
+      {
+        "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+        "git_blob_sha1": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+        "size_bytes": 18758,
+        "capability_family": "projectos-memory-bridge",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/functions/pandora-projectos-bridge/index.ts",
+            "blob_sha1": "07ebf082e15867faae27c74ce9c1074d466e7f08",
+            "size_bytes": 18758
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Preserve exact live/source parity evidence and obtain different-vendor review before any deployment."
+      },
+      {
+        "path": "supabase/functions/pandora-projectos-learning/index.ts",
+        "git_blob_sha1": "6a2f9a339db0d860e8212d111505dc464b91427f",
+        "size_bytes": 20528,
+        "capability_family": "post-task-learning",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/functions/pandora-projectos-learning/index.ts",
+            "blob_sha1": "6a2f9a339db0d860e8212d111505dc464b91427f",
+            "size_bytes": 20528
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Preserve exact live/source parity evidence and obtain different-vendor review before any deployment."
+      },
+      {
+        "path": "supabase/migrations/20260808170034_migrate_pandora_integration_credentials_to_vault.sql",
+        "git_blob_sha1": "689123feac289af062c5d00ecbec780dcdaa7e17",
+        "size_bytes": 2008,
+        "capability_family": "security-and-credential-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260808170034_migrate_pandora_integration_credentials_to_vault.sql",
+            "blob_sha1": "689123feac289af062c5d00ecbec780dcdaa7e17",
+            "size_bytes": 2008
+          }
+        ],
+        "owner_target": "Pandora Memory Supabase boundary",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260808181824_add_machine_gateway_authorization_registry.sql",
+        "git_blob_sha1": "af5d1358f5003ce3140d67d35fcb83d3c4fee5cf",
+        "size_bytes": 4829,
+        "capability_family": "security-and-credential-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260808181824_add_machine_gateway_authorization_registry.sql",
+            "blob_sha1": "af5d1358f5003ce3140d67d35fcb83d3c4fee5cf",
+            "size_bytes": 4829
+          }
+        ],
+        "owner_target": "Pandora Memory Supabase boundary",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260808183717_add_gateway_service_action_registry.sql",
+        "git_blob_sha1": "f2ae2193be0bf4e521c29928421784a00d5c850a",
+        "size_bytes": 4549,
+        "capability_family": "gateway-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260808183717_add_gateway_service_action_registry.sql",
+            "blob_sha1": "f2ae2193be0bf4e521c29928421784a00d5c850a",
+            "size_bytes": 4549
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260808190813_add_gateway_workload_oidc.sql",
+        "git_blob_sha1": "aa2754649b270643b0940a1025d8a0fb278f362a",
+        "size_bytes": 4582,
+        "capability_family": "gateway-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260808190813_add_gateway_workload_oidc.sql",
+            "blob_sha1": "aa2754649b270643b0940a1025d8a0fb278f362a",
+            "size_bytes": 4582
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260808220117_record_owner_env_admin_recovery_grant.sql",
+        "git_blob_sha1": "817f879e056c013eecfe16774df1e9e020c855cb",
+        "size_bytes": 813,
+        "capability_family": "gateway-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260808220117_record_owner_env_admin_recovery_grant.sql",
+            "blob_sha1": "817f879e056c013eecfe16774df1e9e020c855cb",
+            "size_bytes": 813
+          }
+        ],
+        "owner_target": "Pandora Memory runtime",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260809140538_gateway_auto_enroll_oauth_memory_clients.sql",
+        "git_blob_sha1": "c3750b0e10e39069cddc2f3852d8d3c6a61b7023",
+        "size_bytes": 3334,
+        "capability_family": "mcp-and-oauth",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260809140538_gateway_auto_enroll_oauth_memory_clients.sql",
+            "blob_sha1": "c3750b0e10e39069cddc2f3852d8d3c6a61b7023",
+            "size_bytes": 3334
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810032703_flutterflow_secure_credential_handoff_v1.sql",
+        "git_blob_sha1": "c2fefee987343fe08c50061b2d9e370ffbc72dfc",
+        "size_bytes": 3218,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810032703_flutterflow_secure_credential_handoff_v1.sql",
+            "blob_sha1": "c2fefee987343fe08c50061b2d9e370ffbc72dfc",
+            "size_bytes": 3218
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810044812_flutterflow_manual_vault_secret_lookup_v1.sql",
+        "git_blob_sha1": "fc315782386bb91879121387d5ad84ff3e98b544",
+        "size_bytes": 1265,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810044812_flutterflow_manual_vault_secret_lookup_v1.sql",
+            "blob_sha1": "fc315782386bb91879121387d5ad84ff3e98b544",
+            "size_bytes": 1265
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810045632_flutterflow_private_yaml_snapshot_cache_v1.sql",
+        "git_blob_sha1": "943103da2f3c017037572f3207f65ef106269076",
+        "size_bytes": 1048,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810045632_flutterflow_private_yaml_snapshot_cache_v1.sql",
+            "blob_sha1": "943103da2f3c017037572f3207f65ef106269076",
+            "size_bytes": 1048
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810052850_flutterflow_private_snapshot_writer_v1.sql",
+        "git_blob_sha1": "c971b5a5802c9d01fd9452905c4afb25d14785c7",
+        "size_bytes": 1679,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810052850_flutterflow_private_snapshot_writer_v1.sql",
+            "blob_sha1": "c971b5a5802c9d01fd9452905c4afb25d14785c7",
+            "size_bytes": 1679
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810055928_flutterflow_private_snapshot_reader_v1.sql",
+        "git_blob_sha1": "7a9d0866de4dfbd689ffbb4da3dd3099dbb5769e",
+        "size_bytes": 526,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810055928_flutterflow_private_snapshot_reader_v1.sql",
+            "blob_sha1": "7a9d0866de4dfbd689ffbb4da3dd3099dbb5769e",
+            "size_bytes": 526
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810060747_flutterflow_private_snapshot_files_reader_v1.sql",
+        "git_blob_sha1": "8c20036ed4fa2629f553ece14b99aead70443eb6",
+        "size_bytes": 532,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810060747_flutterflow_private_snapshot_files_reader_v1.sql",
+            "blob_sha1": "8c20036ed4fa2629f553ece14b99aead70443eb6",
+            "size_bytes": 532
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810102152_flutterflow_github_oidc_broker.sql",
+        "git_blob_sha1": "ed8e16b324ec15099c276840297928ca278d530e",
+        "size_bytes": 4239,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810102152_flutterflow_github_oidc_broker.sql",
+            "blob_sha1": "ed8e16b324ec15099c276840297928ca278d530e",
+            "size_bytes": 4239
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810103038_fix_flutterflow_oidc_service_role_gate.sql",
+        "git_blob_sha1": "2121de6402da9300bdd54c9bf549341d929a78bf",
+        "size_bytes": 2925,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810103038_fix_flutterflow_oidc_service_role_gate.sql",
+            "blob_sha1": "2121de6402da9300bdd54c9bf549341d929a78bf",
+            "size_bytes": 2925
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "supabase/migrations/20260810115547_record_flutterflow_oidc_attempts.sql",
+        "git_blob_sha1": "557c7108ad56d98c38906563677c236e31ee3274",
+        "size_bytes": 2409,
+        "capability_family": "flutterflow-governance",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "supabase/migrations/20260810115547_record_flutterflow_oidc_attempts.sql",
+            "blob_sha1": "557c7108ad56d98c38906563677c236e31ee3274",
+            "size_bytes": 2409
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Reconcile identity and content against the 67-item live ledger; never replay historical migrations solely for parity."
+      },
+      {
+        "path": "tsconfig.json",
+        "git_blob_sha1": "9b174f8c39c55399d16c216de6f1510078aadf7c",
+        "size_bytes": 642,
+        "capability_family": "application-build-and-configuration",
+        "classification": "active-current",
+        "proof": {
+          "strongest_proven_state": "implemented",
+          "stages": {
+            "documented": "unknown",
+            "implemented": "proven",
+            "tested": "unknown",
+            "deployed": "unknown",
+            "production_verified": "unknown"
+          }
+        },
+        "evidence": [
+          {
+            "type": "github-blob",
+            "repository": "banataosystems/pandoras-box-memory",
+            "commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+            "tree": "fecb745e193c78420c19c4bbb0ee0830510a08c4",
+            "path": "tsconfig.json",
+            "blob_sha1": "9b174f8c39c55399d16c216de6f1510078aadf7c",
+            "size_bytes": 642
+          }
+        ],
+        "owner_target": "Pandora product canon",
+        "next_action": "Map exact tests and live evidence before advancing this file beyond its currently proven source state."
+      }
+    ]
+  },
+  "canonical_main_observed_at_generation": {
+    "repository": "banataosystems/pandoras-box-memory",
+    "observed_main_sha": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "observed_main_tree": "349d686418bcc4fd2d1bf933544146d72cb005d4",
+    "observed_main_regular_file_count": 94,
+    "observed_at": "2026-08-18T00:00:00Z",
+    "candidate_base": "27a3db9c009b0f5282308588d6a9a8ef3cb7d416",
+    "semantics": "Observation recorded when this registry candidate was generated. It states which canonical main the candidate was built on; it does NOT claim to remain the current default branch. Main advances after this candidate merges, and that does not make this record false.",
+    "relationship_to_pinned_baseline": {
+      "baseline_commit": "db409325c15778a1a701dad3f931e4c0fd19447c",
+      "baseline_regular_file_count": 62,
+      "baseline_files_unchanged_at_observed_main": 58,
+      "baseline_files_changed_at_observed_main": 4,
+      "baseline_files_removed_at_observed_main": 0,
+      "files_added_since_baseline": 32,
+      "changed_paths": [
+        "docs/architecture/MACHINE_GATEWAY_ARCHITECTURE.md",
+        "package.json",
+        "supabase/functions/pandora-machine-gateway/index.ts",
+        "supabase/functions/pandora-projectos-bridge/index.ts"
+      ],
+      "removed_paths": [],
+      "snapshot_scope": "Computed between the pinned baseline and observed_main_sha at generation time. Snapshot-scoped, not a live figure.",
+      "method": "git blob SHA-1 comparison of every path in both trees"
+    },
+    "per_file_registry_coverage_of_observed_main": "not-claimed",
+    "note": "The per-file registry is pinned to the historical baseline and is NOT regenerated against observed main, so the historical registry evidence is preserved rather than overwritten. Files added since the baseline are therefore unregistered, and no coverage or completion percentage is claimed."
+  },
+  "live_runtime_snapshot": {
+    "observed_at": "2026-08-14T01:36:00+08:00",
+    "durable_documentary_source": {
+      "issue_url": "https://github.com/banataosystems/pandoras-box-memory/issues/22",
+      "normalized_body_sha256": "6edfccb01d9b0a386906383b2c954471544f86ed15c5338005edb8f569048548",
+      "evidence_limit": "Provider-native identifiers and hashes are documented; independent review and file-by-file deployment parity remain open."
+    },
+    "production_origin": "https://pandorasbox-memory.vercel.app",
+    "production_deployment": {
+      "id": "dpl_7CbTiMxMXQZjrLQDKchf455iBxi4",
+      "state": "deployed",
+      "exact_relationship_to_canonical_baseline": "not-proven-file-by-file"
+    },
+    "rollback_target": {
+      "id": "dpl_9EkwxicRPzigkvUis5m1qk644CrG",
+      "state": "recorded",
+      "exercise_state": "not-proven-in-this-registry-cycle"
+    },
+    "connector_health_and_search": {
+      "state": "observed-provider-readback-not-yet-canonized",
+      "authentication": "vercel_oidc",
+      "evidence": "Pandora Memory health and search read-back in the 2026-08-14 ProjectOS recovery cycle; durable Memory-canon transition remains blocked."
+    },
+    "migration_ledger": {
+      "live_identity_count": 67,
+      "latest_live_version": "20260810115547",
+      "canonical_baseline_migration_file_count": 15,
+      "state": "deployed-identities-source-content-parity-incomplete",
+      "replay_authorized": false
+    },
+    "edge_functions": [
+      {
+        "name": "pandora-projectos-bridge",
+        "live_version": 13,
+        "provider_bundle_sha256": "3c63c366389e9cc294b548643738b06d0e594a6ee064a6976dd558e489f5fe0a",
+        "state": "deployed-source-equivalence-recorded",
+        "independent_review": "open"
+      },
+      {
+        "name": "pandora-projectos-learning",
+        "live_version": 1,
+        "provider_bundle_sha256": "eec5a67e3e9af88850aa2a0e98dca7a344a54086b51166b5cc0a91e2b0ac82fe",
+        "state": "deployed-source-equivalence-recorded",
+        "independent_review": "open"
+      },
+      {
+        "name": "pandora-machine-gateway",
+        "live_version": 3,
+        "provider_bundle_sha256": "6dcdce080275161311a3a872c821db826d09adc02eee5ff9866fcb406d02a30f",
+        "state": "deployed-comment-only-source-difference-recorded",
+        "independent_review": "open"
+      }
+    ],
+    "production_mutation_in_registry_cycle": false
+  },
+  "proof_gates": {
+    "states": [
+      "documented",
+      "implemented",
+      "tested",
+      "deployed",
+      "production-verified"
+    ],
+    "independent_different_vendor_review_required": true,
+    "merge_authorized": false,
+    "production_release_authorized": false,
+    "no_new_spending": true,
+    "no_historical_migration_or_edge_function_replay": true
+  }
+}
